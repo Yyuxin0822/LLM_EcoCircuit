@@ -4,6 +4,7 @@ venv/
 __pycache__/
 __pycache__/dataset/
 
+flaskr/static/node_modules
 instance/
 
 .pytest_cache/

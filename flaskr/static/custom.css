@@ -1,0 +1,169 @@
+#customfunc-bar>.wrapper{
+    /* layout */
+    display: flex;
+    padding: 0.5rem 1rem;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
+    /* position */
+    position: absolute;
+    left: 1rem;
+    top: 1rem;
+    border-radius: 0.5rem;
+
+    /* Regular */
+    box-shadow: 2px 2px 0.5px 0px rgba(109, 120, 148, 0.25);
+    z-index: 50;
+}
+
+
+.wrapper{
+    position: relative;
+}
+
+#customprompt{
+    position: absolute;
+    width: 12000px;
+    height: 12000px;
+    left: 0px;
+    top: 0px;
+}
+
+
+#customImage{
+    position:relative;
+    z-index: -1;
+}
+
+#canvasDraw{
+    position: absolute;
+    z-index:0;
+}
+
+.wrapper.disable-pointer-events * {
+  pointer-events: none;
+}
+
+.wrapper.disable-pointer-events #canvasDraw {
+  pointer-events: auto;
+}
+
+
+
+.node{
+    /* layout */
+    display: flex;
+    width: 12.5rem;
+    height: 1.375rem;
+    padding: 0rem 1.5rem;
+    justify-content: center;
+    align-items: center;
+    /* style */
+    position: absolute;
+    border-radius: 0.3125rem;
+    box-shadow: var(--node);
+    z-index: 0;
+  }
+
+  .node>.node-wrapper {
+    display: flex;
+    height: 1.0625rem;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1 0 0;
+  }
+  
+  .node>.input-identifier,
+  .node>.output-identifier {
+    display: flex;
+    width: 1.5rem;
+    height: 1.375rem;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+  }
+  
+  .node>.input-identifier {
+    right: 0rem;
+  }
+  
+  .node>.output-identifier {
+    left: 0rem;
+  }
+  
+  .identifier-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    flex-shrink: 0;
+    border-radius: 0.5rem;
+  }
+  
+  .identifier-unselected {
+    background: #fff;
+  }
+  
+  .identifier-selected {
+    background: #000;
+    outline: 2px solid #000;
+  }
+  
+  .identifier-toselect {
+    outline: 2px solid #000;
+    /* outline-offset: 2px;  */
+  }
+  
+  .node-selected {
+    outline: 4px solid #000;
+    outline-offset: -2px;
+  }
+
+
+/* #nodecustom .node-wrapper[contenteditable]::before {
+    content: "CUSTOM";
+    color: var(--variable-collection-grey);
+  } */
+
+
+
+.leader-line{
+    z-index: 0;
+}
+
+
+.dropdown-menu{
+    position: absolute;
+    left: 0;
+    top:calc(100%-0.5rem);
+    width:auto;
+    background-color: rgba(255, 255, 255, 0.95);
+    align-items: left;
+    padding: .5rem;
+    border-radius: .25rem;
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
+    opacity: 0;
+    pointer-events: none;
+    transform:translateY(-10px);
+    transition: opacity .15s ease-in-out, tansform .15s ease-in-out;
+    text-align: left;
+  }
+  
+  .dropdown-menu>.dropdown-item{
+    line-height: 2;
+    color:rgb(30,30,30);
+  }
+  
+  /* Selectors */
+
+  .inSelBox {
+    position: absolute;
+    border: 1px dashed var( --variable-collection-themedarkpurple);
+    background-color: rgba(232, 237, 250, 0.15);
+    pointer-events: none; /* This makes the box not interfere with mouse events */
+}
+
+ .selectedBox{
+    position: absolute;
+    outline: 4px solid var(--variable-collection-themedarkpurple);
+    /* outline-offset: 2px; */
+  }
+
