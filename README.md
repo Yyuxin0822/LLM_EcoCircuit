@@ -1,6 +1,6 @@
-# LLM_Sherbot (Deprecated)
+# LLM_EcoCircuit (In Development)
 
-Sherbot is an LLM-based web application for generative flow diagrams. As an educative tool for environmental engineering, it generates flow / circular economy diagram and allows freedom for users to doodle and modify.
+EcoCircuit is an LLM-based web application for generative flow diagrams. As an educative tool for environmental engineering, it generates flow / circular economy diagram and allows freedom for users to doodle and modify.
 
 This realease realizes all below function of Sherbot. The interactivity of the web will be improved in the next release
 ### Init
