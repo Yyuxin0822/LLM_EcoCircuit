@@ -1,4 +1,4 @@
-# LLM_Sherbot
+# LLM_Sherbot (Deprecated)
 
 Sherbot is an LLM-based web application for generative flow diagrams. As an educative tool for environmental engineering, it generates flow / circular economy diagram and allows freedom for users to doodle and modify.
 
