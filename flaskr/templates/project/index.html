@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+<div class="prompt-i-o">
+  <div class="hey-i-am-ecocircuit">
+    <span class="heading-1">Hey, I am EcoCircuit AI!</span><br>
+    <span class="normal">Generate sustainable design engineering solutions for your AEC project right away!</span>
+  </div >
+  
+  <div class="prmopt-frame">
+    <div class="frame-wrapper" id="modal-description-activate">
+      <div class="component-bar-2">
+        <span class='icon-common icon-description'></span>
+        <p>Start by describing with texts</p>
+      </div>
+    </div>
+    <div class="frame-wrapper" id="modal-img-activate">
+      <div class="component-bar-2">
+        <span class='icon-common icon-img'></span>
+        <p>Start by uploading an image</p>
+      </div>
+    </div>
+    <div class="frame-wrapper" id="modal-label-activate">
+      <div class="component-bar-2">
+        <span class='icon-common icon-idea'></span>
+        <p>Start by poping up ideas</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- start of modal-text-->
+  <div class="modal-description" id="modal-description">
+    <span class="icon-common icon-close"></span>
+    <div class="frame">
+      <div class="sub-frame-1">
+        <span class='icon-common icon-description'></span>
+        <span role="textbox" class="description" id="description" contenteditable></span>
+      </div>
+      <div class="sub-frame-2">
+        <div id="component-dont-expand-description">
+          <div class="component-bar-2">
+            <span class='icon-common icon-blank'></span>
+            <p>Expand Description with AI</p>
+          </div>
+        </div>
+        <div id="component-expand-description" class="hidden">
+          <div class="component-bar-selected" >
+            <span class='icon-common icon-tik'></span>
+            <p>Expand Description with AI</p>
+          </div>
+        </div>
+        <div class="component-bar-2">
+          <span class='icon-common icon-add'></span>
+          <div id="generate-text" class="emphasis" style="text-align: center; border: none; background-color: transparent;">
+            Generate</div>
+        </div> 
+      </div>
+    </div>
+  </div>  <!-- end of modal-text-->
+
+  <!-- start of modal-img -->
+  <div class="modal-img" id="modal-img">
+    <span class='icon-common icon-close'></span>
+    <div class="frame">
+        <form method="POST" action="/" enctype="multipart/form-data">
+            <div class="sub-frame-1">        
+                <span class='icon-common icon-upload'></span>
+                <input type="file" id="image-upload" name="image" accept="image/*" class="normal">
+            </div>
+            <div class="component-bar-2">
+                <span class='icon-common icon-add'></span>
+                <input type="submit" value="Generate" id="generate-img" class="emphasis" style="text-align: center; border: none; background-color: transparent;">
+            </div>
+        </form>
+    </div>
+  </div>  <!-- end of modal-img -->
+
+  <!-- start of modal-label -->
+  <div class="modal-label" id="modal-label">
+    <span class='icon-common icon-close'></span>
+    <div class="frame">
+      <div class="sub-frame-1">
+        <div class="component-bar-custom card-14">POTABLE WATER</div>
+        <div class="component-bar-custom card-14">WASTEWATER TREATMENT PLANT</div>
+        <div class="component-bar-custom card-14">FIRE SUPPRESSION</div>
+        <div class="component-bar-custom card-14">NON-POTABLE WATER</div>
+        <div class="component-bar-custom card-14">BIOFUEL</div>
+        <div class="component-bar-custom card-14">HVAC</div>
+        <div class="component-bar-custom card-14">LIGHTS</div>
+        <div class="component-bar-custom card-14">SUCCULENTS</div>
+        <div class="component-bar-custom card-14">WETLAND</div>
+        <div class="component-bar-custom card-14">URBAN FARM</div>
+        <div class="component-bar-custom card-14" id="custom" contenteditable></div>
+      </div>
+      <div class="component-bar-2">
+        <span class='icon-common icon-add'></span>
+        <div id="generate-label" class="generate-label emphasis" style="text-align: center; border: none; background-color: transparent;">
+          Generate</div>
+      </div> 
+
+    </div>
+  </div> <!-- end of modal-label -->
+
+</div>   <!-- end of prompt-i-o -->
+{% endblock %}
+
+
+

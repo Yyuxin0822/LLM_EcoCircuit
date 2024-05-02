@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>EcoCircuit AI | Custom </title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styleguide.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='custom.css') }}">
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <script src="{{ url_for('static', filename='node_modules/leader-line/leader-line.min.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='node_modules/plain-draggable/plain-draggable.min.js') }}"
+        defer></script>
+    <script src="{{ url_for('static', filename='base.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='customclass.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='canvasdraw.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='customselector.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='CustomFuncBar.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='generatecustom.js') }}" defer></script>
+
+</head>
+
+
+<body>
+    <div id="content-frame">
+        <div id="customfunc-bar">
+            <div class="wrapper">
+                <button id="selmode" class="custom-toggle active icon-common icon-selM"></button>
+                <span class="normal"> | </span>
+                <button id="drawmode" class="custom-toggle inactive  icon-common icon-drawM"></button>
+                <span class="normal"> | </span>
+                <button id="nodemode" class="custom-toggle inactive  icon-common icon-nodeM"></button>
+                <span class="normal"> | </span>
+                <button id="fullscreen" class="custom-toggle inactive  icon-common icon-fullscreen"></button>
+            </div>
+        </div>
+        <div class="wrapper" id="wrapper">
+            <div id="canvasboard">
+                <canvas id="canvasDraw" width="12000px" height="12000px"></canvas>
+                <div class="customImage" id="customImage"
+                    style="left: 22.5rem; top: 0; position: absolute; width: 45rem; height: 45rem; border-radius: 0.5rem;">
+                    <img src="{{customproject['img_url']}}" class="image" width="750" height="750">
+                </div>
+
+            </div>
+            <div class="customprompt-frame" id="customprompt-frame">
+                <div id="custom-id" class="hidden">{{customproject['id']}}</div>
+                <div class="customprompt" id="customprompt">
+                    <div class="customprompt-flow hidden" id="customPromptFlow">{{customproject['flow']}}</div>
+                    <div class="customprompt-node hidden" id="customPromptNode">{{customproject['node']}}</div>
+                    <div class="customprompt-system hidden" id="customPromptSystem">{{customproject['system']}}</div>
+                    <div class="customprompt-wrapper" id="customprompt-wrapper"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
