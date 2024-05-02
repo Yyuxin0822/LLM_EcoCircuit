@@ -5,11 +5,11 @@ export class PromptFlowline extends LeaderLine {
   //field declaration
   static myLines = [];
   static lineSel = true;
-  start;
-  end;
-  commonOptions;
+  start: HTMLElement;
+  end: HTMLElement;
+  commonOptions:{}; //common options for all lines
 
-  constructor(start, end) {
+  constructor(start:HTMLElement, end:HTMLElement) {
     if (PromptFlowline.isLineExists(start, end)) {
       return;
     }
@@ -92,8 +92,8 @@ export class PromptFlowline extends LeaderLine {
   }
 
   toJSONArray() {
-    let startText = this.start.querySelector('.node-wrapper').innerText;
-    let endText = this.end.querySelector('.node-wrapper').innerText;
+    let startText = this.start.querySelector('.node-wrapper').innerHTML;
+    let endText = this.end.querySelector('.node-wrapper').innerHTML;
     return [startText, endText];
   }
 
@@ -138,7 +138,6 @@ export class PromptFlowline extends LeaderLine {
     })
   };
 
-
   static rmSelFlowStyle() {
     PromptFlowline.myLines.forEach(line => {
       line.setOptions({
@@ -150,7 +149,6 @@ export class PromptFlowline extends LeaderLine {
       line.position();
     });
   }
-
 
   static addAllIdentifiers() {
     PromptFlowline.myLines.forEach(line => {
@@ -175,7 +173,6 @@ export class PromptFlowline extends LeaderLine {
       (line.start === start && line.end === end) || (line.start === end && line.end === start));
   }
 
-
   static fixLine() {
     PromptFlowline.getAllLines().forEach((line) => {
       try {
@@ -190,4 +187,6 @@ export class PromptFlowline extends LeaderLine {
   static getAllLines() {
     return PromptFlowline.myLines;
   }
+
+
 }

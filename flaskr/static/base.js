@@ -65,3 +65,19 @@ function validId(nodeName) {
       .replace(/^-+|-+$/g, '') // Remove leading and trailing dashes
       .replace(/[^\w-]+/g, ''); // Remove any remaining non-word characters (excluding dashes)
 }
+
+function parseJson(jsonString) {
+  var nodeObject = JSON.parse(jsonString);
+  var node = [];
+  Object.entries(nodeObject).forEach(([key, value]) => {
+      var subnode = [];
+      subnode.push(key);
+      if (Array.isArray(value)) {
+          value.forEach(item => subnode.push(item));
+      } else {
+          subnode.push(value);
+      }
+      node.push(subnode);
+  });
+  return node;
+}

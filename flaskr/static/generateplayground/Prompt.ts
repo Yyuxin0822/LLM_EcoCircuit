@@ -5,20 +5,17 @@ import { PromptCustomNode } from './PromptNode.js';
 //@ts-ignore
 import { PromptFlowLine } from './PromptFlowLine.js';
 
+
 export class Prompt {
     static allPrompts = [];
 
     private id: number;
-    private promptLines: PromptFlowLine[];  
-    private promptNodes: PromptNode[];  
+    public promptLines: PromptFlowLine[];
+    public promptNodes: PromptNode[];
     private _prompt: HTMLElement | null;
     private _promptFuncbar: PromptFuncBar;
     private _focusable: boolean;
-    private handler: {
-        handleClickInside: () => void;
-        handleClickOutside: () => void;
-    };
-
+    private _eventManager: EventManager;
 
     constructor(id: number) {
         this.id = id;
@@ -26,55 +23,82 @@ export class Prompt {
         this.promptNodes = [];
         this._prompt = document.getElementById("prompt" + id);
         this._promptFuncbar = new PromptFuncBar(this._prompt.querySelector(".prompt-funcbar"));
-        Prompt.allPrompts.push(this);
         this._focusable = false;
-        this.handler = {
-            handleClickInside: this.handleClickInside.bind(this),
-            handleClickOutside: this.handleClickOutside.bind(this)
-        };
-        this.attachEventListeners();
+        this._eventManager = new this.EventManager(this);
+        this._eventManager.attachEventListeners();
+
+        Prompt.allPrompts.push(this);
     }
 
-    attachEventListeners() {
-        this._prompt.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.handler.handleClickInside();
-        }, false);
+    private EventManager = class {
+        parent: Prompt;
 
-        document.addEventListener('click', this.handler.handleClickOutside, false);
-    }
+        constructor(parent: Prompt) {
+            this.parent = parent;
+            this.handleClickInside = this.handleClickInside.bind(this);
+            this.handleClickOutside = this.handleClickOutside.bind(this);
+        }
 
-    detachEventListeners() {
-        this._prompt.removeEventListener('click', this.handler.handleClickInside, false);
-        document.removeEventListener('click', this.handler.handleClickOutside, false);
-    }
+        attachEventListeners(): void {
+            this.parent._prompt.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.handleClickInside();
+            }, false);
+            this.parent._prompt.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            });
+            document.addEventListener('click', this.handleClickOutside, false);
+        }
 
-    handleClickInside() {
-        if (!this.focusable) return;
-        // Unfocus all other prompts
-        Prompt.allPrompts.forEach(p => {
-            if (p !== this && p._prompt.classList.contains("focused")) {
-                p.unfocus();
+        detachEventListeners(): void {
+            this.parent._prompt.removeEventListener('click', this.handleClickInside, false);
+            document.removeEventListener('click', this.handleClickOutside, false);
+        }
+
+
+        private handleClickInside(): void {
+            if (!this.parent.focusable) return;
+            // Unfocus all other prompts
+            Prompt.allPrompts.forEach(p => {
+                if (p !== this.parent && p._prompt.classList.contains("focused")) {
+                    p.unfocus();
+                }
+            });
+            this.parent.promptFocus();
+        }
+
+        private handleClickOutside(event: MouseEvent): void {
+            if (!this.parent.focusable) return;
+            const isClickInsideAnyPrompt = Prompt.allPrompts.some(p => p._prompt.contains(event.target as Node));
+            if (!isClickInsideAnyPrompt) {
+                this.parent.unfocus();
             }
-        });
+        }
+    }
+
+    get focusable(): boolean {
+        return this._focusable;
+    }
+
+    set focusable(focusable: boolean) {
+        this._focusable = focusable;
+    }
+
+    promptFocus(): void {
+        if (!this.focusable) return;
         this._prompt.classList.add("focused");
         this._promptFuncbar.enable();
     }
 
-    handleClickOutside(event) {
-        if (!this.focusable) return;
-        const isClickInsideAnyPrompt = Prompt.allPrompts.some(p => p._prompt.contains(event.target));
-        if (!isClickInsideAnyPrompt) {
-            this.unfocus();
-        }
-    }
-
-    unfocus() {
+    unfocus(): void {
         if (!this.focusable) return;
         this._prompt.classList.remove("focused");
         this._promptFuncbar.disable();
     }
 
+
+    //other methods to refactor
     get prompt() {
         return this._prompt;
     }
@@ -83,18 +107,10 @@ export class Prompt {
         this._prompt = document.getElementById("prompt" + id);
     }
 
-    get focusable() {
-        return this._focusable;
-    }
-
-    set focusable(focusable) {
-        this._focusable = focusable;
-    }
-
 
 
     getrefMapX() {
-        let nodeXs = new Set();
+        let nodeXs: Set<number> = new Set();
         this._prompt.querySelectorAll(".col").forEach((col) => {
             let nodeX = parseFloat(col.id.replace("col", "").replace("-", "."));
             console.log(nodeX);
@@ -104,8 +120,9 @@ export class Prompt {
         nodeXs.add(0.1);
         nodeXs.add(0.2);
         nodeXs.add(0.3);
-        nodeXs = Array.from(nodeXs).sort((a, b) => a - b);
-        return Prompt.processNodeX(nodeXs);
+
+        let sortedNodexs: number[] = Array.from<number>(nodeXs).sort((a, b) => a - b);
+        return Prompt.processNodeX(sortedNodexs);
     }
 
     convertAbstoNodeX(abs: number) {
@@ -124,24 +141,24 @@ export class Prompt {
         return parseFloat(nodeX);
     }
 
-    convertNodeXtoAbs(nodeX) {
+    convertNodeXtoAbs(nodeX: number) {
         //abs in rem
         let nodeXMap = this.getrefMapX();
         return parseFloat(nodeXMap[nodeX]);
     }
 
-    convertAbstoNodeY(abs) {
+    convertAbstoNodeY(abs: number) {
         //abs(px) = nodeY * 1.5 + 'rem';
         //consider px to rem conversion
         return Math.floor(abs / 16 / 1.5);
     }
 
 
-    static getPromptItembyPrompt(prompt) {
+    static getPromptItembyPrompt(prompt: HTMLElement | null) {
         return Prompt.allPrompts.find(p => p.prompt === prompt);
     }
 
-    static processNodeX(nodeXs) {
+    static processNodeX(nodeXs: number[]): { [key: number]: number } {
         if (nodeXs.length === 2) {
             return { [nodeXs[0]]: 0, [nodeXs[1]]: 67.5 };
         }
@@ -194,7 +211,10 @@ export class Prompt {
         return nodeXToCoordinateXMap;
     }
 
-    returnInfo(){
+
+    //prompt Manager
+
+    returnInfo() {
         let prompt_id = this.id;
         let flow = [];
         this.promptLines.forEach(line => {
@@ -206,7 +226,7 @@ export class Prompt {
         });
 
         var socket = io.connect('http://localhost:5000');
-        socket.emit('save_prompt', { "prompt_id": prompt_id, "flow": flow, "node": nodematrix});
+        socket.emit('save_prompt', { "prompt_id": prompt_id, "flow": flow, "node": nodematrix });
         return { prompt_id, flow, nodematrix };
     }
 
@@ -223,23 +243,38 @@ export class Prompt {
             });
             flow.push(flowArys);
 
-            let nodeObjs= {};
+            let nodeObjs = {};
             prompt.promptNodes.forEach(node => {
-                Object.assign(nodeObjs,node.toJSONobj());
+                Object.assign(nodeObjs, node.toJSONobj());
             });
             nodematrix.push(nodeObjs);
         });
         return { prompt_id, flow, nodematrix };
     }
+
+    getLinesWhereNodeasInput(nodeItem:PromptNode): PromptFlowLine[] {
+        return this.promptLines.filter(line => line.start === nodeItem.node);
+      }
+    
+    getLinesWhereNodeasOutput(nodeItem:PromptNode): PromptFlowLine[]{
+        return this.promptLines.filter(line => line.end === nodeItem.node);
+    }
+
 }
 
-
-
-import { FuncBar } from '../FuncBar/FuncBar.js';
+import { FuncBar } from '../FuncBar.js';
 export class PromptFuncBar extends FuncBar {
     static allPromptFuncBars = [];
+    activeToggle: HTMLElement;
+    prompt: HTMLElement;
+    selButton: HTMLElement;
+    nodeButton: HTMLElement;
+    promptItem: Prompt;
+    container: HTMLElement;
+    cleanupNodeMode: () => void;
 
-    constructor(container) {
+
+    constructor(container: HTMLElement) {
         super(container);
         this.activeToggle = this.container.querySelector(".active");
         this.prompt = this.container.closest(".prompt");
@@ -269,6 +304,12 @@ export class PromptFuncBar extends FuncBar {
         super.deactivateFunction(id); // Call base class method
         switch (id) {
             case 'selmode':
+                this.promptItem = Prompt.getPromptItembyPrompt(this.prompt);
+                let nodes=this.promptItem.promptNodes;
+                nodes.forEach(node => {
+                    node.dropdown.disable();
+                });
+                this.promptItem.returnInfo();
                 break;
             case 'drawmode':
                 break;
@@ -277,6 +318,12 @@ export class PromptFuncBar extends FuncBar {
 
     setSelMode() {
         document.body.style.cursor = "default";
+        //enable PromptNodeDrpDwn
+        this.promptItem = Prompt.getPromptItembyPrompt(this.prompt);
+        let nodes = this.promptItem.promptNodes;
+        nodes.forEach(node => {
+            node.dropdown.enable();
+        });
     }
 
     setNodeMode() {
@@ -299,7 +346,7 @@ export class PromptFuncBar extends FuncBar {
                     let nodeY = this.promptItem.convertAbstoNodeY(customNode.nodeY);
 
                     let newNode = new PromptNode(customNode.nodeWrapper.textContent, nodeX, nodeY,
-                        customNode.nodeTransform, customNode.nodeRGB,"UNKNOWN", customNode.container);
+                        customNode.nodeTransform, customNode.nodeRGB, "UNKNOWN", customNode.container);
 
                     for (let i = 0; i < currentchildnodes.length; i++) {
                         if (customNode.nodeWrapper.textContent === currentchildnodes[i].textContent) {
@@ -332,12 +379,15 @@ export class PromptFuncBar extends FuncBar {
     }
 
     enable() {
+        this.selButton.click();
         this.container.classList.remove("hidden");
     }
 
     disable() {
         this.container.classList.add("hidden");
-        this.selButton.click();
+        //deactivate all functions
+        this.deactivateFunction("selmode");
+        this.deactivateFunction("nodemode");
     }
 
     getAllPromptFuncBars() {

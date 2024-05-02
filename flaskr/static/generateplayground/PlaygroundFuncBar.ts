@@ -1,21 +1,28 @@
+//@ts-ignore
 import { FuncBar } from '../FuncBar.js';
-import { Prompt } from './Prompt.js';
+//@ts-ignore
+import { Prompt, PromptFuncBar } from './Prompt.js';
+//@ts-ignore
 import { PromptFlowline } from './PromptFlowline.js';
+//@ts-ignore
 import { PromptNode } from './PromptNode.js';
+
 export class PlaygroundFuncBar extends FuncBar {
     constructor(container) {
         super(container);
         this.enableEditButton = this.container.querySelector("#enable-edit");
         this.disableEditButton = this.container.querySelector("#disable-edit");
     }
+
     activateFunction(id) {
-        super.activateFunction(id);
+        super.activateFunction(id); // Call base class method
+        // Extend with specific functionality
         switch (id) {
             case 'add-input':
                 this.handleNodeTabClick();
                 break;
             case 'add-process':
-                this.handleFlowlineTabClick();
+                this.handleFlowlineTabClick()
                 break;
             case 'add-cooptimization':
                 this.handleNodeTabClick();
@@ -31,8 +38,9 @@ export class PlaygroundFuncBar extends FuncBar {
                 break;
         }
     }
+
     deactivateFunction(id) {
-        super.deactivateFunction(id);
+        super.deactivateFunction(id); // Call base class method
         switch (id) {
             case 'add-input':
                 this.disableNodeTabClick();
@@ -56,6 +64,7 @@ export class PlaygroundFuncBar extends FuncBar {
                 break;
         }
     }
+
     setEditMode() {
         PromptNode.nodeSel = false;
         PromptFlowline.lineSel = false;
@@ -63,23 +72,27 @@ export class PlaygroundFuncBar extends FuncBar {
         this.disableEditButton?.classList?.remove('hidden');
         this.enablePromptFuncBars();
     }
+
     handleNodeTabClick() {
         PromptNode.nodeSel = true;
         let event = new CustomEvent('nodeTabClick');
         document.dispatchEvent(event);
     }
+
     handleFlowlineTabClick() {
         PromptFlowline.lineSel = true;
         PromptFlowline.addAllIdentifiers();
         let event = new CustomEvent('flowlineTabClick');
         document.dispatchEvent(event);
     }
+
     disableNodeTabClick() {
         PromptNode.nodeSel = false;
         PromptNode.rmNodeSel();
         let event = new CustomEvent('disableNodeTabClick');
         document.dispatchEvent(event);
     }
+
     disableFlowlineTabClick() {
         PromptFlowline.lineSel = false;
         PromptFlowline.rmSelFlowStyle();
@@ -87,17 +100,20 @@ export class PlaygroundFuncBar extends FuncBar {
         let event = new CustomEvent('disableFlowlineTabClick');
         document.dispatchEvent(event);
     }
+
     enablePromptFuncBars() {
         Prompt.allPrompts.forEach(prompt => {
-            prompt.focusable = true;
+            prompt.focusable = true
         });
     }
+
     disablePromptFuncBars() {
         Prompt.allPrompts.forEach(prompt => {
             prompt.unfocus();
-            prompt.focusable = false;
+            prompt.focusable = false
         });
     }
+
     returnMode() {
         this.activeToggle = this.container.querySelector(".active");
         if (this.activeToggle && this.activeToggle != this.enableEditButton) {
@@ -106,3 +122,8 @@ export class PlaygroundFuncBar extends FuncBar {
         }
     }
 }
+
+
+
+
+

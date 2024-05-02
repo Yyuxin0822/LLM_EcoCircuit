@@ -5,42 +5,108 @@ import { Dropdown } from '../Dropdown.js';
 //@ts-ignore
 import { Prompt } from './Prompt.js';
 
+
 export class PromptNodeDrpDwn extends Dropdown {
   private promptItem: Prompt;
-  private nodeItemArray: PromptNode[];
-  private flowItemArray: PromptFlowline[];  
-  private options: string[];
+  private nodeItem: PromptNode;
+
+  systemObj: {};
 
   constructor(node: HTMLElement) {
     super(node);
-    this.promptItem=Prompt.getPromptItembyPrompt(node.closest('.prompt') as HTMLElement);
-    this.nodeItemArray = PromptNode.getNodeObjbyNode(node, this.promptItem.prompt);
-    this.flowItemArray;
-    this.options = ['Reclassify', 'Delete Node', 'Delete Flowline'];
+    this.promptItem = Prompt.getPromptItembyPrompt(node.closest('.prompt') as HTMLElement);
+    this.nodeItem = PromptNode.getNodeObjbyNode(node, node.closest('.prompt') as HTMLElement);
+    this.init();
+  }
+
+  init() {
+    super.init();
+    this.options.set('Reclassify', []);
+    this.options.set('Delete Node', []);
+    this.options.set('Delete Flowline', []);
+    this.addReclassifyOption();
   }
 
   handleContextMenuClick(e) {
+    this.addDeleteFlowOption();
     super.handleContextMenuClick(e);
   }
 
-  handleReclassify(e){
+  attachEventListenersToSubItems() {
+    // this.dropdown?.addEventListener('promptfocus', function (e) {
+    //   if (e.detail.prompt !== this.promptItem.prompt) {
+    //     this.enabled = false;
+    //   }
+    //   console.log(e.detail.prompt);
+    //   this.enabled = true;
+    // });
+    // this.dropdown?.addEventListener('promptblur', function (e) {
+    //   if (e.detail.prompt !== this.promptItem.prompt) {
+    //     this.enabled = false;
+    //   }
+    // });
+
+    let reclassify = this.dropdown?.querySelector('.Reclassify');
+    if (reclassify) {
+      reclassify.addEventListener('click', this.handleReclassify.bind(this));
+    }
+
+    let delNode = this.dropdown?.querySelector('#dropdownDeleteNode');
+    if (delNode) {
+      delNode?.addEventListener('click', this.handleDelNode.bind(this));
+    }
+  }
+
+  addReclassifyOption() {
+    var systemString = document.querySelector('.prompt-system').innerText;
+    this.systemObj = parseJson(systemString);
+    if (Object.keys(this.systemObj).length > 0) {
+      for (let key in this.systemObj) {
+        if (this.systemObj[key][0] !== this.nodeItem?.nodeSys) {
+          this.options.get('Reclassify').push(this.systemObj[key][0]);
+        }
+      }
+    }
+  }
+
+  //addDeleteFlowOption() {}
+
+  addDeleteFlowOption() {
+    if (this.nodeItem && this.promptItem) {
+      let startLines = this.promptItem.getLinesWhereNodeasInput(this.nodeItem);
+      let endLines = this.promptItem.getLinesWhereNodeasOutput(this.nodeItem);
+      if (startLines.length > 0) {
+        startLines.forEach(line => {
+          this.options.get('Delete Flowline').push('To ' + line.toJSONArray()[1]);
+        });
+      }
+      if (endLines.length > 0) {
+        endLines.forEach(line => {
+          this.options.get('Delete Flowline').push('From ' + line.toJSONArray()[0]);
+        });
+      }
+    }
+  }
+
+  handleReclassify(e) {
     console.log('Reclassify');
   }
 
-  handleDelNode(e){
+  handleDelNode(e) {
     console.log('Delete Node');
     this.nodeItem.delete();
   }
-
-  handleDelFlowline(e){
-    console.log('Delete Flowline');
-    let flowline = PromptFlowline.getFlowlineObjbyStartEnd(this.nodeItem.node);
-    flowline.delete();
-  }
 }
+
+
+
 
 export class PromptIdentifier {
   static allIdentifiers = [];
+  node: HTMLElement;
+  identifierClass: string;
+  identifier: HTMLElement;
+  prompt: HTMLElement;
 
   constructor(node, identifierClass) {
     this.node = node;
@@ -126,24 +192,38 @@ export class PromptNode {
   //field declaration
   static myNodes = [];
   static nodeSel = true;
+  private _container: HTMLElement;
+  private _identifier: PromptIdentifier[];
+  nodeSys: string;
+  _dropdown: PromptNodeDrpDwn;
+  handlers: { handleClick: any; };
+  private _nodeX: number;
+  private _nodeY: number;
+  private _nodeTransform: string;
+  private _nodeContent: any;
+  private _nodeRGB: any;
+  private newNode: HTMLElement;
+  private _nodeWrapper: HTMLElement;
+  PromptObj: Prompt;
 
-  constructor(nodeName, nodeX, nodeY, nodeTransform, nodeRGB, nodeSys, container) {
+  constructor(nodeContent: string, nodeX: number, nodeY: number, nodeTransform: string,
+    nodeRGB: string, nodeSys: string, container: HTMLElement) {
     if (!container) {
       throw new Error("Container for nodes is undefined.");
     }
     this._container = container;
     this._identifier = [];
-    this.init(nodeName, nodeX, nodeY, nodeTransform, nodeRGB);
-    this._dropdown = new PromptNodeDrpDwn(this.newNode);
-    this.handlers = {handleClick: this.handleClick.bind(this)};
+    this.init(nodeContent, nodeX, nodeY, nodeTransform, nodeRGB);
+    this.handlers = { handleClick: this.handleClick.bind(this) };
     this.nodeSys = nodeSys;
     this.attachEventListeners();
     this.addNodeToPrompt();
+    this._dropdown = new PromptNodeDrpDwn(this.newNode);
   }
 
-  init(nodeName, nodeX, nodeY, nodeTransform, nodeRGB) {
+  init(nodeContent, nodeX, nodeY, nodeTransform, nodeRGB) {
     // Attributes
-    this._nodeContent = nodeName;
+    this._nodeContent = nodeContent;
     this._nodeX = nodeX;
     this._nodeY = nodeY;
     this._nodeTransform = nodeTransform;
@@ -152,7 +232,7 @@ export class PromptNode {
     // Main node
     this.newNode = document.createElement("div");
     this.newNode.classList.add('node');
-    this.newNode.id = 'node' + validId(nodeName);
+    this.newNode.id = 'node' + validId(nodeContent);
     this.newNode.style.top = nodeY * 1.5 + 'rem';
     this.newNode.style.transform = nodeTransform;
     this.newNode.style.backgroundColor = nodeRGB;
@@ -160,7 +240,7 @@ export class PromptNode {
     // Node wrapper
     this._nodeWrapper = document.createElement("div");
     this._nodeWrapper.classList.add('node-wrapper', 'card-node');
-    this._nodeWrapper.innerHTML = nodeName;
+    this._nodeWrapper.innerHTML = nodeContent;
     this.newNode.appendChild(this._nodeWrapper);
 
     let col = this._container.querySelector('#col' + validId(nodeX.toString()));
@@ -198,6 +278,7 @@ export class PromptNode {
         outputidentifier.style.cursor = 'pointer';
       }
     });
+
     document.addEventListener('disableFlowlineTabClick', event => {
       let inputidentifier = this.newNode.querySelector('.input-identifier');
       if (inputidentifier) {
@@ -217,7 +298,7 @@ export class PromptNode {
   }
 
 
-  
+
   //getter
   get node() {
     return this.newNode;
@@ -249,22 +330,14 @@ export class PromptNode {
     return this._container;
   }
 
-  get associatedLinesNodeasInput() {
-    return PromptFlowline.myLines.filter(line => line.start === this.newNode);
-  }
-
-  get associatedLinesNodeasOutput() {
-    return PromptFlowline.myLines.filter(line => line.end === this.newNode);
-  }
-
-  set nodeX(number) {
+  set nodeX(number: number) {
     this._nodeX = number;
     if (this.newNode) {
       this.newNode.style.left = number + 'px';  // Use the parameter 'number', not the global 'nodeX'
     }
   }
 
-  set nodeY(number) {
+  set nodeY(number: number) {
     this._nodeY = number;
     if (this.newNode) {
       this.newNode.style.top = number + 'px';
@@ -275,7 +348,7 @@ export class PromptNode {
     return this._nodeTransform;
   }
 
-  set nodeTransform(transform) {
+  set nodeTransform(transform: string) {
     this._nodeTransform = transform;
     if (this.newNode) {
       this.newNode.style.transform = transform;
@@ -295,12 +368,21 @@ export class PromptNode {
       this.newNode.querySelector('.node-wrapper').innerHTML = name;
     }
   }
+
+  get dropdown() {
+    return this._dropdown;
+  }
+
+  set dropdown(dropdown: PromptNodeDrpDwn) {
+    this._dropdown = dropdown;
+  }
+
   //a function that return nodeItem by ID
   static getNodeById(id, container = document) {
     return PromptNode.myNodes.find(nodeItem => nodeItem.newNode.id === id && nodeItem.container === container);
   }
 
-  static getNodeObjbyNode(node, container = document) {
+  static getNodeObjbyNode(node: HTMLElement, container: HTMLElement | Document = document) {
     return PromptNode.myNodes.find(nodeItem => nodeItem.newNode === node && nodeItem.container === container);
   }
 
@@ -383,7 +465,6 @@ export class PromptNode {
   }
 
 
-
   static getSelectedNodes() {
     return PromptNode.myNodes.filter(node => node.newNode.classList.contains('node-selected'));
   }
@@ -394,15 +475,18 @@ export class PromptNode {
 
 }
 
+
+
+
 export class PromptCustomNode extends PromptNode {
   constructor(nodeX, nodeY, container) {
-    super("", nodeX, nodeY, 'translate(0%, 0%)', hexToRGBA("#888", 0.75), "UNKNOWN",container);
+    super("", nodeX, nodeY, 'translate(0%, 0%)', hexToRGBA("#888", 0.75), "UNKNOWN", container);
   }
 
   //override init
-  init(nodeName, nodeX, nodeY, nodeTransform, nodeRGB) {
+  init(nodeContent, nodeX, nodeY, nodeTransform, nodeRGB) {
     // Attributes
-    this._nodeContent = nodeName;
+    this._nodeContent = nodeContent;
     this._nodeX = nodeX;
     this._nodeY = nodeY;
     this._nodeTransform = nodeTransform;
@@ -411,7 +495,7 @@ export class PromptCustomNode extends PromptNode {
     // Main node
     this.newNode = document.createElement("div");
     this.newNode.classList.add('node');
-    this.newNode.id = 'node' + validId(nodeName);
+    this.newNode.id = 'node' + validId(nodeContent);
     this.newNode.style.top = nodeY + 'px';
     this.newNode.style.left = nodeX + 'px';
     this.newNode.style.transform = nodeTransform;
@@ -420,7 +504,7 @@ export class PromptCustomNode extends PromptNode {
     // Node wrapper
     this._nodeWrapper = document.createElement("div");
     this._nodeWrapper.classList.add('node-wrapper', 'card-node');
-    this._nodeWrapper.innerHTML = nodeName;
+    this._nodeWrapper.innerHTML = nodeContent;
     this.newNode.appendChild(this._nodeWrapper);
 
     this._container.appendChild(this.newNode);
