@@ -6,20 +6,18 @@ export class PromptNodeDrpDwn extends Dropdown {
         super(node);
         this.promptItem = Prompt.getPromptItembyPrompt(node.closest('.prompt'));
         this.nodeItem = PromptNode.getNodeObjbyNode(node, node.closest('.prompt'));
+        if (this.nodeItem && this.promptItem) {
+            this.options.set('Reclassify', []);
+            this.options.set('Delete Node', []);
+            this.options.set('Delete Flowline', []);
+            this.addReclassifyOption();
+            this.addDeleteFlowOption();
+            console.log(this.options);
+        }
         this.init();
     }
-    init() {
-        super.init();
-        this.options.set('Reclassify', []);
-        this.options.set('Delete Node', []);
-        this.options.set('Delete Flowline', []);
-        this.addReclassifyOption();
-    }
-    handleContextMenuClick(e) {
-        this.addDeleteFlowOption();
-        super.handleContextMenuClick(e);
-    }
-    attachEventListenersToSubItems() {
+    attachEventListenersToItems() {
+        super.attachEventListenersToItems();
         let reclassify = this.dropdown?.querySelector('.Reclassify');
         if (reclassify) {
             reclassify.addEventListener('click', this.handleReclassify.bind(this));
@@ -58,12 +56,19 @@ export class PromptNodeDrpDwn extends Dropdown {
     }
     handleReclassify(e) {
         console.log('Reclassify');
+        var systemString = document.querySelector('.prompt-system').innerText;
+        this.systemObj = parseJson(systemString);
+        if (this.systemObj[e.target.innerText]) {
+            this.nodeItem.nodeSys = e.target.innerText;
+            this.nodeItem.nodeWrapper.style.backgroundColor = hextoRGBA(this.systemObj[e.target.innerText][1], 0.75);
+        }
     }
     handleDelNode(e) {
         console.log('Delete Node');
         this.nodeItem.delete();
     }
 }
+PromptNodeDrpDwn.globalEnabled = false;
 export class PromptIdentifier {
     constructor(node, identifierClass) {
         this.node = node;
@@ -139,11 +144,13 @@ export class PromptNode {
         this._container = container;
         this._identifier = [];
         this.init(nodeContent, nodeX, nodeY, nodeTransform, nodeRGB);
-        this.handlers = { handleClick: this.handleClick.bind(this) };
+        this.handlers = {
+            handleClick: this.handleClick.bind(this),
+            handleContextMenuClick: this.handleContextMenuClick.bind(this)
+        };
         this.nodeSys = nodeSys;
         this.attachEventListeners();
         this.addNodeToPrompt();
-        this._dropdown = new PromptNodeDrpDwn(this.newNode);
     }
     init(nodeContent, nodeX, nodeY, nodeTransform, nodeRGB) {
         this._nodeContent = nodeContent;
@@ -171,6 +178,7 @@ export class PromptNode {
             this._container.appendChild(col);
         }
         col.appendChild(this.newNode);
+        this._dropdown = null;
         this.newNode.nodeItem = this;
     }
     addNodeToPrompt() {
@@ -179,6 +187,7 @@ export class PromptNode {
         this.PromptObj.promptNodes.push(this);
     }
     attachEventListeners() {
+        this.node.addEventListener('contextmenu', this.handlers.handleContextMenuClick);
         this.nodeWrapper.addEventListener('click', this.handlers.handleClick);
         document.addEventListener('nodeTabClick', event => { this.nodeWrapper.style.cursor = 'pointer'; });
         document.addEventListener('disableNodeTabClick', event => { this.nodeWrapper.style.cursor = 'default'; });
@@ -208,6 +217,12 @@ export class PromptNode {
             return;
         this.newNode.classList.toggle('node-selected');
         this.newNode.classList.toggle('node-unselected');
+    }
+    handleContextMenuClick(e) {
+        e.preventDefault();
+        if (!PromptNodeDrpDwn.globalEnabled)
+            return;
+        this._dropdown = new PromptNodeDrpDwn(this.newNode);
     }
     get node() {
         return this.newNode;

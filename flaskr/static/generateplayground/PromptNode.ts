@@ -7,45 +7,29 @@ import { Prompt } from './Prompt.js';
 
 
 export class PromptNodeDrpDwn extends Dropdown {
+  static globalEnabled: boolean = false;  // Static property to enable/disable all dropdowns
+
   private promptItem: Prompt;
   private nodeItem: PromptNode;
-
   systemObj: {};
 
   constructor(node: HTMLElement) {
     super(node);
     this.promptItem = Prompt.getPromptItembyPrompt(node.closest('.prompt') as HTMLElement);
     this.nodeItem = PromptNode.getNodeObjbyNode(node, node.closest('.prompt') as HTMLElement);
+    if (this.nodeItem && this.promptItem) {
+      this.options.set('Reclassify', []);
+      this.options.set('Delete Node', []);
+      this.options.set('Delete Flowline', []);
+      this.addReclassifyOption();
+      this.addDeleteFlowOption();
+      console.log(this.options);
+    }
     this.init();
   }
 
-  init() {
-    super.init();
-    this.options.set('Reclassify', []);
-    this.options.set('Delete Node', []);
-    this.options.set('Delete Flowline', []);
-    this.addReclassifyOption();
-  }
-
-  handleContextMenuClick(e) {
-    this.addDeleteFlowOption();
-    super.handleContextMenuClick(e);
-  }
-
-  attachEventListenersToSubItems() {
-    // this.dropdown?.addEventListener('promptfocus', function (e) {
-    //   if (e.detail.prompt !== this.promptItem.prompt) {
-    //     this.enabled = false;
-    //   }
-    //   console.log(e.detail.prompt);
-    //   this.enabled = true;
-    // });
-    // this.dropdown?.addEventListener('promptblur', function (e) {
-    //   if (e.detail.prompt !== this.promptItem.prompt) {
-    //     this.enabled = false;
-    //   }
-    // });
-
+  attachEventListenersToItems() {
+    super.attachEventListenersToItems();
     let reclassify = this.dropdown?.querySelector('.Reclassify');
     if (reclassify) {
       reclassify.addEventListener('click', this.handleReclassify.bind(this));
@@ -58,7 +42,7 @@ export class PromptNodeDrpDwn extends Dropdown {
   }
 
   addReclassifyOption() {
-    var systemString = document.querySelector('.prompt-system').innerText;
+    var systemString = document.querySelector('.prompt-system').innerHTML;
     this.systemObj = parseJson(systemString);
     if (Object.keys(this.systemObj).length > 0) {
       for (let key in this.systemObj) {
@@ -90,6 +74,13 @@ export class PromptNodeDrpDwn extends Dropdown {
 
   handleReclassify(e) {
     console.log('Reclassify');
+    //e.target.innerText
+    var systemString = document.querySelector('.prompt-system').innerText;
+    this.systemObj = parseJson(systemString);
+    if (this.systemObj[e.target.innerText]) {
+      this.nodeItem.nodeSys = e.target.innerText;
+      this.nodeItem.nodeWrapper.style.backgroundColor = hextoRGBA(this.systemObj[e.target.innerText][1], 0.75);
+    }
   }
 
   handleDelNode(e) {
@@ -97,9 +88,6 @@ export class PromptNodeDrpDwn extends Dropdown {
     this.nodeItem.delete();
   }
 }
-
-
-
 
 export class PromptIdentifier {
   static allIdentifiers = [];
@@ -196,7 +184,7 @@ export class PromptNode {
   private _identifier: PromptIdentifier[];
   nodeSys: string;
   _dropdown: PromptNodeDrpDwn;
-  handlers: { handleClick: any; };
+
   private _nodeX: number;
   private _nodeY: number;
   private _nodeTransform: string;
@@ -205,6 +193,7 @@ export class PromptNode {
   private newNode: HTMLElement;
   private _nodeWrapper: HTMLElement;
   PromptObj: Prompt;
+  handlers: {};
 
   constructor(nodeContent: string, nodeX: number, nodeY: number, nodeTransform: string,
     nodeRGB: string, nodeSys: string, container: HTMLElement) {
@@ -214,11 +203,14 @@ export class PromptNode {
     this._container = container;
     this._identifier = [];
     this.init(nodeContent, nodeX, nodeY, nodeTransform, nodeRGB);
-    this.handlers = { handleClick: this.handleClick.bind(this) };
+    this.handlers = {
+      handleClick: this.handleClick.bind(this),
+      handleContextMenuClick: this.handleContextMenuClick.bind(this)
+    };
     this.nodeSys = nodeSys;
     this.attachEventListeners();
     this.addNodeToPrompt();
-    this._dropdown = new PromptNodeDrpDwn(this.newNode);
+
   }
 
   init(nodeContent, nodeX, nodeY, nodeTransform, nodeRGB) {
@@ -253,7 +245,10 @@ export class PromptNode {
       this._container.appendChild(col);
     }
     col.appendChild(this.newNode);
+    this._dropdown = null;
     this.newNode.nodeItem = this;
+
+
     // this syntax has an issue when the nodex is not an integer, it will query e.g. "#col1.3" which is invalid
     // adjustFontSize(newNode);
   }
@@ -265,6 +260,7 @@ export class PromptNode {
   }
 
   attachEventListeners() {
+    this.node.addEventListener('contextmenu', this.handlers.handleContextMenuClick);
     this.nodeWrapper.addEventListener('click', this.handlers.handleClick);
     document.addEventListener('nodeTabClick', event => { this.nodeWrapper.style.cursor = 'pointer'; });
     document.addEventListener('disableNodeTabClick', event => { this.nodeWrapper.style.cursor = 'default'; });
@@ -297,7 +293,11 @@ export class PromptNode {
     this.newNode.classList.toggle('node-unselected');
   }
 
-
+  handleContextMenuClick(e) {
+    e.preventDefault();  // Prevent the default context menu
+    if (!PromptNodeDrpDwn.globalEnabled) return;
+    this._dropdown = new PromptNodeDrpDwn(this.newNode);
+  }
 
   //getter
   get node() {

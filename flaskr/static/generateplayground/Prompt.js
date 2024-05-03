@@ -1,4 +1,4 @@
-import { PromptNode } from './PromptNode.js';
+import { PromptNode, PromptNodeDrpDwn } from './PromptNode.js';
 export class Prompt {
     constructor(id) {
         this.EventManager = class {
@@ -94,16 +94,15 @@ export class Prompt {
         console.log(nodeXMap);
         let nodeX = 0;
         for (let key in nodeXMap) {
-            if (parseFloat(nodeXMap[key]) <= abs / 16) {
-                nodeX = key;
+            if (nodeXMap[key] <= (abs / 16)) {
+                nodeX = parseFloat(key);
             }
         }
-        console.log(parseFloat(nodeX));
-        return parseFloat(nodeX);
+        return nodeX;
     }
     convertNodeXtoAbs(nodeX) {
         let nodeXMap = this.getrefMapX();
-        return parseFloat(nodeXMap[nodeX]);
+        return nodeXMap[nodeX];
     }
     convertAbstoNodeY(abs) {
         return Math.floor(abs / 16 / 1.5);
@@ -215,12 +214,7 @@ export class PromptFuncBar extends FuncBar {
         super.deactivateFunction(id);
         switch (id) {
             case 'selmode':
-                this.promptItem = Prompt.getPromptItembyPrompt(this.prompt);
-                let nodes = this.promptItem.promptNodes;
-                nodes.forEach(node => {
-                    node.dropdown.disable();
-                });
-                this.promptItem.returnInfo();
+                this.unsetSelMode();
                 break;
             case 'drawmode':
                 break;
@@ -228,11 +222,13 @@ export class PromptFuncBar extends FuncBar {
     }
     setSelMode() {
         document.body.style.cursor = "default";
+        PromptNodeDrpDwn.globalEnabled = true;
+    }
+    unsetSelMode() {
+        document.body.style.cursor = "default";
+        PromptNodeDrpDwn.globalEnabled = false;
         this.promptItem = Prompt.getPromptItembyPrompt(this.prompt);
-        let nodes = this.promptItem.promptNodes;
-        nodes.forEach(node => {
-            node.dropdown.enable();
-        });
+        this.promptItem.returnInfo();
     }
     setNodeMode() {
         document.body.style.cursor = "crosshair";
@@ -258,7 +254,7 @@ export class PromptFuncBar extends FuncBar {
                     console.log("Node created");
                 }
                 this.cleanupNodeMode();
-                this.handleToggleClick(this.selButton);
+                this.selButton.click();
             }, { once: true });
         };
         this.prompt.addEventListener('click', handleNodeClick);

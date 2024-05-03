@@ -1,5 +1,5 @@
 //@ts-ignore
-import { PromptNode } from './PromptNode.js';
+import { PromptNode, PromptNodeDrpDwn } from './PromptNode.js';
 //@ts-ignore
 import { PromptCustomNode } from './PromptNode.js';
 //@ts-ignore
@@ -133,18 +133,17 @@ export class Prompt {
         let nodeX = 0;
         //loop through the nearest nodeXMap value to find the cooresponding key as nodeX
         for (let key in nodeXMap) {
-            if (parseFloat(nodeXMap[key]) <= abs / 16) {
-                nodeX = key;
+            if (nodeXMap[key] <= (abs / 16)) {
+                nodeX = parseFloat(key);
             }
         }
-        console.log(parseFloat(nodeX));
-        return parseFloat(nodeX);
+        return nodeX;
     }
 
     convertNodeXtoAbs(nodeX: number) {
         //abs in rem
         let nodeXMap = this.getrefMapX();
-        return parseFloat(nodeXMap[nodeX]);
+        return nodeXMap[nodeX];
     }
 
     convertAbstoNodeY(abs: number) {
@@ -262,6 +261,7 @@ export class Prompt {
 
 }
 
+//@ts-ignore
 import { FuncBar } from '../FuncBar.js';
 export class PromptFuncBar extends FuncBar {
     static allPromptFuncBars = [];
@@ -304,12 +304,7 @@ export class PromptFuncBar extends FuncBar {
         super.deactivateFunction(id); // Call base class method
         switch (id) {
             case 'selmode':
-                this.promptItem = Prompt.getPromptItembyPrompt(this.prompt);
-                let nodes=this.promptItem.promptNodes;
-                nodes.forEach(node => {
-                    node.dropdown.disable();
-                });
-                this.promptItem.returnInfo();
+                this.unsetSelMode();
                 break;
             case 'drawmode':
                 break;
@@ -318,12 +313,14 @@ export class PromptFuncBar extends FuncBar {
 
     setSelMode() {
         document.body.style.cursor = "default";
-        //enable PromptNodeDrpDwn
+        PromptNodeDrpDwn.globalEnabled = true;
+    }
+
+    unsetSelMode() {
+        document.body.style.cursor = "default";
+        PromptNodeDrpDwn.globalEnabled = false;
         this.promptItem = Prompt.getPromptItembyPrompt(this.prompt);
-        let nodes = this.promptItem.promptNodes;
-        nodes.forEach(node => {
-            node.dropdown.enable();
-        });
+        this.promptItem.returnInfo();
     }
 
     setNodeMode() {
@@ -357,7 +354,7 @@ export class PromptFuncBar extends FuncBar {
                     console.log("Node created");
                 }
                 this.cleanupNodeMode();
-                this.handleToggleClick(this.selButton);
+                this.selButton.click();
             }, { once: true });
         }
 
@@ -377,6 +374,10 @@ export class PromptFuncBar extends FuncBar {
             console.log("Node mode deactivated");
         }
     }
+    
+    // handleToggleClick() {
+    //     throw new Error('Method not implemented.');
+    // }
 
     enable() {
         this.selButton.click();

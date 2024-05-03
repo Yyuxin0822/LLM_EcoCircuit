@@ -465,16 +465,16 @@ p,
   padding: .5rem;
   border-radius: .25rem;
   box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
-  opacity: 0;
-  pointer-events: none;
-  transform:translateY(-24px);
+  opacity: 1;
+  transform:translateY(0);
   transition: opacity .15s ease-in-out, tansform .15s ease-in-out;
   text-align: left;
-  pointer-events: none;
 }
 
 .dropdown-menu>.dropdown-item, .dropdown-item-sub{
   line-height: 2;
   color:rgb(30,30,30);
+  cursor:pointer;
+  pointer-events: auto;
 }
 

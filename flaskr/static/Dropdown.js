@@ -3,40 +3,44 @@ export class Dropdown {
         this.container = container;
         this.options = options;
         this.dropdown = null;
-        this.dropdownItem = [];
-        this.enabled = false;
+        this.dropdownItems = [];
+        this.enabled = true;
         this.init();
     }
     init() {
-        this.container.addEventListener('contextmenu', this.handleContextMenuClick.bind(this));
+        this.createDropdown();
         document.addEventListener('click', this.handleClickOutside.bind(this));
-    }
-    handleContextMenuClick(e) {
-        e.preventDefault();
-        if (!this.enabled)
-            return;
-        console.log(this.enabled);
-        if (Dropdown.activeDropdown) {
-            Dropdown.activeDropdown.removeDropdown();
-        }
-        this.createDropdown(this.options);
-        this.showDropdown();
-        Dropdown.activeDropdown = this;
     }
     handleClickOutside(e) {
         if (Dropdown.activeDropdown && !Dropdown.activeDropdown.dropdown.contains(e.target)) {
-            console.log('click outside');
-            Dropdown.activeDropdown.removeDropdown();
+            Dropdown.activeDropdown.remove();
         }
     }
-    showDropdown() {
+    createDropdown() {
+        if (!this.enabled)
+            return;
+        if (Dropdown.activeDropdown) {
+            Dropdown.activeDropdown.remove();
+        }
+        let dropdownHTML = document.createElement('div');
+        dropdownHTML.classList.add('dropdown-menu');
         this.container.style.zIndex = "5";
-        this.dropdown.style.opacity = "1";
-        this.dropdown.style.transform = 'translateY(0)';
-        this.dropdown.style.pointerEvents = 'auto';
+        this.container.appendChild(dropdownHTML);
+        this.dropdown = dropdownHTML;
+        for (let [option, subOptions] of this.options) {
+            let dropdownItem = this.appendDropdownItem(option);
+            if (subOptions) {
+                subOptions.forEach(subOption => {
+                    this.appendSubDropdownItem(subOption, dropdownItem);
+                });
+            }
+        }
+        this.attachEventListenersToItems();
+        Dropdown.activeDropdown = this;
     }
-    removeDropdown() {
+    remove() {
         if (this.dropdown) {
+            this.container.style.zIndex = "0";
             this.dropdown.remove();
             this.dropdown = null;
             if (Dropdown.activeDropdown === this) {
@@ -44,18 +48,27 @@ export class Dropdown {
             }
         }
     }
-    createDropdown(options) {
-        this.removeDropdown();
-        let dropdown = document.createElement('div');
-        dropdown.classList.add('dropdown-menu');
-        this.container.appendChild(dropdown);
-        this.dropdown = dropdown;
-        for (let [option, subOptions] of options) {
-            let dropdownItem = this.appendDropdownItem(option);
-            if (subOptions) {
-                subOptions.forEach(subOption => {
-                    this.appendSubDropdownItem(subOption, dropdownItem);
-                });
+    attachEventListenersToItems() {
+        console.log(this.dropdownItems);
+        this.dropdownItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.handleSubItemsToggle(e);
+            });
+        });
+    }
+    handleSubItemsToggle(e) {
+        if (e.target.classList.contains('dropdown-item')) {
+            console.log('dropdown-item clicked');
+            let subItems = e.target.querySelectorAll('.dropdown-item-sub');
+            console.log(subItems);
+            for (let i = 0; i < subItems.length; i++) {
+                if (subItems[i].classList.contains('hidden')) {
+                    subItems[i].classList.remove('hidden');
+                }
+                else {
+                    subItems[i].classList.add('hidden');
+                }
             }
         }
     }
@@ -65,32 +78,20 @@ export class Dropdown {
         item.id = "dropdown" + itemName.replace(/\s+/g, '');
         item.innerHTML = "&#9656  " + itemName;
         this.dropdown.appendChild(item);
-        item.addEventListener('click', (e) => {
-            if (e.target.classList.contains('dropdown-item')) {
-                let subItems = item.querySelectorAll('.dropdown-item-sub');
-                for (let i = 0; i < subItems.length; i++) {
-                    if (subItems[i].classList.contains('hidden')) {
-                        subItems[i].classList.remove('hidden');
-                    }
-                    else {
-                        subItems[i].classList.add('hidden');
-                    }
-                }
-            }
-        });
+        this.dropdownItems.push(item);
         return item;
     }
-    appendSubDropdownItem(itemName, dropdownitem) {
+    appendSubDropdownItem(itemName, parentdrpdwnitem) {
         let id = 'dropdownsub' + itemName.replace(/\s+/g, '');
         let item = document.getElementById(id) || document.createElement('div');
         item.classList.add('dropdown-item-sub');
         item.classList.add('hidden');
-        item.classList.add(dropdownitem.id.replace('dropdown', ''));
+        item.classList.add(parentdrpdwnitem.id.replace('dropdown', ''));
         item.style.transform = "translateX(20px)";
         item.style.color = "grey";
         item.id = id;
         item.innerHTML = "&#9656  " + itemName;
-        dropdownitem.appendChild(item);
+        parentdrpdwnitem.appendChild(item);
         return item;
     }
     enable() {
@@ -98,7 +99,7 @@ export class Dropdown {
     }
     disable() {
         if (Dropdown.activeDropdown === this) {
-            this.removeDropdown();
+            this.remove();
         }
         this.enabled = false;
     }

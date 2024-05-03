@@ -21,8 +21,8 @@ eventTypes.forEach(type => {
 
     // Use the capture phase for all events to ensure they are intercepted early
     target.addEventListener(type, (event) => {
-        // console.log(`Event type: ${type}`);
-        // console.log('Event target:', event.target);
+        console.log(`Event type: ${type}`);
+        console.log('Event target:', event.target);
         PromptFlowline.fixLine(); 
     }, false); // Set useCapture to true to handle the event in the capturing phase
 });

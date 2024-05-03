@@ -7,6 +7,8 @@ const eventTypes = ['click', 'keydown', 'keyup', 'scroll', 'load'];
 eventTypes.forEach(type => {
     const target = type === 'load' ? window : document;
     target.addEventListener(type, (event) => {
+        console.log(`Event type: ${type}`);
+        console.log('Event target:', event.target);
         PromptFlowline.fixLine();
     }, false);
 });
