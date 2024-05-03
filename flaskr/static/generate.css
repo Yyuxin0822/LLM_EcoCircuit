@@ -91,6 +91,7 @@
   border-radius: 0.5rem;
   overflow: hidden;
   box-shadow: var(--regular);
+  cursor: pointer;
 }
 
 .component-eng-tab.active{

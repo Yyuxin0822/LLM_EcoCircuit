@@ -1,14 +1,19 @@
 //@ts-ignore
 import { FuncBar } from '../FuncBar.js';
 //@ts-ignore
-import { Prompt, PromptFuncBar } from './Prompt.js';
+import { Prompt} from './prompt/Prompt.js';
 //@ts-ignore
-import { PromptFlowline } from './PromptFlowline.js';
+import { PromptFlowline } from './prompt/PromptFlowline.js';
 //@ts-ignore
-import { PromptNode } from './PromptNode.js';
+import { PromptNode, PromptNodeDrpDwn, PromptCustomNode } from './prompt/PromptNode.js';
 
 export class PlaygroundFuncBar extends FuncBar {
-    constructor(container) {
+    enableEditButton: HTMLElement | null;
+    disableEditButton: HTMLElement | null;
+    container: HTMLElement;
+    activeToggle: HTMLElement | null;
+
+    constructor(container: HTMLElement) {
         super(container);
         this.enableEditButton = this.container.querySelector("#enable-edit");
         this.disableEditButton = this.container.querySelector("#disable-edit");
@@ -58,20 +63,12 @@ export class PlaygroundFuncBar extends FuncBar {
                 this.disableNodeTabClick();
                 break;
             case 'enable-edit':
-                this.disablePromptFuncBars();
-                this.enableEditButton?.classList?.remove('hidden');
-                this.disableEditButton?.classList?.add('hidden');
+                this.unsetEditMode();
                 break;
         }
     }
 
-    setEditMode() {
-        PromptNode.nodeSel = false;
-        PromptFlowline.lineSel = false;
-        this.enableEditButton?.classList?.add('hidden');
-        this.disableEditButton?.classList?.remove('hidden');
-        this.enablePromptFuncBars();
-    }
+
 
     handleNodeTabClick() {
         PromptNode.nodeSel = true;
@@ -95,23 +92,39 @@ export class PlaygroundFuncBar extends FuncBar {
 
     disableFlowlineTabClick() {
         PromptFlowline.lineSel = false;
-        PromptFlowline.rmSelFlowStyle();
+        PromptFlowline.rmAllSelFlow();
         PromptFlowline.rmAllIdentifiers();
         let event = new CustomEvent('disableFlowlineTabClick');
         document.dispatchEvent(event);
     }
 
-    enablePromptFuncBars() {
+    setEditMode() {
+        //toggle edit button
+        this.enableEditButton?.classList?.add('hidden');
+        this.disableEditButton?.classList?.remove('hidden');
+        PromptFlowline.lineSel = false;
+        PromptNode.nodeSel = false;
+        //enable all prompts, then autofocus to the first prompt
         Prompt.allPrompts.forEach(prompt => {
             prompt.focusable = true
         });
+        PromptNodeDrpDwn.globalEnabled = true;
+
+        //get the first prompt
+        let firstPrompt = Prompt.allPrompts[0];
+        firstPrompt.promptFocus();
     }
 
-    disablePromptFuncBars() {
+    unsetEditMode() {
         Prompt.allPrompts.forEach(prompt => {
             prompt.unfocus();
             prompt.focusable = false
         });
+
+        PromptNodeDrpDwn.globalEnabled = false;
+
+        this.enableEditButton?.classList?.remove('hidden');
+        this.disableEditButton?.classList?.add('hidden');
     }
 
     returnMode() {

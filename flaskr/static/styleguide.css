@@ -112,7 +112,6 @@ button {
   }
 }
 
-
 .heading-1 {
   font-family: var(--heading-1-font-family);
   font-weight: var(--heading-1-font-weight);
@@ -336,9 +335,14 @@ p,
   background-image: url('icon/E.png');
 }
 
+.icon-flowM{
+  background-image: url('icon/iconfunc_flowM.png');
+}
+
 .icon-fullscreen {
   background-image: url('icon/D.png');
 }
+
 
 .custom-toggle.active {
   background-color: var(--variable-collection-themedarkpurple);

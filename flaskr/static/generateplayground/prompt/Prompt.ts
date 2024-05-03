@@ -3,18 +3,20 @@ import { PromptNode, PromptNodeDrpDwn } from './PromptNode.js';
 //@ts-ignore
 import { PromptCustomNode } from './PromptNode.js';
 //@ts-ignore
-import { PromptFlowLine } from './PromptFlowLine.js';
-
+import { PromptFlowline } from './PromptFlowline.js';
+//@ts-ignore
+import { PromptFuncBar } from './PromptFuncBar.js';
 
 export class Prompt {
     static allPrompts = [];
 
     private id: number;
-    public promptLines: PromptFlowLine[];
+    public promptLines: PromptFlowline[];
     public promptNodes: PromptNode[];
     private _prompt: HTMLElement | null;
     private _promptFuncbar: PromptFuncBar;
-    private _focusable: boolean;
+    private _focusable: boolean; //if the prompt is focusable, controled by the playgroundFuncBar
+    private _focused: boolean; //if the prompt is focused, record the status
     private _eventManager: EventManager;
 
     constructor(id: number) {
@@ -24,6 +26,7 @@ export class Prompt {
         this._prompt = document.getElementById("prompt" + id);
         this._promptFuncbar = new PromptFuncBar(this._prompt.querySelector(".prompt-funcbar"));
         this._focusable = false;
+        this._focused = false;
         this._eventManager = new this.EventManager(this);
         this._eventManager.attachEventListeners();
 
@@ -41,12 +44,12 @@ export class Prompt {
 
         attachEventListeners(): void {
             this.parent._prompt.addEventListener('click', (e) => {
-                e.stopPropagation();
+                // e.stopPropagation();
                 this.handleClickInside();
             }, false);
             this.parent._prompt.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
-                e.stopPropagation();
+                // e.stopPropagation();
             });
             document.addEventListener('click', this.handleClickOutside, false);
         }
@@ -85,29 +88,39 @@ export class Prompt {
         this._focusable = focusable;
     }
 
+    get focused(): boolean {
+        return this._focused;
+    }
+
+    set focused(focused: boolean) {
+        this._focused = focused;
+    }
+
     promptFocus(): void {
         if (!this.focusable) return;
-        this._prompt.classList.add("focused");
-        this._promptFuncbar.enable();
+        this._prompt.classList.add("focused"); // Add focus style
+        this._promptFuncbar.enable(); // Enable the function bar
+        this._focused = true;
     }
 
     unfocus(): void {
         if (!this.focusable) return;
         this._prompt.classList.remove("focused");
         this._promptFuncbar.disable();
+        this.promptNodes.forEach(node => {
+            node.dropdown?.remove();});
+        this._focused = false;
     }
 
 
     //other methods to refactor
-    get prompt() {
+    get prompt(): HTMLElement | null {
         return this._prompt;
     }
 
     set prompt(id) {
         this._prompt = document.getElementById("prompt" + id);
     }
-
-
 
     getrefMapX() {
         let nodeXs: Set<number> = new Set();
@@ -212,7 +225,6 @@ export class Prompt {
 
 
     //prompt Manager
-
     returnInfo() {
         let prompt_id = this.id;
         let flow = [];
@@ -229,6 +241,26 @@ export class Prompt {
         return { prompt_id, flow, nodematrix };
     }
 
+    returnQuery(): { prompt_id: number, query: any[] } {
+        this.returnInfo(); //always save current matrix and flow
+
+        let prompt_id = this.id;
+        let query = [];
+        if (PromptNode.nodeSel) {
+            this.promptNodes.forEach(node => {
+                if (node.selected)
+                    query.push(node.nodeContent);
+            })
+        }
+
+        if (PromptFlowline.lineSel) {
+            this.promptLines.forEach(line => {
+                if (line.selected)
+                    query.push(line.toJSONArray());
+            })
+        }
+        return { prompt_id, query };
+    }
 
     static returnAllInfo() {
         let prompt_id = [];
@@ -251,147 +283,28 @@ export class Prompt {
         return { prompt_id, flow, nodematrix };
     }
 
-    getLinesWhereNodeasInput(nodeItem:PromptNode): PromptFlowLine[] {
+
+    static returnAllQuery(): { prompt_id_array: number[], query_array: any[] } {
+        let prompt_id_array = [];
+        let query_array = [];
+
+        Prompt.allPrompts.forEach(prompt => {
+            let { prompt_id, query } = prompt.returnQuery();
+            if (query.length > 0) {
+                prompt_id_array.push(prompt_id);
+                query_array.push(query);
+            }
+        });
+        return { prompt_id_array, query_array };
+    }
+
+    getLinesWhereNodeasInput(nodeItem: PromptNode): PromptFlowline[] {
         return this.promptLines.filter(line => line.start === nodeItem.node);
-      }
-    
-    getLinesWhereNodeasOutput(nodeItem:PromptNode): PromptFlowLine[]{
+    }
+
+    getLinesWhereNodeasOutput(nodeItem: PromptNode): PromptFlowline[] {
         return this.promptLines.filter(line => line.end === nodeItem.node);
     }
 
 }
 
-//@ts-ignore
-import { FuncBar } from '../FuncBar.js';
-export class PromptFuncBar extends FuncBar {
-    static allPromptFuncBars = [];
-    activeToggle: HTMLElement;
-    prompt: HTMLElement;
-    selButton: HTMLElement;
-    nodeButton: HTMLElement;
-    promptItem: Prompt;
-    container: HTMLElement;
-    cleanupNodeMode: () => void;
-
-
-    constructor(container: HTMLElement) {
-        super(container);
-        this.activeToggle = this.container.querySelector(".active");
-        this.prompt = this.container.closest(".prompt");
-        this.selButton = this.container.querySelector("#selmode");
-        this.nodeButton = this.container.querySelector("#nodemode");
-        PromptFuncBar.allPromptFuncBars.push(this);
-    }
-
-    activateFunction(id) {
-        super.activateFunction(id); // Call base class method
-        // Extend with specific functionality
-        switch (id) {
-            case 'selmode':
-                this.setSelMode();
-                break;
-            case 'drawmode':
-                break;
-            case 'nodemode':
-                this.setNodeMode();
-                break;
-            case 'fullscreen':
-                break;
-        }
-    }
-
-    deactivateFunction(id) {
-        super.deactivateFunction(id); // Call base class method
-        switch (id) {
-            case 'selmode':
-                this.unsetSelMode();
-                break;
-            case 'drawmode':
-                break;
-        }
-    }
-
-    setSelMode() {
-        document.body.style.cursor = "default";
-        PromptNodeDrpDwn.globalEnabled = true;
-    }
-
-    unsetSelMode() {
-        document.body.style.cursor = "default";
-        PromptNodeDrpDwn.globalEnabled = false;
-        this.promptItem = Prompt.getPromptItembyPrompt(this.prompt);
-        this.promptItem.returnInfo();
-    }
-
-    setNodeMode() {
-        document.body.style.cursor = "crosshair";
-
-        let handleNodeClick = (e) => {
-
-            let customNode = PromptNode.addCustomNode(e);
-            customNode.nodeWrapper.addEventListener('blur', (e) => {
-
-                if (!customNode.nodeWrapper.textContent) {
-                    customNode.delete();
-                } else {
-                    customNode.nodeWrapper.textContent = customNode.nodeWrapper.textContent.trim().toUpperCase();
-                    customNode.delete();
-                    let currentchildnodes = customNode.container.querySelectorAll(".node"); //event timing is important!
-
-                    this.promptItem = Prompt.getPromptItembyPrompt(this.prompt);//event timing is important!
-                    let nodeX = this.promptItem.convertAbstoNodeX(customNode.nodeX);
-                    let nodeY = this.promptItem.convertAbstoNodeY(customNode.nodeY);
-
-                    let newNode = new PromptNode(customNode.nodeWrapper.textContent, nodeX, nodeY,
-                        customNode.nodeTransform, customNode.nodeRGB, "UNKNOWN", customNode.container);
-
-                    for (let i = 0; i < currentchildnodes.length; i++) {
-                        if (customNode.nodeWrapper.textContent === currentchildnodes[i].textContent) {
-                            newNode.delete();
-                        }
-                    }
-
-                    console.log("Node created");
-                }
-                this.cleanupNodeMode();
-                this.selButton.click();
-            }, { once: true });
-        }
-
-        this.prompt.addEventListener('click', handleNodeClick);
-
-        let handleBlur = () => {
-            this.cleanupNodeMode();
-            this.selButton.click();
-        }
-
-        this.prompt.addEventListener('blur', handleBlur);
-
-        this.cleanupNodeMode = () => {
-            this.promptItem.returnInfo();
-            this.prompt.removeEventListener('click', handleNodeClick);
-            this.prompt.removeEventListener('blur', handleBlur);
-            console.log("Node mode deactivated");
-        }
-    }
-    
-    // handleToggleClick() {
-    //     throw new Error('Method not implemented.');
-    // }
-
-    enable() {
-        this.selButton.click();
-        this.container.classList.remove("hidden");
-    }
-
-    disable() {
-        this.container.classList.add("hidden");
-        //deactivate all functions
-        this.deactivateFunction("selmode");
-        this.deactivateFunction("nodemode");
-    }
-
-    getAllPromptFuncBars() {
-        return PromptFuncBar.allPromptFuncBars;
-    }
-}

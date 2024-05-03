@@ -2,7 +2,7 @@ export class FuncBar {
     constructor(container) {
         this.container = container;
         this.toggles = this.container.querySelectorAll(".toggle");
-        this.activeToggle = this.container.querySelector(".active"); // Tracks the currently active toggle
+        this.activeToggle = null; // Tracks the currently active toggle
         this.attachEventListeners();
         this.initiateDefaultToggle();
     }
@@ -12,11 +12,16 @@ export class FuncBar {
             toggle.addEventListener('click', (event) => {
                 event.stopPropagation();
                 this.handleToggleClick(toggle);
-            },false);
+            }, false);
         });
     }
 
     handleToggleClick(toggle) {
+        if (toggle === this.activeToggle) {
+            // If the clicked toggle is already active, just return
+            return;
+        }
+
         if (this.activeToggle) {
             this.activeToggle?.classList?.remove("active");
             this.activeToggle?.classList?.add("inactive");
@@ -38,8 +43,9 @@ export class FuncBar {
 
     initiateDefaultToggle() {
         document.addEventListener('DOMContentLoaded', () => {
-            if (this.activeToggle) {
-                this.activeToggle.click();
+            let initialToggle = this.container.querySelector(".active");
+            if (initialToggle) {
+                initialToggle.click();
             }
         });
     }

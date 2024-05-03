@@ -1,14 +1,12 @@
 import { PlaygroundFuncBar } from './PlaygroundFuncBar.js';
-import { Prompt } from '../generateplayground/Prompt.js';
-import { PromptFlowline } from '../generateplayground/PromptFlowline.js';
-import { PromptNode } from '../generateplayground/PromptNode.js';
+import { Prompt } from './prompt/Prompt.js';
+import { PromptFlowline } from './prompt/PromptFlowline.js';
+import { PromptNode } from './prompt/PromptNode.js';
 const playFuncBar = new PlaygroundFuncBar(document.querySelector('.function-frame'));
 const eventTypes = ['click', 'keydown', 'keyup', 'scroll', 'load'];
 eventTypes.forEach(type => {
     const target = type === 'load' ? window : document;
     target.addEventListener(type, (event) => {
-        console.log(`Event type: ${type}`);
-        console.log('Event target:', event.target);
         PromptFlowline.fixLine();
     }, false);
 });
@@ -37,11 +35,13 @@ function processPrompt(prompt) {
     });
     nodeArray.forEach((node, nIndex) => {
         var nodeName = node[0];
-        var nodeId = validId(nodeName);
         var nodeX = node[1][0];
         var nodeY = node[1][1];
         var nodeSystem = node[2];
         var nodeTransform = "translate(0,0)";
+        if (node[3]) {
+            nodeTransform = node[3];
+        }
         let defaultRGB = systemArray.find((system) => { system[0] === "UNKNOWN"; });
         let nodeRGB = defaultRGB ? hexToRGBA(defaultRGB[1], 0.75) : hexToRGBA("#888", 0.75);
         let nodeSys = "UNKNOWN";
@@ -64,42 +64,12 @@ function processPrompt(prompt) {
         }
     });
 }
-function toggleViews() {
-    document.getElementById('view-playground')?.classList.toggle('hidden');
-    document.getElementById('view-custom')?.classList.toggle('hidden');
-    contentFrame.classList.toggle('hidden');
-    contentCustom.classList.toggle('hidden');
-}
-document.getElementById('toggle-playground')?.addEventListener('click', toggleViews);
-document.getElementById('toggle-custom')?.addEventListener('click', toggleViews);
 function toggleEngineerBar() {
     document.getElementById('engineer-bar-unfolded')?.classList.toggle('hidden');
     document.getElementById('engineer-bar-folded')?.classList.toggle('hidden');
 }
 document.getElementById('fold')?.addEventListener('click', toggleEngineerBar);
 document.getElementById('unfold')?.addEventListener('click', toggleEngineerBar);
-const quicksel = document.getElementById('quicksel-folded');
-const unquickseltab = document.getElementById('quicksel-unfolded');
-const unqickselbutton = document.getElementById('quicksel-unfolded-button');
-unqickselbutton?.addEventListener('click', (e) => {
-    quicksel?.classList.remove('hidden');
-    unquickseltab?.classList.add('hidden');
-    nodesel = false;
-    linesel = false;
-    rmIdentifier();
-});
-quicksel?.addEventListener('click', (e) => {
-    quicksel?.classList.add('hidden');
-    unquickseltab?.classList.remove('hidden');
-    var engtabs = document.querySelectorAll('.component-eng-tab');
-    engtabs.forEach(t => {
-        t.classList?.add('eng-unselected');
-        t.classList?.remove('eng-selected');
-    });
-    nodesel = true;
-    linesel = true;
-    addIdentifier();
-});
 var prompts = document.querySelectorAll('.prompt');
 prompts.forEach(processPrompt);
 const addiotab = document.getElementById('add-io');
@@ -129,15 +99,17 @@ quickgen?.addEventListener('click', () => {
     let mode = playFuncBar.returnMode();
     if (!mode)
         return;
+    let { prompt_id_array, query_array } = Prompt.returnAllQuery();
+    console.log(prompt_id_array, query_array);
+    if (prompt_id_array.length == 0)
+        return;
     startload();
-    let { prompt_id, info, currentmatrix } = returnInfo();
     fetch('/quickgen', {
         method: 'POST',
         body: JSON.stringify({
             'mode': mode,
-            'prompt_id_array': prompt_id,
-            'info_array': info,
-            'currentmatrix_array': currentmatrix,
+            'prompt_id_array': prompt_id_array,
+            'info_array': query_array,
         }),
         headers: {
             'Content-Type': 'application/json'

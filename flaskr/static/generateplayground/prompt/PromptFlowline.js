@@ -8,6 +8,10 @@ export class PromptFlowline extends LeaderLine {
         super(start, end);
         this.start = start;
         this.end = end;
+        this.prompt = this.start.closest('.prompt');
+        this.startNodeItem = PromptNode.getNodeObjbyNode(this.start, this.prompt);
+        this.endNodeItem = PromptNode.getNodeObjbyNode(this.end, this.prompt);
+        this.selected = false;
         this.commonOptions = {
             startPlug: "hidden",
             startPlugSize: 4,
@@ -67,64 +71,68 @@ export class PromptFlowline extends LeaderLine {
             }
         }
     }
-    equals(otherLine) {
-        if (!(otherLine instanceof PromptFlowline)) {
-            return false;
-        }
-        return this.start === otherLine.start && this.end === otherLine.end;
+    updateColorOptions() {
+        this.setOptions({
+            startPlugColor: this.start.style.backgroundColor,
+            endPlugColor: this.end.style.backgroundColor,
+            startPlugOutlineColor: this.start.style.backgroundColor,
+        });
     }
     toJSONArray() {
         let startText = this.start.querySelector('.node-wrapper').innerHTML;
         let endText = this.end.querySelector('.node-wrapper').innerHTML;
         return [startText, endText];
     }
+    select() {
+        if (this.selected)
+            return;
+        this.setOptions({
+            startPlugColor: 'black',
+            endPlugColor: 'black',
+            outline: true,
+            outlineColor: 'black',
+            endPlugOutline: true,
+            outlineSize: 4
+        });
+        this.startNodeItem.inputIdentifier.select();
+        this.endNodeItem.outputIdentifier.select();
+        this.selected = true;
+    }
+    unselect() {
+        if (!this.selected)
+            return;
+        this.setOptions({
+            startPlugColor: this.start.style.backgroundColor,
+            endPlugColor: this.end.style.backgroundColor,
+            outline: false,
+            endPlugOutline: false
+        });
+        this.selected = false;
+    }
     remove() {
+        let prompt = null;
+        if (this.start) {
+            prompt = this.start.closest('.prompt');
+        }
+        if (this.end) {
+            prompt = this.end.closest('.prompt');
+        }
+        if (!prompt)
+            return;
+        let promptItem = Prompt.getPromptItembyPrompt(prompt);
         super.remove();
         let index = PromptFlowline.myLines.indexOf(this);
         if (index > -1) {
             PromptFlowline.myLines.splice(index, 1);
         }
-        let prompt = this.start.closest('.prompt');
-        let promptItem = Prompt.getPromptItembyPrompt(prompt);
         index = promptItem.promptLines.indexOf(this);
         if (index > -1) {
             promptItem.promptLines.splice(index, 1);
         }
+        promptItem.returnInfo();
     }
-    static setSelectedFlowStyle() {
-        console.log('Selected Flow');
-        if (!PromptFlowline.lineSel)
-            return;
-        PromptFlowline.getAllLines().forEach((line) => {
-            let inputIdentifier = line.start.querySelector('.input-identifier');
-            let outputIdentifier = line.end.querySelector('.output-identifier');
-            if (inputIdentifier && outputIdentifier) {
-                let inputIdentifierDot = inputIdentifier.querySelector('.identifier-dot');
-                let outputIdentifierDot = outputIdentifier.querySelector('.identifier-dot');
-                if (inputIdentifierDot.classList.contains('identifier-selected') && outputIdentifierDot.classList.contains('identifier-selected')) {
-                    line.setOptions({
-                        startPlugColor: 'black',
-                        endPlugColor: 'black',
-                        outline: true,
-                        outlineColor: 'black',
-                        endPlugOutline: true,
-                        outlineSize: 4
-                    });
-                }
-            }
-        });
-    }
-    ;
-    static rmSelFlowStyle() {
-        PromptFlowline.myLines.forEach(line => {
-            line.setOptions({
-                startPlugColor: line.start.style.backgroundColor,
-                endPlugColor: line.end.style.backgroundColor,
-                outline: false,
-                endPlugOutline: false
-            });
-            line.position();
-        });
+    static rmAllSelFlow() {
+        PromptFlowline.myLines.forEach(line => line.unselect());
     }
     static addAllIdentifiers() {
         PromptFlowline.myLines.forEach(line => {
@@ -150,6 +158,9 @@ export class PromptFlowline extends LeaderLine {
             try {
                 line?.position();
                 line?.updatePositionOptions();
+                if (!PromptFlowline.lineSel && !PromptNode.nodeSel) {
+                    line?.updateColorOptions();
+                }
             }
             catch (e) {
                 console.log(e);
@@ -159,6 +170,14 @@ export class PromptFlowline extends LeaderLine {
     static getAllLines() {
         return PromptFlowline.myLines;
     }
+    static getLinebyEndTexts(startText, endText) {
+        return PromptFlowline.myLines.find(line => {
+            let startNode = line.start.querySelector('.node-wrapper').innerHTML;
+            let endNode = line.end.querySelector('.node-wrapper').innerHTML;
+            return startNode === startText && endNode === endText;
+        });
+    }
 }
 PromptFlowline.myLines = [];
 PromptFlowline.lineSel = true;
+PromptFlowline.lineAdd = false;

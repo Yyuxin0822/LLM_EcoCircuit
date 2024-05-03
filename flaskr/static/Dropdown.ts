@@ -1,3 +1,8 @@
+//@ts-ignore
+import { Prompt } from "./generateplayground/prompt/Prompt";
+//@ts-ignore
+import { PromptNode } from "./generateplayground/prompt/PromptNode";
+
 export class Dropdown {
     static activeDropdown: Dropdown | null = null;  // Static property to track the active dropdown
     
@@ -5,33 +10,29 @@ export class Dropdown {
     dropdown: HTMLElement | null; //<div>dropdown</div>
     options: Map<string, string[]>; //<option, subOptions[]>
     dropdownItems: HTMLElement[]; //<div class="dropdown-item">dropdown-item</div>
-    enabled: boolean;
 
     constructor(container: HTMLElement, options = new Map<string, string[]>()) {
         this.container = container;
         this.options = options;
         this.dropdown = null;
         this.dropdownItems = [];
-        this.enabled = true;
         this.init();
     }
 
     init() {
         this.createDropdown();
+        // document.addEventListener('contextmenu', this.handleClickOutside.bind(this));
         document.addEventListener('click', this.handleClickOutside.bind(this));
     }
 
 
-    handleClickOutside(e) {
-        // Check if the click is outside the active dropdown
-        if (Dropdown.activeDropdown && !Dropdown.activeDropdown.dropdown.contains(e.target)) {
+    handleClickOutside(e: MouseEvent) {
+        if (Dropdown.activeDropdown && !Dropdown.activeDropdown.dropdown.contains(e.target as HTMLElement)) {
             Dropdown.activeDropdown.remove();
         }
     }
 
     createDropdown(): void {
-        if (!this.enabled) return;
-
         if (Dropdown.activeDropdown) {
             Dropdown.activeDropdown.remove();  // Remove any currently active dropdown
         }
@@ -66,10 +67,12 @@ export class Dropdown {
                 Dropdown.activeDropdown = null;  // Reset the active dropdown
             }
         }
+        //remove event listeners
+        document.removeEventListener('contextmenu', this.handleClickOutside);
+        document.removeEventListener('click', this.handleClickOutside);
     }
 
     attachEventListenersToItems() {
-        console.log(this.dropdownItems);
         this.dropdownItems.forEach(item => {
             item.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -80,9 +83,8 @@ export class Dropdown {
 
     handleSubItemsToggle(e) {
         if (e.target.classList.contains('dropdown-item')) {
-            console.log('dropdown-item clicked');
             let subItems = e.target.querySelectorAll('.dropdown-item-sub');
-            console.log(subItems);
+            //console.log(subItems);
             for (let i = 0; i < subItems.length; i++) {
                 if (subItems[i].classList.contains('hidden')) {
                     subItems[i].classList.remove('hidden');
@@ -120,17 +122,5 @@ export class Dropdown {
     }
 
 
-    enable() {
-        this.enabled = true;
-
-    }
-
-    disable() {
-        // Remove the dropdown if it is currently active
-        if (Dropdown.activeDropdown === this) {
-            this.remove();
-        }
-        this.enabled = false;
-    }
 }
 

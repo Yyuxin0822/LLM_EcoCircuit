@@ -1,16 +1,16 @@
 //@ts-ignore
 import { PlaygroundFuncBar } from './PlaygroundFuncBar.js';
 //@ts-ignore
-import { Prompt } from '../generateplayground/Prompt.js';
+import { Prompt} from './prompt/Prompt.js';
 //@ts-ignore
-import { PromptFlowline } from '../generateplayground/PromptFlowline.js';
+import { PromptFlowline } from './prompt/PromptFlowline.js';
 //@ts-ignore
-import { PromptNode } from '../generateplayground/PromptNode.js';
+import { PromptNode } from './prompt/PromptNode.js';
 
 ///////////////////////////Main Flow Control ///////////////
 ////////////////////////////////////////////////////////////
 
-const playFuncBar= new PlaygroundFuncBar(document.querySelector('.function-frame'));
+const playFuncBar = new PlaygroundFuncBar(document.querySelector('.function-frame'));
 
 ///////////////Helper Func////////////////////
 const eventTypes = ['click', 'keydown', 'keyup', 'scroll', 'load'];
@@ -21,9 +21,9 @@ eventTypes.forEach(type => {
 
     // Use the capture phase for all events to ensure they are intercepted early
     target.addEventListener(type, (event) => {
-        console.log(`Event type: ${type}`);
-        console.log('Event target:', event.target);
-        PromptFlowline.fixLine(); 
+        // console.log(`Event type: ${type}`);
+        // console.log('Event target:', event.target);
+        PromptFlowline.fixLine();
     }, false); // Set useCapture to true to handle the event in the capturing phase
 });
 
@@ -40,7 +40,7 @@ function processPrompt(prompt) {
 
     var promptObject = new Prompt(prIndex);
     var parentPrompt = promptObject.prompt;
-    
+
     let NodeX = Array.from(new Set(nodeArray.map(node => node[1][0])));
     let coorXMap = Prompt.processNodeX(NodeX.sort());
     let NodeY = Array.from(new Set(nodeArray.map(node => node[1][1])));
@@ -50,25 +50,25 @@ function processPrompt(prompt) {
         let col = document.createElement("div");
         col.classList.add('col');
         col.id = 'col' + validId(x.toString());
-        col.style.left = coorXMap[x]+'rem';
+        col.style.left = coorXMap[x] + 'rem';
         parentPrompt.appendChild(col);
     });
 
     nodeArray.forEach((node, nIndex) => {
         var nodeName = node[0];
-        var nodeId = validId(nodeName);
         var nodeX = node[1][0];
         var nodeY = node[1][1];
         var nodeSystem = node[2];
         var nodeTransform = "translate(0,0)";
-        let defaultRGB=systemArray.find((system) => {system[0] === "UNKNOWN"}); 
-        let nodeRGB=defaultRGB?hexToRGBA(defaultRGB[1], 0.75):hexToRGBA("#888", 0.75);
-        let nodeSys="UNKNOWN";
+        if (node[3]) { nodeTransform = node[3]; }
+        let defaultRGB = systemArray.find((system) => { system[0] === "UNKNOWN" });
+        let nodeRGB = defaultRGB ? hexToRGBA(defaultRGB[1], 0.75) : hexToRGBA("#888", 0.75);
+        let nodeSys = "UNKNOWN";
 
         systemArray.forEach((system) => {
             if (system[0] === nodeSystem) {
-               nodeSys = system[0];
-               nodeRGB = hexToRGBA(system[1], 0.75);
+                nodeSys = system[0];
+                nodeRGB = hexToRGBA(system[1], 0.75);
             }
         });
         var promptNode = new PromptNode(nodeName, nodeX, nodeY, nodeTransform, nodeRGB, nodeSys, parentPrompt);
@@ -88,16 +88,16 @@ function processPrompt(prompt) {
 }
 
 ////////////// function-frame ////////////// 
-// toggling views 
-function toggleViews() {
-    document.getElementById('view-playground')?.classList.toggle('hidden');
-    document.getElementById('view-custom')?.classList.toggle('hidden');
-    contentFrame.classList.toggle('hidden');
-    contentCustom.classList.toggle('hidden');
-}
+// toggling views //temporarily deactivated 
+// function toggleViews() {
+//     document.getElementById('view-playground')?.classList.toggle('hidden');
+//     document.getElementById('view-custom')?.classList.toggle('hidden');
+//     contentFrame.classList.toggle('hidden');
+//     contentCustom.classList.toggle('hidden');
+// }
 
-document.getElementById('toggle-playground')?.addEventListener('click', toggleViews);
-document.getElementById('toggle-custom')?.addEventListener('click', toggleViews);
+// document.getElementById('toggle-playground')?.addEventListener('click', toggleViews);
+// document.getElementById('toggle-custom')?.addEventListener('click', toggleViews);
 
 // toggling fold/unfold engineer bar
 function toggleEngineerBar() {
@@ -108,30 +108,30 @@ function toggleEngineerBar() {
 document.getElementById('fold')?.addEventListener('click', toggleEngineerBar);
 document.getElementById('unfold')?.addEventListener('click', toggleEngineerBar);
 
-//toggle quickselect
-const quicksel = document.getElementById('quicksel-folded')
-const unquickseltab = document.getElementById('quicksel-unfolded')
-const unqickselbutton = document.getElementById('quicksel-unfolded-button')
-unqickselbutton?.addEventListener('click', (e) => {
-    quicksel?.classList.remove('hidden');
-    unquickseltab?.classList.add('hidden');
-    nodesel = false;
-    linesel = false;
-    rmIdentifier();
-});
+//toggle quickselect //temporarily deactivated
+// const quicksel = document.getElementById('quicksel-folded')
+// const unquickseltab = document.getElementById('quicksel-unfolded')
+// const unqickselbutton = document.getElementById('quicksel-unfolded-button')
+// unqickselbutton?.addEventListener('click', (e) => {
+//     quicksel?.classList.remove('hidden');
+//     unquickseltab?.classList.add('hidden');
+//     nodesel = false;
+//     linesel = false;
+//     rmIdentifier();
+// });
 
-quicksel?.addEventListener('click', (e) => {
-    quicksel?.classList.add('hidden');
-    unquickseltab?.classList.remove('hidden');
-    var engtabs = document.querySelectorAll('.component-eng-tab');
-    engtabs.forEach(t => {
-        t.classList?.add('eng-unselected');
-        t.classList?.remove('eng-selected');
-    });
-    nodesel = true;
-    linesel = true;
-    addIdentifier();
-});
+// quicksel?.addEventListener('click', (e) => {
+//     quicksel?.classList.add('hidden');
+//     unquickseltab?.classList.remove('hidden');
+//     var engtabs = document.querySelectorAll('.component-eng-tab');
+//     engtabs.forEach(t => {
+//         t.classList?.add('eng-unselected');
+//         t.classList?.remove('eng-selected');
+//     });
+//     nodesel = true;
+//     linesel = true;
+//     addIdentifier();
+// });
 
 // playtab toggle
 // const addinputtab = document.getElementById('add-input');
@@ -178,20 +178,20 @@ function addio() {
 
 let quickgen = document.getElementById('quickgen');
 quickgen?.addEventListener('click', () => {
-
     let mode = playFuncBar.returnMode();
     if (!mode) return;
+    let { prompt_id_array, query_array } = Prompt.returnAllQuery();
+    console.log(prompt_id_array, query_array);
+    if (prompt_id_array.length == 0) return;
 
     startload();
-    let { prompt_id, info, currentmatrix } = returnInfo();
 
     fetch('/quickgen', {
         method: 'POST',
         body: JSON.stringify({
             'mode': mode,
-            'prompt_id_array': prompt_id,
-            'info_array': info,
-            'currentmatrix_array': currentmatrix, //please do return current matrix as I wanted to utilize scripts to record transform
+            'prompt_id_array': prompt_id_array,
+            'info_array': query_array,
         }),
         headers: {
             'Content-Type': 'application/json'

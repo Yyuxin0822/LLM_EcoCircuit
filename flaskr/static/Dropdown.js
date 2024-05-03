@@ -4,7 +4,6 @@ export class Dropdown {
         this.options = options;
         this.dropdown = null;
         this.dropdownItems = [];
-        this.enabled = true;
         this.init();
     }
     init() {
@@ -17,8 +16,6 @@ export class Dropdown {
         }
     }
     createDropdown() {
-        if (!this.enabled)
-            return;
         if (Dropdown.activeDropdown) {
             Dropdown.activeDropdown.remove();
         }
@@ -47,9 +44,10 @@ export class Dropdown {
                 Dropdown.activeDropdown = null;
             }
         }
+        document.removeEventListener('contextmenu', this.handleClickOutside);
+        document.removeEventListener('click', this.handleClickOutside);
     }
     attachEventListenersToItems() {
-        console.log(this.dropdownItems);
         this.dropdownItems.forEach(item => {
             item.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -59,9 +57,7 @@ export class Dropdown {
     }
     handleSubItemsToggle(e) {
         if (e.target.classList.contains('dropdown-item')) {
-            console.log('dropdown-item clicked');
             let subItems = e.target.querySelectorAll('.dropdown-item-sub');
-            console.log(subItems);
             for (let i = 0; i < subItems.length; i++) {
                 if (subItems[i].classList.contains('hidden')) {
                     subItems[i].classList.remove('hidden');
@@ -93,15 +89,6 @@ export class Dropdown {
         item.innerHTML = "&#9656  " + itemName;
         parentdrpdwnitem.appendChild(item);
         return item;
-    }
-    enable() {
-        this.enabled = true;
-    }
-    disable() {
-        if (Dropdown.activeDropdown === this) {
-            this.remove();
-        }
-        this.enabled = false;
     }
 }
 Dropdown.activeDropdown = null;

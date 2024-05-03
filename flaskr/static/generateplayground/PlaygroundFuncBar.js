@@ -1,7 +1,7 @@
 import { FuncBar } from '../FuncBar.js';
-import { Prompt } from './Prompt.js';
-import { PromptFlowline } from './PromptFlowline.js';
-import { PromptNode } from './PromptNode.js';
+import { Prompt } from './prompt/Prompt.js';
+import { PromptFlowline } from './prompt/PromptFlowline.js';
+import { PromptNode, PromptNodeDrpDwn } from './prompt/PromptNode.js';
 export class PlaygroundFuncBar extends FuncBar {
     constructor(container) {
         super(container);
@@ -50,18 +50,9 @@ export class PlaygroundFuncBar extends FuncBar {
                 this.disableNodeTabClick();
                 break;
             case 'enable-edit':
-                this.disablePromptFuncBars();
-                this.enableEditButton?.classList?.remove('hidden');
-                this.disableEditButton?.classList?.add('hidden');
+                this.unsetEditMode();
                 break;
         }
-    }
-    setEditMode() {
-        PromptNode.nodeSel = false;
-        PromptFlowline.lineSel = false;
-        this.enableEditButton?.classList?.add('hidden');
-        this.disableEditButton?.classList?.remove('hidden');
-        this.enablePromptFuncBars();
     }
     handleNodeTabClick() {
         PromptNode.nodeSel = true;
@@ -82,21 +73,31 @@ export class PlaygroundFuncBar extends FuncBar {
     }
     disableFlowlineTabClick() {
         PromptFlowline.lineSel = false;
-        PromptFlowline.rmSelFlowStyle();
+        PromptFlowline.rmAllSelFlow();
         PromptFlowline.rmAllIdentifiers();
         let event = new CustomEvent('disableFlowlineTabClick');
         document.dispatchEvent(event);
     }
-    enablePromptFuncBars() {
+    setEditMode() {
+        this.enableEditButton?.classList?.add('hidden');
+        this.disableEditButton?.classList?.remove('hidden');
+        PromptFlowline.lineSel = false;
+        PromptNode.nodeSel = false;
         Prompt.allPrompts.forEach(prompt => {
             prompt.focusable = true;
         });
+        PromptNodeDrpDwn.globalEnabled = true;
+        let firstPrompt = Prompt.allPrompts[0];
+        firstPrompt.promptFocus();
     }
-    disablePromptFuncBars() {
+    unsetEditMode() {
         Prompt.allPrompts.forEach(prompt => {
             prompt.unfocus();
             prompt.focusable = false;
         });
+        PromptNodeDrpDwn.globalEnabled = false;
+        this.enableEditButton?.classList?.remove('hidden');
+        this.disableEditButton?.classList?.add('hidden');
     }
     returnMode() {
         this.activeToggle = this.container.querySelector(".active");
