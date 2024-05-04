@@ -349,7 +349,7 @@ text-decoration-line: underline;
   left: 0rem;
 }
 
-.identifier-dot {
+.identifier-dot, .identifier-temp {
   width: 0.5rem;
   height: 0.5rem;
   flex-shrink: 0;

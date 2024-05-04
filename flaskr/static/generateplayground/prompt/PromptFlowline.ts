@@ -187,53 +187,6 @@ export class PromptFlowline extends LeaderLine {
   }
 
 
-  // static setSelectedFlowStyle() {
-  //   console.log('Selected Flow');
-  //   if (!PromptFlowline.lineSel) return;
-
-  //   PromptFlowline.getAllLines().forEach((line) => {
-  //     let inputIdentifier = line.start.querySelector('.input-identifier');
-  //     let outputIdentifier = line.end.querySelector('.output-identifier');
-  //     if (inputIdentifier && outputIdentifier) {
-  //       let inputIdentifierDot = inputIdentifier.querySelector('.identifier-dot');
-  //       let outputIdentifierDot = outputIdentifier.querySelector('.identifier-dot');
-  //       if (inputIdentifierDot.classList.contains('identifier-selected') && outputIdentifierDot.classList.contains('identifier-selected')) {
-  //         //change the line style to selected style
-  //         line.setOptions({
-  //           startPlugColor: 'black',
-  //           endPlugColor: 'black',
-  //           outline: true,
-  //           outlineColor: 'black',
-  //           endPlugOutline: true,
-  //           outlineSize: 4
-  //         });
-  //       }
-  //     }
-  //   })
-  // };
-
-
-
-  // static setConnectionStyle(endSelected: HTMLElement) {
-  //   let nodeItem = PromptNode.getNodeObjbyNode(endSelected, endSelected.closest('.prompt') as HTMLElement);
-  //   let promptItem = Prompt.getPromptItembyPrompt(endSelected.closest('.prompt') as HTMLElement);
-
-  //   if (!PromptFlowline.lineSel) return;
-
-  //   this.setOptions({
-  //     startPlugColor: 'black',
-  //     endPlugColor: 'black',
-  //     outline: true,
-  //     outlineColor: 'black',
-  //     endPlugOutline: true,
-  //     outlineSize: 4
-  //   });
-
-
-  //   let startLines 
-  // }
-
-
   static rmAllSelFlow() {
     PromptFlowline.myLines.forEach(line => line.unselect());
   }
@@ -280,11 +233,9 @@ export class PromptFlowline extends LeaderLine {
     return PromptFlowline.myLines;
   }
 
-  static getLinebyEndTexts(startText: string, endText: string): PromptFlowline {
-    return PromptFlowline.myLines.find(line => {
-      let startNode = line.start.querySelector('.node-wrapper').innerHTML;
-      let endNode = line.end.querySelector('.node-wrapper').innerHTML;
-      return startNode === startText && endNode === endText;
+  static getLinebyEndTexts(startText: string, endText: string, prompt:Prompt): PromptFlowline {
+    return prompt.promptLines.find(line => {
+      return line.startNodeItem.nodeContent === startText && line.endNodeItem.nodeContent === endText;
     });
   }
 

@@ -41,6 +41,8 @@ def set_test_user():
         g.user = {"id": 1, "username": "testuser"}
 
 
+#################generate.html################
+##############################################
 # (C)index  - prompting the user three ways of entering data
 @bp.route("/", methods=("GET", "POST"))
 @login_required
@@ -117,17 +119,7 @@ def generate(id):
     return render_template("project/generate.html", project=project, id=id)
 
 
-@bp.route("/custom/<int:id>", methods=("GET", "POST"))
-@login_required
-def custom(id):
-    # id here is project_id but not prompt_id
-    customproject = get_customproject(id)
-    # project = get_project(id)
-    return render_template("project/custom.html", customproject=customproject, id=id)
-
-
-#################AJAX#########################
-##############################################
+# (U)
 @bp.route("/addio", methods=["POST"])
 @login_required
 def addio():
@@ -146,6 +138,7 @@ def addio():
     )
 
 
+# (U)
 @bp.route("/quickgen", methods=["POST"])
 @login_required
 def quickgen():
@@ -169,6 +162,47 @@ def quickgen():
     else:
         prompt = get_prompt(prompt_id)
         return jsonify({"status": "success", "prompts": prompt, "data": data})
+
+
+# (UD)
+@socketio.on("save_prompt")
+def save_prompt(data):
+    """_summary_
+
+    Returns:
+        _type_: _description_
+    """
+    print("Saved data to prompt: ", data)
+    db = get_db()
+    cursor = db.cursor()
+
+    cursor.execute(
+        """
+        UPDATE prompt
+        SET flow = ?,
+            node = ?
+        WHERE id = ?
+        """,
+        (
+            json.dumps(data["flow"]),  # Serialize the flow data to a JSON string
+            json.dumps(data["node"]),  # Serialize the node data to a JSON string
+            data["prompt_id"],  # The ID for the record to update
+        ),
+    )
+
+    db.commit()
+    return data["prompt_id"]
+
+
+#################custom.html###################
+###############################################
+@bp.route("/custom/<int:id>", methods=("GET", "POST"))
+@login_required
+def custom(id):
+    # id here is project_id but not prompt_id
+    customproject = get_customproject(id)
+    # project = get_project(id)
+    return render_template("project/custom.html", customproject=customproject, id=id)
 
 
 @socketio.on("send_data_to_custom")
@@ -341,7 +375,7 @@ def update(
     """
 
     # search in db for the prompt to get project_id
-    project_id = get_prompt(int(prompt_id_array[0].replace("prompt", "")))["project_id"]
+    project_id = get_prompt(prompt_id_array[0])["project_id"]
     combinedquery = []  # combine all queries
     new_prompt_id = get_max_prompt_id() + 1
     queryflow = []
@@ -358,7 +392,7 @@ def update(
     if mode == "add-feedback":
         userinfo = f"Feedback for {combinedquery} added in each prompt frame."
         for i in range(len(prompt_id_array)):
-            prompt_id = int(prompt_id_array[i].replace("prompt", ""))
+            prompt_id = prompt_id_array[0]
             prompt = get_prompt(prompt_id)
             updatedflow = []
             updatedflow = return_queryflow_add_feedback(
@@ -429,35 +463,6 @@ def save_custom_view(data):
     )
     db.commit()
     return customprompt_id
-
-
-@socketio.on("save_prompt")
-def save_prompt(data):
-    """_summary_
-
-    Returns:
-        _type_: _description_
-    """
-    print("Saved data to prompt: ", data)
-    db = get_db()
-    cursor = db.cursor()
-
-    cursor.execute(
-        """
-        UPDATE prompt
-        SET flow = ?,
-            node = ?
-        WHERE id = ?
-        """,
-        (
-            json.dumps(data["flow"]),  # Serialize the flow data to a JSON string
-            json.dumps(data["node"]),  # Serialize the node data to a JSON string
-            data['prompt_id']         # The ID for the record to update
-        )
-    )
-
-    db.commit()
-    return data['prompt_id']  
 
 
 ######################################################

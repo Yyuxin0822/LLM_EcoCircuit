@@ -170,11 +170,9 @@ export class PromptFlowline extends LeaderLine {
     static getAllLines() {
         return PromptFlowline.myLines;
     }
-    static getLinebyEndTexts(startText, endText) {
-        return PromptFlowline.myLines.find(line => {
-            let startNode = line.start.querySelector('.node-wrapper').innerHTML;
-            let endNode = line.end.querySelector('.node-wrapper').innerHTML;
-            return startNode === startText && endNode === endText;
+    static getLinebyEndTexts(startText, endText, prompt) {
+        return prompt.promptLines.find(line => {
+            return line.startNodeItem.nodeContent === startText && line.endNodeItem.nodeContent === endText;
         });
     }
 }

@@ -1,11 +1,9 @@
 //@ts-ignore
 import { Prompt } from './Prompt.js';
-
 //@ts-ignore
 import { PromptFlowline } from './PromptFlowline.js';
 //@ts-ignore
-import { PromptIdentifier } from './PromptIdentifier.js';
-
+import { PromptIdentifier} from './PromptIdentifier.js';
 
 
 //@ts-ignore
@@ -51,11 +49,6 @@ export class PromptNodeDrpDwn extends Dropdown {
     let delFlow = this.dropdown?.querySelector('.DeleteFlowline'); //query sub-dropdown
     if (delFlow) {
       delFlow.addEventListener('click', this.handleDelFlow.bind(this));
-    }
-
-    let addFlow = this.dropdown?.querySelector('.AddFlowline'); //query sub-dropdown
-    if (addFlow) {
-      addFlow.addEventListener('click', this.handleAddFlow.bind(this));
     }
 
   }
@@ -138,7 +131,7 @@ export class PromptNodeDrpDwn extends Dropdown {
 
     let startText = info[0] === 'To' ? this.nodeItem.nodeContent : info[1];
     let endText = info[0] === 'To' ? info[1] : this.nodeItem.nodeContent;
-    PromptFlowline.getLinebyEndTexts(startText, endText).remove();
+    PromptFlowline.getLinebyEndTexts(startText, endText, this.promptItem).remove();
 
     //rempove this sub-dropdown as well
     e.target.closest('.dropdown-item-sub').remove();
@@ -507,14 +500,11 @@ export class PromptNode {
 
 
 export class PromptCustomNode extends PromptNode {
-  constructor(nodeX: number, nodeY: number, container: HTMLElement) {
+  constructor(absNodeX: number, absNodeY: number, container: HTMLElement) {
+    let PromptObj = Prompt.getPromptItembyPrompt(container);
+    let nodeX=PromptObj.convertAbstoNodeX(absNodeX);
+    let nodeY=PromptObj.convertAbstoNodeY(absNodeY);
     super("", nodeX, nodeY, 'translate(0%, 0%)', hexToRGBA("#888", 0.75), "UNKNOWN", container);
-  }
-
-  //override init
-  init() {
-    super.init();
-    this.node.style.top = this.nodeY + 'px';
   }
 }
 

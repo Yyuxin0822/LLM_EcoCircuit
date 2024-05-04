@@ -1,5 +1,6 @@
 import { Prompt } from './Prompt.js';
 import { PromptNode } from './PromptNode.js';
+import { PromptFlowline } from './PromptFlowline.js';
 export class PromptIdentifier {
     constructor(node, identifierClass) {
         this.node = node;
@@ -54,20 +55,27 @@ export class PromptIdentifier {
         if (this.selected)
             return;
         this.identifier.querySelector('.identifier-dot').classList?.add('identifier-selected');
+        this.identifier.querySelector('.identifier-dot').classList?.remove('identifier-toselect');
         this.identifier.querySelector('.identifier-dot').classList?.remove('identifier-unselected');
         this.selected = true;
-        let event = new CustomEvent('identifier-select', { detail: this });
-        this.identifier.dispatchEvent(event);
+        if (PromptFlowline.lineSel) {
+            let event = new CustomEvent('identifier-select', { detail: this });
+            this.identifier.dispatchEvent(event);
+        }
     }
     unselect() {
+        console.log(this.identifierClass);
         console.log('Unselected');
         if (!this.selected)
             return;
         this.identifier.querySelector('.identifier-dot').classList?.remove('identifier-selected');
+        this.identifier.querySelector('.identifier-dot').classList?.remove('identifier-toselect');
         this.identifier.querySelector('.identifier-dot').classList?.add('identifier-unselected');
         this.selected = false;
-        let event = new CustomEvent('identifier-unselect', { detail: this });
-        this.identifier.dispatchEvent(event);
+        if (PromptFlowline.lineSel) {
+            let event = new CustomEvent('identifier-unselect', { detail: this });
+            this.identifier.dispatchEvent(event);
+        }
     }
     remove() {
         this.identifier.removeEventListener('identifier-select', this.handleIdentifierSelect.bind(this));
@@ -90,9 +98,6 @@ export class PromptIdentifier {
     }
     static getIdentifierObjbyIdentifier(identifier) {
         return PromptIdentifier.allIdentifiers.find(identifierObj => identifierObj.identifier === identifier && identifierObj.prompt === identifier.closest('.prompt'));
-    }
-    static getSelectedIdentifiers() {
-        return PromptIdentifier.allIdentifiers.filter(identifier => identifier.identifier.querySelector('.identifier-dot').classList.contains('identifier-selected'));
     }
     static getAllIdentifiers() {
         return PromptIdentifier.allIdentifiers;

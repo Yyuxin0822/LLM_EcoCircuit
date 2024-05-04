@@ -1,10 +1,12 @@
 {% extends 'base.html' %}
 {% block scripts %}
 <link rel="stylesheet" href="{{ url_for('static', filename='generate.css') }}">
+<script type="module" src="{{ url_for('static', filename='generateplayground/prompt/Prompt.js') }}" defer></script>
+<script type="module" src="{{ url_for('static', filename='generateplayground/prompt/PromptFuncBar.js') }}" defer></script>
+<script type="module" src="{{ url_for('static', filename='generateplayground/prompt/PromptNode.js') }}" defer></script>
+<script type="module" src="{{ url_for('static', filename='generateplayground/prompt/PromptFlowline.js') }}" defer></script>
+<script type="module" src="{{ url_for('static', filename='generateplayground/prompt/PromptIdentifier.js') }}" defer></script>
 <script type="module" src="{{ url_for('static', filename='generateplayground/PlaygroundFuncBar.js') }}" defer></script>
-<script type="module" src="{{ url_for('static', filename='generateplayground/Prompt.js') }}" defer></script>
-<script type="module" src="{{ url_for('static', filename='generateplayground/PromptNode.js') }}" defer></script>
-<script type="module" src="{{ url_for('static', filename='generateplayground/PromptFlowline.js') }}" defer></script>
 <script type="module" src="{{ url_for('static', filename='generateplayground/generateplayground.js') }}" defer></script>
 <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
 {% endblock %}
@@ -209,6 +211,8 @@
                             <button id="selmode" class="toggle inactive icon-common icon-selM"></button>
                             <span class="normal"> | </span>
                             <button id="nodemode" class="toggle inactive  icon-common icon-nodeM"></button>
+                            <span class="normal"> | </span>
+                            <button id="flowmode" class="toggle inactive  icon-common icon-flowM"></button>
                         </div>
                     </div>
                 </div>

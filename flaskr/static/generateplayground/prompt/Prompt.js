@@ -11,6 +11,9 @@ export class Prompt {
             }
             attachEventListeners() {
                 this.parent._prompt.addEventListener('click', (e) => {
+                    if (e.target.closest(".identifier-dot")) {
+                        e.stopPropagation();
+                    }
                     this.handleClickInside();
                 }, false);
                 this.parent._prompt.addEventListener('contextmenu', (e) => {
@@ -24,6 +27,8 @@ export class Prompt {
             }
             handleClickInside() {
                 if (!this.parent.focusable)
+                    return;
+                if (this.parent.focused)
                     return;
                 Prompt.allPrompts.forEach(p => {
                     if (p !== this.parent && p._prompt.classList.contains("focused")) {
@@ -86,6 +91,18 @@ export class Prompt {
     }
     set prompt(id) {
         this._prompt = document.getElementById("prompt" + id);
+    }
+    getSelectedIdentifiers() {
+        let selectedIdentifiers = [];
+        this.promptNodes.forEach(node => {
+            if (node.inputIdentifier.selected) {
+                selectedIdentifiers.push(node.inputIdentifier);
+            }
+            if (node.outputIdentifier.selected) {
+                selectedIdentifiers.push(node.outputIdentifier);
+            }
+        });
+        return selectedIdentifiers;
     }
     getrefMapX() {
         let nodeXs = new Set();

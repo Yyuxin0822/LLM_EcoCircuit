@@ -44,13 +44,17 @@ export class Prompt {
 
         attachEventListeners(): void {
             this.parent._prompt.addEventListener('click', (e) => {
-                // e.stopPropagation();
+                if (e.target.closest(".identifier-dot")) {
+                    e.stopPropagation();
+                }
                 this.handleClickInside();
             }, false);
+
             this.parent._prompt.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
                 // e.stopPropagation();
             });
+            
             document.addEventListener('click', this.handleClickOutside, false);
         }
 
@@ -62,6 +66,7 @@ export class Prompt {
 
         private handleClickInside(): void {
             if (!this.parent.focusable) return;
+            if (this.parent.focused) return;
             // Unfocus all other prompts
             Prompt.allPrompts.forEach(p => {
                 if (p !== this.parent && p._prompt.classList.contains("focused")) {
@@ -73,7 +78,8 @@ export class Prompt {
 
         private handleClickOutside(event: MouseEvent): void {
             if (!this.parent.focusable) return;
-            const isClickInsideAnyPrompt = Prompt.allPrompts.some(p => p._prompt.contains(event.target as Node));
+
+            const isClickInsideAnyPrompt = Prompt.allPrompts.some(p => p._prompt.contains(event.target as HTMLElement));
             if (!isClickInsideAnyPrompt) {
                 this.parent.unfocus();
             }
@@ -121,6 +127,19 @@ export class Prompt {
     set prompt(id) {
         this._prompt = document.getElementById("prompt" + id);
     }
+    getSelectedIdentifiers() {
+        let selectedIdentifiers = [];
+        this.promptNodes.forEach(node => {
+            if (node.inputIdentifier.selected) {
+                selectedIdentifiers.push(node.inputIdentifier);
+            }
+            if (node.outputIdentifier.selected) {
+                selectedIdentifiers.push(node.outputIdentifier);
+            }
+        });
+        return selectedIdentifiers;
+    }
+       
 
     getrefMapX() {
         let nodeXs: Set<number> = new Set();
@@ -138,7 +157,7 @@ export class Prompt {
         return Prompt.processNodeX(sortedNodexs);
     }
 
-    convertAbstoNodeX(abs: number) {
+    convertAbstoNodeX(abs: number): number{
         //abs in rem
         let nodeXMap = this.getrefMapX(); //unit in rem
         console.log(nodeXMap);
@@ -153,7 +172,7 @@ export class Prompt {
         return nodeX;
     }
 
-    convertNodeXtoAbs(nodeX: number) {
+    convertNodeXtoAbs(nodeX: number): number{
         //abs in rem
         let nodeXMap = this.getrefMapX();
         return nodeXMap[nodeX];

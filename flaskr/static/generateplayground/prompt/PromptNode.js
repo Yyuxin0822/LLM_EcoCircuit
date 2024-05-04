@@ -32,10 +32,6 @@ export class PromptNodeDrpDwn extends Dropdown {
         if (delFlow) {
             delFlow.addEventListener('click', this.handleDelFlow.bind(this));
         }
-        let addFlow = this.dropdown?.querySelector('.AddFlowline');
-        if (addFlow) {
-            addFlow.addEventListener('click', this.handleAddFlow.bind(this));
-        }
     }
     addReclassifyOption() {
         var systemString = document.querySelector('.prompt-system').innerHTML;
@@ -104,7 +100,7 @@ export class PromptNodeDrpDwn extends Dropdown {
         info = [info.substring(0, firstSpace), info.substring(firstSpace + 1)];
         let startText = info[0] === 'To' ? this.nodeItem.nodeContent : info[1];
         let endText = info[0] === 'To' ? info[1] : this.nodeItem.nodeContent;
-        PromptFlowline.getLinebyEndTexts(startText, endText).remove();
+        PromptFlowline.getLinebyEndTexts(startText, endText, this.promptItem).remove();
         e.target.closest('.dropdown-item-sub').remove();
         this.container.click();
     }
@@ -386,11 +382,11 @@ export class PromptNode {
 PromptNode.myNodes = [];
 PromptNode.nodeSel = true;
 export class PromptCustomNode extends PromptNode {
-    constructor(nodeX, nodeY, container) {
+    constructor(absNodeX, absNodeY, container) {
+        let PromptObj = Prompt.getPromptItembyPrompt(container);
+        console.log(PromptObj);
+        let nodeX = PromptObj.convertAbstoNodeX(absNodeX);
+        let nodeY = PromptObj.convertAbstoNodeY(absNodeY);
         super("", nodeX, nodeY, 'translate(0%, 0%)', hexToRGBA("#888", 0.75), "UNKNOWN", container);
-    }
-    init() {
-        super.init();
-        this.node.style.top = this.nodeY + 'px';
     }
 }
