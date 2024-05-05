@@ -5,7 +5,7 @@ from flask_socketio import SocketIO, emit
 from flask_cors import CORS  
 
 
-socketio = SocketIO(cors_allowed_origins="*")  # Allow all origins for SocketIO
+socketio = SocketIO(cors_allowed_origins=['http://localhost:5000', 'http://127.0.0.1:5000','http://ecocircuitai.com'])  # Allow all origins for SocketIO
 
 def create_app(test_config=None):
     # create and configure the app

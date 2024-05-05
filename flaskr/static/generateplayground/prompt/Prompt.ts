@@ -1,11 +1,13 @@
 //@ts-ignore
-import { PromptNode, PromptNodeDrpDwn } from './PromptNode.js';
+import { PromptNode } from './PromptNode.js';
 //@ts-ignore
 import { PromptCustomNode } from './PromptNode.js';
 //@ts-ignore
 import { PromptFlowline } from './PromptFlowline.js';
 //@ts-ignore
 import { PromptFuncBar } from './PromptFuncBar.js';
+//@ts-ignore
+import { PromptNodeDrpDwn } from './PromptNodeDrpDwn.js';
 
 export class Prompt {
     static allPrompts = [];
@@ -54,7 +56,7 @@ export class Prompt {
                 e.preventDefault();
                 // e.stopPropagation();
             });
-            
+
             document.addEventListener('click', this.handleClickOutside, false);
         }
 
@@ -114,7 +116,8 @@ export class Prompt {
         this._prompt.classList.remove("focused");
         this._promptFuncbar.disable();
         this.promptNodes.forEach(node => {
-            node.dropdown?.remove();});
+            node.dropdown?.remove();
+        });
         this._focused = false;
     }
 
@@ -139,13 +142,13 @@ export class Prompt {
         });
         return selectedIdentifiers;
     }
-       
+
 
     getrefMapX() {
         let nodeXs: Set<number> = new Set();
         this._prompt.querySelectorAll(".col").forEach((col) => {
             let nodeX = parseFloat(col.id.replace("col", "").replace("-", "."));
-            console.log(nodeX);
+            // console.log(nodeX);
             nodeXs.add(nodeX);
         });
         nodeXs.add(0);
@@ -157,10 +160,10 @@ export class Prompt {
         return Prompt.processNodeX(sortedNodexs);
     }
 
-    convertAbstoNodeX(abs: number): number{
+    convertAbstoNodeX(abs: number): number {
         //abs in rem
         let nodeXMap = this.getrefMapX(); //unit in rem
-        console.log(nodeXMap);
+        // console.log(nodeXMap);
         //find the floor value in nodeXMap that is less than abs
         let nodeX = 0;
         //loop through the nearest nodeXMap value to find the cooresponding key as nodeX
@@ -172,7 +175,7 @@ export class Prompt {
         return nodeX;
     }
 
-    convertNodeXtoAbs(nodeX: number): number{
+    convertNodeXtoAbs(nodeX: number): number {
         //abs in rem
         let nodeXMap = this.getrefMapX();
         return nodeXMap[nodeX];
@@ -181,7 +184,7 @@ export class Prompt {
     convertAbstoNodeY(abs: number) {
         //abs(px) = nodeY * 1.5 + 'rem';
         //consider px to rem conversion
-        return Math.floor(abs / 16 / 1.5);
+        return Math.floor(abs / 16 / 1.5)-2;
     }
 
 
@@ -255,7 +258,16 @@ export class Prompt {
             Object.assign(nodematrix, node.toJSONObj());
         });
 
-        var socket = io.connect('http://localhost:5000');
+        // Determine if the app is running locally or on a production server
+        var isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+        var url = isLocal ? 'http://localhost:5000' : 'http://ecocircuitai.com';
+
+        // Initialize the Socket.IO client
+        var socket = io(url, {
+            path: '/socket.io',
+            transports: ['polling', 'websocket']
+        });
+
         socket.emit('save_prompt', { "prompt_id": prompt_id, "flow": flow, "node": nodematrix });
         return { prompt_id, flow, nodematrix };
     }

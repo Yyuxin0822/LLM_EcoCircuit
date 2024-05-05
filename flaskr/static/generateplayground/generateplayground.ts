@@ -30,7 +30,7 @@ eventTypes.forEach(type => {
 
 function processPrompt(prompt) {
     var prIndex = prompt.id.replace('prompt', '');
-    console.log(prIndex);
+    // console.log(prIndex);
     var flowString = prompt.querySelector('#promptFlow' + prIndex).innerText;
     var flowArray = parseJson(flowString);
     var nodeString = prompt.querySelector('#promptNode' + prIndex).innerText;
@@ -77,8 +77,13 @@ function processPrompt(prompt) {
     flowArray.forEach((flow) => {
         // console.log(flow);
         for (var i = 1; i < flow.length - 1; i++) {
+            // console.log(flow[i]);
+            // console.log(flow[i + 1]);
             var nodeStart = PromptNode.getNodeById('node' + validId(flow[i]), parentPrompt);
             var nodeEnd = PromptNode.getNodeById('node' + validId(flow[i + 1]), parentPrompt);
+            if (nodeStart == null || nodeEnd == null) {
+                return;
+            }
             if (PromptFlowline.isLineExists(nodeStart.node, nodeEnd.node)) {
                 continue;
             }
@@ -181,7 +186,7 @@ quickgen?.addEventListener('click', () => {
     let mode = playFuncBar.returnMode();
     if (!mode) return;
     let { prompt_id_array, query_array } = Prompt.returnAllQuery();
-    console.log(prompt_id_array, query_array);
+    // console.log(prompt_id_array, query_array);
     if (prompt_id_array.length == 0) return;
 
     startload();
@@ -216,49 +221,49 @@ quickgen?.addEventListener('click', () => {
 
 
 
-function returnInfo(absposition = false) {
-    let info = [];
-    let prompt_id = [];
-    let currentmatrix = [];
-    let prompts = document.querySelectorAll('.prompt');
-    prompts.forEach(prompt => {
-        absPostionMatrix(prompt);
-        let promptinfo = [];
-        if (PromptNode.nodeSel) {
-            var selectednodes = prompt.querySelectorAll('.node-selected');
-            selectednodes.forEach(node => {
-                promptinfo.push(node.querySelector(".node-wrapper").innerHTML);
-            });
-        }
+// function returnInfo(absposition = false) {
+//     let info = [];
+//     let prompt_id = [];
+//     let currentmatrix = [];
+//     let prompts = document.querySelectorAll('.prompt');
+//     prompts.forEach(prompt => {
+//         absPostionMatrix(prompt);
+//         let promptinfo = [];
+//         if (PromptNode.nodeSel) {
+//             var selectednodes = prompt.querySelectorAll('.node-selected');
+//             selectednodes.forEach(node => {
+//                 promptinfo.push(node.querySelector(".node-wrapper").innerHTML);
+//             });
+//         }
 
-        if (PromptFlowline.lineSel) {
-            savedMatchedLines.forEach(line => {
-                let tempNode = [];
-                tempNode.push(line.start.querySelector(".node-wrapper").innerHTML);
-                tempNode.push(line.end.querySelector(".node-wrapper").innerHTML);
+//         if (PromptFlowline.lineSel) {
+//             savedMatchedLines.forEach(line => {
+//                 let tempNode = [];
+//                 tempNode.push(line.start.querySelector(".node-wrapper").innerHTML);
+//                 tempNode.push(line.end.querySelector(".node-wrapper").innerHTML);
 
-                //test if the first node of tempnode is a child of prompt
-                if (line.start.closest(".prompt") == prompt) {
-                    promptinfo.push(tempNode);
-                }
-            })
-        }
+//                 //test if the first node of tempnode is a child of prompt
+//                 if (line.start.closest(".prompt") == prompt) {
+//                     promptinfo.push(tempNode);
+//                 }
+//             })
+//         }
 
-        if (promptinfo.length > 0) {
-            info.push(promptinfo);
-            prompt_id.push(prompt.id);
-            if (!absposition) {
-                currentmatrix.push(prompt.querySelector(prompt.id.replace('prompt', '#promptNode')).innerText);
-            }
-            else {
-                currentmatrix.push(absPostionMatrix(prompt));
-            }
-        } else { return; }
+//         if (promptinfo.length > 0) {
+//             info.push(promptinfo);
+//             prompt_id.push(prompt.id);
+//             if (!absposition) {
+//                 currentmatrix.push(prompt.querySelector(prompt.id.replace('prompt', '#promptNode')).innerText);
+//             }
+//             else {
+//                 currentmatrix.push(absPostionMatrix(prompt));
+//             }
+//         } else { return; }
 
-    })
+//     })
 
-    return { prompt_id, info, currentmatrix };
-}
+//     return { prompt_id, info, currentmatrix };
+// }
 
 function absPostionMatrix(prompt) {
     //this function is to transform the relative position matrix to absolute position matrix
@@ -279,14 +284,14 @@ function absPostionMatrix(prompt) {
     return absMatrix;
 }
 
-function getnodePositionInDOM(node) {
+function getnodePositionInDOM(node: HTMLElement) {
     let x = 0;
     let y = 0;
-    nodeparent = node.closest('.prompt-frame');
+    let nodeparent = node.closest('.prompt-frame');
     while (node) {
         x += node.offsetLeft;
         y += node.offsetTop;
-        node = node.offsetParent;
+        node = node.offsetParent as HTMLElement;
         if (node === nodeparent) {
             break;
         }
@@ -300,17 +305,22 @@ document.querySelector('.prompt-user').classList.add('hidden');
 
 ///////////////////////////socket function/////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////
-var socket = io.connect('http://localhost:5000');
-function sendDataToCustom() {
-    let { prompt_id, info, currentmatrix } = returnInfo(true);
-    let id = document.getElementById('project_id').innerHTML;
-    socket.emit('send_data_to_custom', {
-        'project_id': id,
-        'prompt_id_array': prompt_id,
-        'info_array': info,
-        'currentmatrix_array': currentmatrix
-    });
-}
+// // Determine if the app is running locally or on a production server
+// var isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+// var url = isLocal ? 'http://localhost:5000' : 'http://ecocircuitai.com';
+
+// // Initialize the Socket.IO client
+// var socket = io(url, { path: '/socket.io' });
+// function sendDataToCustom() {
+//     let { prompt_id, info, currentmatrix } = returnInfo(true);
+//     let id = document.getElementById('project_id').innerHTML;
+//     socket.emit('send_data_to_custom', {
+//         'project_id': id,
+//         'prompt_id_array': prompt_id,
+//         'info_array': info,
+//         'currentmatrix_array': currentmatrix
+//     });
+// }
 
 // function savePlayground() {
 //     let project_id = document.getElementById('project_id').innerHTML;

@@ -12,7 +12,6 @@ eventTypes.forEach(type => {
 });
 function processPrompt(prompt) {
     var prIndex = prompt.id.replace('prompt', '');
-    console.log(prIndex);
     var flowString = prompt.querySelector('#promptFlow' + prIndex).innerText;
     var flowArray = parseJson(flowString);
     var nodeString = prompt.querySelector('#promptNode' + prIndex).innerText;
@@ -57,6 +56,9 @@ function processPrompt(prompt) {
         for (var i = 1; i < flow.length - 1; i++) {
             var nodeStart = PromptNode.getNodeById('node' + validId(flow[i]), parentPrompt);
             var nodeEnd = PromptNode.getNodeById('node' + validId(flow[i + 1]), parentPrompt);
+            if (nodeStart == null || nodeEnd == null) {
+                return;
+            }
             if (PromptFlowline.isLineExists(nodeStart.node, nodeEnd.node)) {
                 continue;
             }
@@ -100,7 +102,6 @@ quickgen?.addEventListener('click', () => {
     if (!mode)
         return;
     let { prompt_id_array, query_array } = Prompt.returnAllQuery();
-    console.log(prompt_id_array, query_array);
     if (prompt_id_array.length == 0)
         return;
     startload();
@@ -124,46 +125,6 @@ quickgen?.addEventListener('click', () => {
         finishload();
     });
 });
-function returnInfo(absposition = false) {
-    let info = [];
-    let prompt_id = [];
-    let currentmatrix = [];
-    let prompts = document.querySelectorAll('.prompt');
-    prompts.forEach(prompt => {
-        absPostionMatrix(prompt);
-        let promptinfo = [];
-        if (PromptNode.nodeSel) {
-            var selectednodes = prompt.querySelectorAll('.node-selected');
-            selectednodes.forEach(node => {
-                promptinfo.push(node.querySelector(".node-wrapper").innerHTML);
-            });
-        }
-        if (PromptFlowline.lineSel) {
-            savedMatchedLines.forEach(line => {
-                let tempNode = [];
-                tempNode.push(line.start.querySelector(".node-wrapper").innerHTML);
-                tempNode.push(line.end.querySelector(".node-wrapper").innerHTML);
-                if (line.start.closest(".prompt") == prompt) {
-                    promptinfo.push(tempNode);
-                }
-            });
-        }
-        if (promptinfo.length > 0) {
-            info.push(promptinfo);
-            prompt_id.push(prompt.id);
-            if (!absposition) {
-                currentmatrix.push(prompt.querySelector(prompt.id.replace('prompt', '#promptNode')).innerText);
-            }
-            else {
-                currentmatrix.push(absPostionMatrix(prompt));
-            }
-        }
-        else {
-            return;
-        }
-    });
-    return { prompt_id, info, currentmatrix };
-}
 function absPostionMatrix(prompt) {
     let absMatrix = {};
     var nodewrapper = prompt.querySelectorAll('.node-wrapper');
@@ -177,7 +138,7 @@ function absPostionMatrix(prompt) {
 function getnodePositionInDOM(node) {
     let x = 0;
     let y = 0;
-    nodeparent = node.closest('.prompt-frame');
+    let nodeparent = node.closest('.prompt-frame');
     while (node) {
         x += node.offsetLeft;
         y += node.offsetTop;
@@ -189,14 +150,3 @@ function getnodePositionInDOM(node) {
     return [x, y];
 }
 document.querySelector('.prompt-user').classList.add('hidden');
-var socket = io.connect('http://localhost:5000');
-function sendDataToCustom() {
-    let { prompt_id, info, currentmatrix } = returnInfo(true);
-    let id = document.getElementById('project_id').innerHTML;
-    socket.emit('send_data_to_custom', {
-        'project_id': id,
-        'prompt_id_array': prompt_id,
-        'info_array': info,
-        'currentmatrix_array': currentmatrix
-    });
-}

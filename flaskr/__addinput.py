@@ -6,7 +6,7 @@ import urllib
 import openai
 import numpy as np
 from collections import defaultdict
-from flaskr.config import OPENAI_API_KEY
+from instance.config import OPENAI_API_KEY
 from flaskr.project import *
 from flaskr.__io import *
 import math
@@ -69,6 +69,23 @@ def cleangenprocess(flow_string):
     for temp in tempflow:
         templist = extract_quotation(temp)
         cleanlist = [clean(ele) for ele in templist]
+        flowlist.append(cleanlist)
+
+    return flowlist
+
+def cleangenknowledge(flow_string):
+    # Get the first index of "["
+    first_index = flow_string.index("[")
+    # Get the last index of "]"
+    last_index = flow_string.rindex("]")
+    # Get the string between first and last index
+    new_string = flow_string[first_index + 1 : last_index]
+
+    flowlist = []
+    tempflow = extract_brackets(new_string)
+    for temp in tempflow:
+        templist = extract_quotation(temp)
+        cleanlist = [clean(ele,False) for ele in templist]
         flowlist.append(cleanlist)
 
     return flowlist
@@ -366,8 +383,10 @@ def genknowledge(io, randomNumber=4):
             Knowledge:[["Wastewater is processed in Wastewater Treatment Plant to output treated water. Treated water can be used for agriculture."],["Wastewater can cut the need for fertilisers, and improve soi quality, and be useful to agriculture."]]
             ##
 
-            Flow: ["AQUACULTURE","FOOD"]
-            Knowledge: [["Aquaculture include oyster farming, and the output is food."],["Aquaculture include shrimp farming and fish house, and the output is food."]]
+            Flow: ["MOSS","HUMIDIFIER"]
+            Knowledge: [["Moss has a large surface area relative to their volume. This extensive surface area allows them to capture more moisture from the air, which they then retain in their structure. This is how they become humidifier"],\
+                        ["As moss releases moisture through evaporation, it helps cool the surrounding air. This cooling can also lead to condensation, further becoming local humidifier."], \
+                        ["Moss can absorb water up to 20 times dry weight. Due to their cellular structure and the lack of a traditional root system, moss absorb moisture directly through their leaves and becomes humidifier"]]
             """,
                 },
                 {"role": "user", "content": str(io)},
@@ -375,7 +394,8 @@ def genknowledge(io, randomNumber=4):
             temperature=1,
             n=randomNumber,
         )
-        return response["choices"][0]["message"]["content"]
+        knowledge = response["choices"][0]["message"]["content"]
+        return cleangenknowledge(knowledge)
     except Exception as e:  # This catches all exceptions
         print(f"An error occurred: {e}")
         return None
@@ -411,11 +431,15 @@ def genprocess(io, knowledge=None, randomNumber=4) -> list:
                 },
                 {
                     "role": "user",
-                    "content": 'To transform "MOSS" to "HUMIDIFIER", we know: [["Moss can be used in a terrarium-style humidifier, helping to maintain moisture and release it into the air as needed."],["Moss can be placed in a humidifier, creating a natural evaporation process that adds moisture to the air."], ["Moss balls can be suspended in a water-filled container, where they act as a humidifier, taking up water then slowly releasing it into the air."]]',
+                    "content": 'To transform "MOSS" to "HUMIDIFIER", we know: [["Moss has a large surface area relative to their volume. This extensive surface area allows them to capture more moisture from the air, which they then retain in their structure. This is how they become humidifier"],\
+                        ["As moss releases moisture through evaporation, it helps cool the surrounding air. This cooling can also lead to condensation, further becoming local humidifier."], \
+                        ["Moss can absorb water up to 20 times dry weight. Due to their cellular structure and the lack of a traditional root system, moss absorb moisture directly through their leaves and becomes humidifier"]]',
                 },
                 {
                     "role": "assistant",
-                    "content": '[["MOSS", "TERRARIUM-STYLE HUMIDIFIER", "HUMIDIFIER"],["MOSS", "NATURAL EVAPORATION PROCESS","HUMIDIFIER",],["MOSS", "WATER-FILLED CONTAINER", "HUMIDIFIER"]]',
+                    "content": '[["MOSS", "LARGE SURFACE AREA", "CAPTURE MOISTURE","HUMIDIFIER"],\
+                        ["MOSS", "RELEASE MOISTURE THROUGH EVAPORATION","COOL THE SURROUNDING AIR","CONDENSATION","HUMIDIFIER"],\
+                            ["MOSS", "CELLULAR STRUCTURE", "LACK OF A TRADITIONAL ROOT SYSTEM", "ABSORB WATER UP TO 20 TIMES DRY WEIGHT", "HUMIDIFIER"]]',
                 },
                 {
                     "role": "user",
@@ -428,7 +452,8 @@ def genprocess(io, knowledge=None, randomNumber=4) -> list:
             n=randomNumber,
         )
         processs_string = response["choices"][0]["message"]["content"]
-        return cleangenprocess(processs_string)
+        process=cleangenprocess(processs_string)
+        return (knowledge, process)
     except Exception as e:  # This catches all exceptions
         print(f"An error occurred: {e}")
         return None
@@ -623,20 +648,22 @@ def return_addoutput(input_resources: list, max_tries=3):
 
 
 def return_addprocess(list_of_io, max_tries=4):
+    knowledgelist=[]
     flowlist = []
     for io in list_of_io:
         for _ in range(max_tries):
             randomNumber1 = random.randint(1, 5)
-            ioprocess = genprocess(io, randomNumber=randomNumber1)
+            ioknowledge,ioprocess = genprocess(io, randomNumber=randomNumber1)
             if checknestedlist(ioprocess):
+                knowledgelist.extend(ioknowledge)
                 flowlist.extend(ioprocess)
                 break
 
-    unique_tuples = {tuple(item) for item in flowlist}
-    flowquery = [list(tup) for tup in unique_tuples]
+    # unique_tuples = {tuple(item) for item in flowlist}
+    # flowquery = [list(tup) for tup in unique_tuples]
 
-    if flowquery:
-        return flowquery
+    if flowlist:
+        return knowledgelist, flowlist
     else:
         return "Sorry, we can't generate a result from the input-output resources, please try again."
 
@@ -661,23 +688,40 @@ def return_addfeedback(toseachnode: list, fullnode: list, max_tries=3):
     )
 
 
-def return_queryflow_and_nodesys(mode: str, query: list):
-    if mode == "add-input":
-        queryflow = return_addinput(query)
-        userinfo= f'More input resources added for {query}'
-    elif mode == "add-output":
-        queryflow = return_addoutput(query)
-        userinfo= f'More output resources added for {query}'
-    elif mode == "add-process":
-        queryflow = return_addprocess(query)
-        userinfo= f'More process added for {query}'
-    elif mode == "add-cooptimization":
-        queryflow = return_addcooptimization(query)
-        userinfo= f'More co-optimization added for {query}'
-    else:
-        return None
-    querynodesys = return_system(queryflow)
-    return queryflow, querynodesys, userinfo
+def return_queryflow_and_nodesys(mode: str, query: list, max_tries=3):
+    attempts = 0
+
+
+    while attempts < max_tries:
+        if mode == "add-input":
+            queryflow = return_addinput(query)
+            userinfo = f'More input resources added for {query}'
+        elif mode == "add-output":
+            queryflow = return_addoutput(query)
+            userinfo = f'More output resources added for {query}'
+        elif mode == "add-process":
+            queryknowledge, queryflow = return_addprocess(query)
+            userinfo = f'More process added for {query}.'
+            for knowledge in queryknowledge:
+                userinfo += f'<br>{knowledge[0]}'
+        elif mode == "add-cooptimization":
+            queryflow = return_addcooptimization(query)
+            userinfo = f'More co-optimization added for {query}'
+        else:
+            return None
+
+        querynodesys = return_system(queryflow)
+
+        # Check if any values are None and retry if so
+        if queryflow is None or querynodesys is None or userinfo is None:
+            attempts += 1
+            continue
+        else:
+            return queryflow, querynodesys, userinfo
+
+    # Return None if all attempts fail
+    return None
+
 
 def return_queryflow_add_feedback(mode: str, query: list, currentflow: list):
     if mode =="add-feedback":

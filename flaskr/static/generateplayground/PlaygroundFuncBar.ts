@@ -5,7 +5,9 @@ import { Prompt} from './prompt/Prompt.js';
 //@ts-ignore
 import { PromptFlowline } from './prompt/PromptFlowline.js';
 //@ts-ignore
-import { PromptNode, PromptNodeDrpDwn, PromptCustomNode } from './prompt/PromptNode.js';
+import { PromptNode} from './prompt/PromptNode.js';
+//@ts-ignore
+import { PromptNodeDrpDwn } from './prompt/PromptNodeDrpDwn.js';
 
 export class PlaygroundFuncBar extends FuncBar {
     enableEditButton: HTMLElement | null;

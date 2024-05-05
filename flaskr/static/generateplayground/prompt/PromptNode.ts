@@ -4,148 +4,9 @@ import { Prompt } from './Prompt.js';
 import { PromptFlowline } from './PromptFlowline.js';
 //@ts-ignore
 import { PromptIdentifier} from './PromptIdentifier.js';
-
-
 //@ts-ignore
-import { Dropdown } from '../../Dropdown.js';
-export class PromptNodeDrpDwn extends Dropdown {
-  static globalEnabled: boolean = false;  // Static property to enable/disable all dropdowns
+import { PromptNodeDrpDwn } from './PromptNodeDrpDwn.js';
 
-  promptItem: Prompt;
-  nodeItem: PromptNode;
-  systemArray: [];
-
-  constructor(node: HTMLElement) {
-    super(node);
-    this.promptItem = Prompt.getPromptItembyPrompt(node.closest('.prompt') as HTMLElement);
-    this.nodeItem = PromptNode.getNodeObjbyNode(node, node.closest('.prompt') as HTMLElement);
-    if (this.nodeItem && this.promptItem) {
-      this.options.set('Reclassify System', []);
-      this.options.set('Delete Node', []);
-      this.options.set('Delete Flowline', []);
-      // this.options.set('Add Flowline', []);
-      this.addReclassifyOption();
-      this.addDeleteFlowOption();
-      // this.addAddFlowOption();
-      //console.log(this.options);
-    }
-    this.init();
-  }
-
-  attachEventListenersToItems() {
-    super.attachEventListenersToItems();
-    let reclassifySubs = this.dropdown?.querySelectorAll('.ReclassifySystem'); //query sub-dropdown
-    if (reclassifySubs) {
-      reclassifySubs.forEach(reclassify => {
-        reclassify.addEventListener('click', this.handleReclassify.bind(this));
-      });
-    }
-
-    let delNode = this.dropdown?.querySelector('#dropdownDeleteNode');
-    if (delNode) {
-      delNode?.addEventListener('click', this.handleDelNode.bind(this));
-    }
-
-    let delFlow = this.dropdown?.querySelector('.DeleteFlowline'); //query sub-dropdown
-    if (delFlow) {
-      delFlow.addEventListener('click', this.handleDelFlow.bind(this));
-    }
-
-  }
-
-  addReclassifyOption() {
-    var systemString = document.querySelector('.prompt-system').innerHTML;
-    this.systemArray = parseJson(systemString);
-    if (Object.keys(this.systemArray).length > 0) {
-      for (let key in this.systemArray) {
-        if (this.systemArray[key][0] !== this.nodeItem?.nodeSys) {
-          this.options.get('Reclassify System').push(this.systemArray[key][0]);
-        }
-      }
-    }
-    this.promptItem.returnInfo(); // save immediately after reclassifying a node
-  }
-
-  //addDeleteFlowOption() {}
-
-  addDeleteFlowOption() {
-    if (this.nodeItem && this.promptItem) {
-      let startLines = this.promptItem.getLinesWhereNodeasInput(this.nodeItem);
-      let endLines = this.promptItem.getLinesWhereNodeasOutput(this.nodeItem);
-      if (startLines.length > 0) {
-        startLines.forEach(line => {
-          this.options.get('Delete Flowline').push('To ' + line.toJSONArray()[1]);
-        });
-      }
-      if (endLines.length > 0) {
-        endLines.forEach(line => {
-          this.options.get('Delete Flowline').push('From ' + line.toJSONArray()[0]);
-        });
-      }
-    }
-  }
-
-  addAddFlowOption() {
-    if (this.nodeItem && this.promptItem) {
-      this.promptItem.promptNodes.forEach(node => {
-        if (node !== this.nodeItem) {
-          this.options.get('Add Flowline').push(node.nodeContent);
-        }
-      });
-    }
-  }
-
-  handleReclassify(e: MouseEvent) {
-    console.log('Reclassify');
-    //e.target.innerText
-    var systemString = document.querySelector('.prompt-system').innerText;
-    this.systemArray = parseJson(systemString);
-    let sys = e.target.innerHTML.substring(3);
-    if (Object.keys(this.systemArray).length > 0) {
-      for (let key in this.systemArray) {
-        if (this.systemArray[key][0] === sys) {
-          this.nodeItem.nodeSys = sys;
-          this.nodeItem.nodeRGB = hexToRGBA(this.systemArray[key][1], 0.75);
-          break;
-        }
-      }
-    }
-    PromptFlowline.myLines.forEach(line => {
-      line.updateColorOptions();
-    });
-    this.container.click();
-
-  }
-
-  handleDelNode() {
-    console.log('Delete Node');
-    this.nodeItem.delete();
-  }
-
-  handleDelFlow(e: MouseEvent) {
-    console.log('Delete Flowline');
-
-    let info = e.target.innerHTML.substring(3);
-    let firstSpace = info.indexOf(' ');
-    info = [info.substring(0, firstSpace), info.substring(firstSpace + 1)];
-
-    let startText = info[0] === 'To' ? this.nodeItem.nodeContent : info[1];
-    let endText = info[0] === 'To' ? info[1] : this.nodeItem.nodeContent;
-    PromptFlowline.getLinebyEndTexts(startText, endText, this.promptItem).remove();
-
-    //rempove this sub-dropdown as well
-    e.target.closest('.dropdown-item-sub').remove();
-
-    this.container.click();
-  }
-
-
-  remove() {
-    super.remove();
-    //remove ths associate in PromptNode
-    this.nodeItem.dropdown = null;
-  }
-}
 
 export class PromptNode {
   //field declaration
@@ -212,7 +73,7 @@ export class PromptNode {
     this._nodeWrapper.classList.add('node-wrapper', 'card-node');
     this._nodeWrapper.innerHTML = this._nodeContent;
     this.newNode.appendChild(this._nodeWrapper);
-    // Todo:adjustFontSize(newNode);
+    this.adjustFontSize(this.newNode);
 
     let col = this._container.querySelector('#col' + validId(this._nodeX.toString())) as HTMLElement;
     if (!col) {
@@ -225,8 +86,49 @@ export class PromptNode {
     }
     col.appendChild(this.newNode);
 
-    // this syntax has an issue when the nodex is not an integer, it will query e.g. "#col1.3" which is invalid
+    //if nodeX is float
+    if (this._nodeX % 1 !== 0) {
+      col.style.width = '15rem';
+    }
+  }
 
+  adjustFontSize(node: HTMLElement) {
+    let nodeWrapper = node.querySelector('.node-wrapper') as HTMLElement;
+  
+    // Function to update font size
+    function updateFontSize(fontSize: number) {
+      nodeWrapper.style.fontSize = `${fontSize}px`;
+    }
+  
+    // Check if the text is overflowing
+    function isOverflowing() {
+      // console.log('scrollWidth', nodeWrapper.scrollWidth);
+      // console.log('clientWidth', nodeWrapper.clientWidth);
+      return nodeWrapper.scrollWidth > nodeWrapper.clientWidth;
+    }
+  
+    // Adjust font size to prevent overflow or reduce to minimum size
+    function adjust() {
+      let fontSize = 14; // Start from initial font size
+      updateFontSize(fontSize);
+  
+      while (isOverflowing() && fontSize > 12) {
+        fontSize--; // Decrease font size
+        updateFontSize(fontSize);
+      }
+  
+      if (fontSize === 12 && isOverflowing()) {
+        nodeWrapper.style.whiteSpace = 'normal';
+        nodeWrapper.style.lineHeight = '1.05';
+        node.style.height = 'auto'; // Allow node height to adjust to content
+      }
+    }
+  
+    if (document.readyState === 'complete') {
+      adjust(); // Adjust immediately if document is already loaded
+    } else {
+      window.addEventListener('load', adjust); // Adjust when document loads
+    }
   }
 
   attachEventListeners() {
@@ -235,24 +137,17 @@ export class PromptNode {
     document.addEventListener('nodeTabClick', event => { this.nodeWrapper.style.cursor = 'pointer'; });
     document.addEventListener('disableNodeTabClick', event => { this.nodeWrapper.style.cursor = 'default'; });
     document.addEventListener('flowlineTabClick', event => {
-      let inputidentifier = this.newNode.querySelector('.input-identifier') as HTMLElement;
-      if (inputidentifier) {
-        inputidentifier.style.cursor = 'pointer';
-      }
-      let outputidentifier = this.newNode.querySelector('.output-identifier') as HTMLElement;
-      if (outputidentifier) {
-        outputidentifier.style.cursor = 'pointer';
-      }
+      if (this.inputIdentifier) {
+        this.inputIdentifier.identifier.style.cursor = 'pointer';}
+      if (this.outputIdentifier) {
+        this.outputIdentifier.identifier.style.cursor = 'pointer';}
     });
     document.addEventListener('disableFlowlineTabClick', event => {
-      let inputidentifier = this.newNode.querySelector('.input-identifier') as HTMLElement;
-      if (inputidentifier) {
-        inputidentifier.style.cursor = 'default';
-      }
-      let outputidentifier = this.newNode.querySelector('.output-identifier') as HTMLElement;
-      if (outputidentifier) {
-        outputidentifier.style.cursor = 'default';
-      }
+      if (this.inputIdentifier) {
+        this.inputIdentifier.identifier.style.cursor = 'default';}
+      if (this.outputIdentifier) {
+        this.outputIdentifier.identifier.style.cursor = 'default';}
+        
     });
   }
 
@@ -465,6 +360,7 @@ export class PromptNode {
     // Return a JSON object representing the node "NON-POTABLE WATER": [[0, 0], "HYDRO"], for example
     return { [this.nodeContent]: [[this.nodeX, this.nodeY], this.nodeSys, this.nodeTransform] };
   }
+
 
 
   static addCustomNode(event) {

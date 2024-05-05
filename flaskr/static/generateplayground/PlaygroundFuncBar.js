@@ -1,7 +1,8 @@
 import { FuncBar } from '../FuncBar.js';
 import { Prompt } from './prompt/Prompt.js';
 import { PromptFlowline } from './prompt/PromptFlowline.js';
-import { PromptNode, PromptNodeDrpDwn } from './prompt/PromptNode.js';
+import { PromptNode } from './prompt/PromptNode.js';
+import { PromptNodeDrpDwn } from './prompt/PromptNodeDrpDwn.js';
 export class PlaygroundFuncBar extends FuncBar {
     constructor(container) {
         super(container);

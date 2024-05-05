@@ -108,7 +108,6 @@ export class Prompt {
         let nodeXs = new Set();
         this._prompt.querySelectorAll(".col").forEach((col) => {
             let nodeX = parseFloat(col.id.replace("col", "").replace("-", "."));
-            console.log(nodeX);
             nodeXs.add(nodeX);
         });
         nodeXs.add(0);
@@ -120,7 +119,6 @@ export class Prompt {
     }
     convertAbstoNodeX(abs) {
         let nodeXMap = this.getrefMapX();
-        console.log(nodeXMap);
         let nodeX = 0;
         for (let key in nodeXMap) {
             if (nodeXMap[key] <= (abs / 16)) {
@@ -134,7 +132,7 @@ export class Prompt {
         return nodeXMap[nodeX];
     }
     convertAbstoNodeY(abs) {
-        return Math.floor(abs / 16 / 1.5);
+        return Math.floor(abs / 16 / 1.5) - 2;
     }
     static getPromptItembyPrompt(prompt) {
         return Prompt.allPrompts.find(p => p.prompt === prompt);
@@ -183,7 +181,12 @@ export class Prompt {
         this.promptNodes.forEach(node => {
             Object.assign(nodematrix, node.toJSONObj());
         });
-        var socket = io.connect('http://localhost:5000');
+        var isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+        var url = isLocal ? 'http://localhost:5000' : 'http://ecocircuitai.com';
+        var socket = io(url, {
+            path: '/socket.io',
+            transports: ['polling', 'websocket']
+        });
         socket.emit('save_prompt', { "prompt_id": prompt_id, "flow": flow, "node": nodematrix });
         return { prompt_id, flow, nodematrix };
     }

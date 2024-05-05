@@ -3,6 +3,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='generate.css') }}">
 <script type="module" src="{{ url_for('static', filename='generateplayground/prompt/Prompt.js') }}" defer></script>
 <script type="module" src="{{ url_for('static', filename='generateplayground/prompt/PromptFuncBar.js') }}" defer></script>
+<script type="module" src="{{ url_for('static', filename='generateplayground/prompt/PromptNodeDrpDwn.js') }}" defer></script>
 <script type="module" src="{{ url_for('static', filename='generateplayground/prompt/PromptNode.js') }}" defer></script>
 <script type="module" src="{{ url_for('static', filename='generateplayground/prompt/PromptFlowline.js') }}" defer></script>
 <script type="module" src="{{ url_for('static', filename='generateplayground/prompt/PromptIdentifier.js') }}" defer></script>
@@ -43,10 +44,10 @@
     <!-- engineer bar -->
     <div id="engineer-bar-folded">
         <div class="wrapper">
-            <div class="component-bar-2" id="unfold">
+            <div class="component-bar-2" id="unfold" style="cursor: pointer;">
                 <span class="icon-common icon-unfold"></span>
             </div>
-            <div class="component-bar-2" id="add-io">
+            <div class="component-bar-2" id="add-io" style="cursor: pointer;">
                 <span class="icon-common icon-inout"></span>
                 <p>Add <span class=emphasis>Input </span><svg xmlns="http://www.w3.org/2000/svg" width="25" height="8"
                         viewBox="0 0 25 8" fill="none">
@@ -60,7 +61,7 @@
     <div id="engineer-bar-unfolded" class="hidden">
         <div class="wrapper">
             <div class="sub-wapper-1">
-                <div class="component-bar-2" id="fold">
+                <div class="component-bar-2" id="fold" style="cursor: pointer;">
                     <span class="icon-common icon-fold"></span>
                 </div>
                 <div class="component-bar-2" id="quickgen" style="cursor: pointer;">
@@ -199,7 +200,10 @@
                 <div class="prompt-user" id="promptUser{{promptIds[i]}}">
                     <div class="prompt-user-wrapper">
                         <div class="heading-1">User</div>
-                        <p>{{promptUserinfos[i]}}</p>
+                        {% set new_text = promptUserinfos[i].replace('<br>', '|') %}
+                        <p>{% for line in new_text.split('|') %}
+                            {{ line }}<br><br>
+                           {% endfor %}
                     </div>
                 </div>
                 <div class="prompt" id="prompt{{promptIds[i]}}">
@@ -208,8 +212,8 @@
                     <div class="prompt-system hidden" id="promptSystem{{promptIds[i]}}">{{promptSystems[i]}}</div>
                     <div class="prompt-funcbar hidden" id="promptFuncBar{{promptIds[i]}}">
                         <div class="wrapper">
-                            <button id="selmode" class="toggle inactive icon-common icon-selM"></button>
-                            <span class="normal"> | </span>
+                            <!-- <button id="selmode" class="toggle inactive icon-common icon-selM"></button> -->
+                            <!-- <span class="normal"> | </span> -->
                             <button id="nodemode" class="toggle inactive  icon-common icon-nodeM"></button>
                             <span class="normal"> | </span>
                             <button id="flowmode" class="toggle inactive  icon-common icon-flowM"></button>

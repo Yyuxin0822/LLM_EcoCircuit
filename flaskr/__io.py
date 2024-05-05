@@ -6,7 +6,7 @@ import urllib
 import openai
 import ast
 
-from flaskr.config import OPENAI_API_KEY
+from instance.config import OPENAI_API_KEY
 openai.api_key = OPENAI_API_KEY
 
 defaultsysdict = {
@@ -25,10 +25,12 @@ defaultsysdict = {
 # Helper Functions
 
 
-def clean(input_string):
+def clean(input_string, upper=True):
     # "clean a string to make it start with and end only with letter,numbers, or parentheses, and all the cases are upper"
     cleaned_string = re.sub(r"^[^a-zA-Z0-9()]+|[^a-zA-Z0-9()]+$", "", input_string)
-    return cleaned_string.upper()
+    if upper:
+        cleaned_string = cleaned_string.upper()
+    return cleaned_string
 
 
 def cleanio(output_string):

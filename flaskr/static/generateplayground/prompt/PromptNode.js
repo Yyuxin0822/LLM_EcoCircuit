@@ -1,115 +1,6 @@
 import { Prompt } from './Prompt.js';
-import { PromptFlowline } from './PromptFlowline.js';
 import { PromptIdentifier } from './PromptIdentifier.js';
-import { Dropdown } from '../../Dropdown.js';
-export class PromptNodeDrpDwn extends Dropdown {
-    constructor(node) {
-        super(node);
-        this.promptItem = Prompt.getPromptItembyPrompt(node.closest('.prompt'));
-        this.nodeItem = PromptNode.getNodeObjbyNode(node, node.closest('.prompt'));
-        if (this.nodeItem && this.promptItem) {
-            this.options.set('Reclassify System', []);
-            this.options.set('Delete Node', []);
-            this.options.set('Delete Flowline', []);
-            this.addReclassifyOption();
-            this.addDeleteFlowOption();
-        }
-        this.init();
-    }
-    attachEventListenersToItems() {
-        super.attachEventListenersToItems();
-        let reclassifySubs = this.dropdown?.querySelectorAll('.ReclassifySystem');
-        if (reclassifySubs) {
-            reclassifySubs.forEach(reclassify => {
-                reclassify.addEventListener('click', this.handleReclassify.bind(this));
-            });
-        }
-        let delNode = this.dropdown?.querySelector('#dropdownDeleteNode');
-        if (delNode) {
-            delNode?.addEventListener('click', this.handleDelNode.bind(this));
-        }
-        let delFlow = this.dropdown?.querySelector('.DeleteFlowline');
-        if (delFlow) {
-            delFlow.addEventListener('click', this.handleDelFlow.bind(this));
-        }
-    }
-    addReclassifyOption() {
-        var systemString = document.querySelector('.prompt-system').innerHTML;
-        this.systemArray = parseJson(systemString);
-        if (Object.keys(this.systemArray).length > 0) {
-            for (let key in this.systemArray) {
-                if (this.systemArray[key][0] !== this.nodeItem?.nodeSys) {
-                    this.options.get('Reclassify System').push(this.systemArray[key][0]);
-                }
-            }
-        }
-        this.promptItem.returnInfo();
-    }
-    addDeleteFlowOption() {
-        if (this.nodeItem && this.promptItem) {
-            let startLines = this.promptItem.getLinesWhereNodeasInput(this.nodeItem);
-            let endLines = this.promptItem.getLinesWhereNodeasOutput(this.nodeItem);
-            if (startLines.length > 0) {
-                startLines.forEach(line => {
-                    this.options.get('Delete Flowline').push('To ' + line.toJSONArray()[1]);
-                });
-            }
-            if (endLines.length > 0) {
-                endLines.forEach(line => {
-                    this.options.get('Delete Flowline').push('From ' + line.toJSONArray()[0]);
-                });
-            }
-        }
-    }
-    addAddFlowOption() {
-        if (this.nodeItem && this.promptItem) {
-            this.promptItem.promptNodes.forEach(node => {
-                if (node !== this.nodeItem) {
-                    this.options.get('Add Flowline').push(node.nodeContent);
-                }
-            });
-        }
-    }
-    handleReclassify(e) {
-        console.log('Reclassify');
-        var systemString = document.querySelector('.prompt-system').innerText;
-        this.systemArray = parseJson(systemString);
-        let sys = e.target.innerHTML.substring(3);
-        if (Object.keys(this.systemArray).length > 0) {
-            for (let key in this.systemArray) {
-                if (this.systemArray[key][0] === sys) {
-                    this.nodeItem.nodeSys = sys;
-                    this.nodeItem.nodeRGB = hexToRGBA(this.systemArray[key][1], 0.75);
-                    break;
-                }
-            }
-        }
-        PromptFlowline.myLines.forEach(line => {
-            line.updateColorOptions();
-        });
-        this.container.click();
-    }
-    handleDelNode() {
-        console.log('Delete Node');
-        this.nodeItem.delete();
-    }
-    handleDelFlow(e) {
-        console.log('Delete Flowline');
-        let info = e.target.innerHTML.substring(3);
-        let firstSpace = info.indexOf(' ');
-        info = [info.substring(0, firstSpace), info.substring(firstSpace + 1)];
-        let startText = info[0] === 'To' ? this.nodeItem.nodeContent : info[1];
-        let endText = info[0] === 'To' ? info[1] : this.nodeItem.nodeContent;
-        PromptFlowline.getLinebyEndTexts(startText, endText, this.promptItem).remove();
-        e.target.closest('.dropdown-item-sub').remove();
-        this.container.click();
-    }
-    remove() {
-        super.remove();
-        this.nodeItem.dropdown = null;
-    }
-}
-PromptNodeDrpDwn.globalEnabled = false;
+import { PromptNodeDrpDwn } from './PromptNodeDrpDwn.js';
 export class PromptNode {
     constructor(nodeContent, nodeX, nodeY, nodeTransform, nodeRGB, nodeSys, container) {
         if (!container) {
@@ -142,6 +33,7 @@ export class PromptNode {
         this._nodeWrapper.classList.add('node-wrapper', 'card-node');
         this._nodeWrapper.innerHTML = this._nodeContent;
         this.newNode.appendChild(this._nodeWrapper);
+        this.adjustFontSize(this.newNode);
         let col = this._container.querySelector('#col' + validId(this._nodeX.toString()));
         if (!col) {
             col = document.createElement('div');
@@ -152,6 +44,37 @@ export class PromptNode {
             this._container.appendChild(col);
         }
         col.appendChild(this.newNode);
+        if (this._nodeX % 1 !== 0) {
+            col.style.width = '15rem';
+        }
+    }
+    adjustFontSize(node) {
+        let nodeWrapper = node.querySelector('.node-wrapper');
+        function updateFontSize(fontSize) {
+            nodeWrapper.style.fontSize = `${fontSize}px`;
+        }
+        function isOverflowing() {
+            return nodeWrapper.scrollWidth > nodeWrapper.clientWidth;
+        }
+        function adjust() {
+            let fontSize = 14;
+            updateFontSize(fontSize);
+            while (isOverflowing() && fontSize > 12) {
+                fontSize--;
+                updateFontSize(fontSize);
+            }
+            if (fontSize === 12 && isOverflowing()) {
+                nodeWrapper.style.whiteSpace = 'normal';
+                nodeWrapper.style.lineHeight = '1.05';
+                node.style.height = 'auto';
+            }
+        }
+        if (document.readyState === 'complete') {
+            adjust();
+        }
+        else {
+            window.addEventListener('load', adjust);
+        }
     }
     attachEventListeners() {
         this.node.addEventListener('contextmenu', this.handleContextMenuClick.bind(this));
@@ -159,23 +82,19 @@ export class PromptNode {
         document.addEventListener('nodeTabClick', event => { this.nodeWrapper.style.cursor = 'pointer'; });
         document.addEventListener('disableNodeTabClick', event => { this.nodeWrapper.style.cursor = 'default'; });
         document.addEventListener('flowlineTabClick', event => {
-            let inputidentifier = this.newNode.querySelector('.input-identifier');
-            if (inputidentifier) {
-                inputidentifier.style.cursor = 'pointer';
+            if (this.inputIdentifier) {
+                this.inputIdentifier.identifier.style.cursor = 'pointer';
             }
-            let outputidentifier = this.newNode.querySelector('.output-identifier');
-            if (outputidentifier) {
-                outputidentifier.style.cursor = 'pointer';
+            if (this.outputIdentifier) {
+                this.outputIdentifier.identifier.style.cursor = 'pointer';
             }
         });
         document.addEventListener('disableFlowlineTabClick', event => {
-            let inputidentifier = this.newNode.querySelector('.input-identifier');
-            if (inputidentifier) {
-                inputidentifier.style.cursor = 'default';
+            if (this.inputIdentifier) {
+                this.inputIdentifier.identifier.style.cursor = 'default';
             }
-            let outputidentifier = this.newNode.querySelector('.output-identifier');
-            if (outputidentifier) {
-                outputidentifier.style.cursor = 'default';
+            if (this.outputIdentifier) {
+                this.outputIdentifier.identifier.style.cursor = 'default';
             }
         });
     }
@@ -384,7 +303,6 @@ PromptNode.nodeSel = true;
 export class PromptCustomNode extends PromptNode {
     constructor(absNodeX, absNodeY, container) {
         let PromptObj = Prompt.getPromptItembyPrompt(container);
-        console.log(PromptObj);
         let nodeX = PromptObj.convertAbstoNodeX(absNodeX);
         let nodeY = PromptObj.convertAbstoNodeY(absNodeY);
         super("", nodeX, nodeY, 'translate(0%, 0%)', hexToRGBA("#888", 0.75), "UNKNOWN", container);
