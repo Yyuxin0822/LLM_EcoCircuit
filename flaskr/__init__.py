@@ -53,6 +53,14 @@ def create_app(test_config=None):
             return redirect(url_for('index'))  # Redirect to homepage if current and prev URLs match
         return redirect(session.get('prev_url', url_for('index')))
     
+    
+    @app.errorhandler(404)
+    def bad_request(error):
+        # Redirecting back to the previous page
+        if session.get('prev_url') == request.url:
+            return redirect(url_for('index'))  # Redirect to homepage if current and prev URLs match
+        return redirect(session.get('prev_url', url_for('index')))
+    
     @app.errorhandler(504)
     def handle_504_error(e):
         flash('The server was timed out. Please try again')
