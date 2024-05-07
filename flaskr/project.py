@@ -16,6 +16,7 @@ from flaskr.db import get_db
 from flaskr.__img import *
 from flaskr.__io import *
 from flaskr.__addinput import *
+# from flaskr.errorhandler import *
 import os
 import urllib
 import json
@@ -34,7 +35,6 @@ defaultsysdict = {
     "UNKNOWN": "#888",
 }
 
-
 @bp.before_request
 def set_test_user():
     if current_app.config["TESTING"]:
@@ -44,18 +44,20 @@ def set_test_user():
 #################generate.html################
 ##############################################
 # (C)index  - prompting the user three ways of entering data
+
 @bp.route("/", methods=("GET", "POST"))
 @login_required
 def index():
     if request.method == "POST":
+
         filepath = os.path.join(current_app.instance_path, "images/envir.jpg")
         max_project_id = get_max_project_id()
         max_prompt_id = get_max_prompt_id()
 
         save_sysinfo_to_db(defaultsysdict)
 
-        requesttype = request.form["type"]
-        print("Type: ", requesttype)
+        requesttype = request.form["requesttype"]
+        # print("Type: ", requesttype)
 
         if requesttype == "description":
             prompt = request.form["description"]
@@ -77,21 +79,21 @@ def index():
                 if file:
                     # filename = secure_filename(file.filename)
                     file.save(filepath)
-                    imgurl, info, prompt = IndexHelper.gen_from_image(
+                    prompt = "Untitled"
+                    imgurl, info = IndexHelper.gen_from_image(
                         (max_project_id + 1), filepath
                     )
-
+                    print(info)
         IndexHelper.genio_from_description(
             (max_prompt_id + 1), (max_project_id + 1), info
         )
 
         error = None
 
-        if not prompt:
-            error = "Prompt is required."
-
-        if error is not None:
+        if imgurl is None or info is None:
+            error = "Generation error, please try again."
             flash(error)
+            return render_template("project/index.html"), 400
         else:
             if isinstance(info, list):
                 info = ", ".join(info)  # info as list is used for label
@@ -105,9 +107,9 @@ def index():
             )
             db.commit()
             project_id = cursor.lastrowid  # This gets the last inserted ID
-            print("Project ID: ", project_id)
+            # print("Project ID: ", project_id)
+            return redirect(url_for("project.generate", id=project_id))
 
-        return redirect(url_for("project.generate", id=project_id))
     return render_template("project/index.html")
 
 
@@ -126,9 +128,13 @@ def addio():
     data = request.get_json()
     sysdict = defaultsysdict
     prompt_id = get_max_prompt_id() + 1
-    IndexHelper.genio_from_description(
+    prompt_id = IndexHelper.genio_from_description(
         prompt_id, data["project_id"], data["info"], sysdict
     )
+    if prompt_id is None:
+        error = "Gereration error, please ask again."
+        flash(error)
+        return 400
     return jsonify(
         {
             "status": "success",
@@ -156,7 +162,9 @@ def quickgen():
     info_list = data["info_array"]
     prompt_id = update(mode, prompt_id_list, info_list)
     if prompt_id is None:
-        return jsonify({"status": "error", "message": "No prompt updated."})
+        error = "Gereration error, please ask again."
+        flash(error)
+        return 400
     elif prompt_id == -1:
         return jsonify({"status": "success", "message": "Feedback added."})
     else:
@@ -297,7 +305,14 @@ class IndexHelper:
 
         io = return_addoutput(input)
         # io = return_io(input)
+        if io is None:
+            return None
+        
         iosys = return_system(io, syscolor)
+
+        if iosys is None:
+            return None
+
         iomatrix = nodematrix(io, iosys)
 
         # save io to db
@@ -331,10 +346,11 @@ class IndexHelper:
         imgurl = ""
         info = ""
 
+        cropImage(filepath, 720)
+        base64_image = encode_image(filepath)
+        info = getdescription(base64_image)
         imgurl = genurl(id, local_path=filepath)
-        info = getdescription(imgurl)
-        prompt = "Untitled"
-        return imgurl, info, prompt
+        return imgurl, info
 
     def gen_from_label(id, label: str, filepath):
         """
@@ -568,6 +584,8 @@ def get_prompt(prompt_id: int, check_project: bool = False):
     """Get prompt from db by id
     if check_project is True, check if the prompt belongs to the project
     """
+    if prompt_id is None:
+        return None
     prompt = (
         get_db()
         .execute(

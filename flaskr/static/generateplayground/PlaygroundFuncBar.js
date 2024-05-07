@@ -88,7 +88,7 @@ export class PlaygroundFuncBar extends FuncBar {
             prompt.focusable = true;
         });
         PromptNodeDrpDwn.globalEnabled = true;
-        let firstPrompt = Prompt.allPrompts[0];
+        let firstPrompt = Prompt.allPrompts[Prompt.allPrompts.length - 1];
         firstPrompt.promptFocus();
     }
     unsetEditMode() {

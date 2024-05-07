@@ -10,6 +10,15 @@ eventTypes.forEach(type => {
         PromptFlowline.fixLine();
     }, false);
 });
+window.onload = function () {
+    PromptFlowline.fixLine();
+    var lastPrompt = Prompt.allPrompts[Prompt.allPrompts.length - 1].prompt;
+    var previousElement = lastPrompt.previousElementSibling;
+    if (previousElement && !previousElement.classList.contains('hidden')) {
+        previousElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    finishload();
+};
 function processPrompt(prompt) {
     var prIndex = prompt.id.replace('prompt', '');
     var flowString = prompt.querySelector('#promptFlow' + prIndex).innerText;
@@ -93,6 +102,10 @@ function addio() {
         window.location.reload();
         console.log('load success');
     })
+        .catch(error => {
+        console.error('Error:', error);
+        alert('Sorry! Failed to process your request. Please try again.');
+    })
         .finally(() => {
     });
 }
@@ -120,6 +133,10 @@ quickgen?.addEventListener('click', () => {
         .then(data => {
         window.location.reload();
         console.log('load success');
+    })
+        .catch(error => {
+        console.error('Error:', error);
+        alert('Sorry! Failed to process your request. Please try again.');
     })
         .finally(() => {
         finishload();

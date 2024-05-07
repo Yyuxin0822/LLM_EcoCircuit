@@ -274,6 +274,7 @@ export class PromptNode {
         return { [this.nodeContent]: [[this.nodeX, this.nodeY], this.nodeSys, this.nodeTransform] };
     }
     static addCustomNode(event) {
+        console.log(event.target);
         let newNode = new PromptCustomNode(event.offsetX, event.offsetY, event.target.closest('.prompt'));
         newNode.node.id = 'nodecustom';
         newNode.nodeWrapper.contentEditable = true;

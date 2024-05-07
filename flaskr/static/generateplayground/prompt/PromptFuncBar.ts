@@ -23,7 +23,7 @@ export class PromptFuncBar extends FuncBar {
 
     constructor(container: HTMLElement) {
         super(container);
-        this.activeToggle = this.container.querySelector(".active");
+        // this.activeToggle = this.container.querySelector(".active");
         this.prompt = this.container.closest(".prompt");
         // this.selButton = this.container.querySelector("#selmode");
         this.nodeButton = this.container.querySelector("#nodemode");
@@ -74,13 +74,13 @@ export class PromptFuncBar extends FuncBar {
 
 
     setNodeMode() {
-        document.body.style.cursor = "crosshair";
+        this.prompt.style.cursor = "crosshair";
         this.prompt.addEventListener('click', this.handleNodeClick);
         this.prompt.addEventListener('blur', this.handleBlur);
     }
 
     unsetNodeMode() {
-        document.body.style.cursor = "default";
+        this.prompt.style.cursor = "default";
         this.prompt.removeEventListener('click', this.handleNodeClick);
         this.prompt.removeEventListener('blur', this.handleBlur);
         document.body.style.cursor = "default";
@@ -159,8 +159,8 @@ export class PromptFuncBar extends FuncBar {
     }
 
     enable() {
-        this.nodeButton.click();
         this.container.classList.remove("hidden");
+        this.nodeButton.click();
     }
 
     disable() {

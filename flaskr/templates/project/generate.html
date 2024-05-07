@@ -167,7 +167,7 @@
     {% if project['type'] == 'label' %}
     <div class="emphasis">Here are the labels that you prompted ...</div>
     <p id="info">{{project['info']}}</p>
-    {% elif project['type'] == 'img' %}
+    {% elif project['type'] == 'image' %}
     <div class="emphasis">Here is a description of your image ...</div>
     <p id="info">{{project['info']}}</p>
     {% elif project['type'] == 'description' %}
@@ -214,7 +214,7 @@
                         <div class="wrapper">
                             <!-- <button id="selmode" class="toggle inactive icon-common icon-selM"></button> -->
                             <!-- <span class="normal"> | </span> -->
-                            <button id="nodemode" class="toggle inactive  icon-common icon-nodeM"></button>
+                            <button id="nodemode" class="toggle active  icon-common icon-nodeM"></button>
                             <span class="normal"> | </span>
                             <button id="flowmode" class="toggle inactive  icon-common icon-flowM"></button>
                         </div>

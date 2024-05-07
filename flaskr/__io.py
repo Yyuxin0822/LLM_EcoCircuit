@@ -64,7 +64,7 @@ def cleansystem(sys_string):
             systemdict[clean(result[0])] = clean(result[1])
         except:
             print(f"{result} for flow {temp} cannot be classified")
-            continue
+            return Exception
     return systemdict
 
 
@@ -182,7 +182,7 @@ def geninput(
     systring = ", ".join(syslist).lower()
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4",
+            model="gpt-3.5-turbo-0125",
             messages=[
                 {
                     "role": "system",
@@ -228,7 +228,7 @@ def genio(input_resources, randomNumber=3):
     """return output resources from input resources"""
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4",
+            model="gpt-3.5-turbo-0125",
             messages=[
                 {
                     "role": "system",
@@ -267,9 +267,10 @@ def genio(input_resources, randomNumber=3):
                 {"role": "user", "content": str(input_resources)},
             ],
             temperature=1,
-            n=randomNumber,
+            n=randomNumber
         )
         output_string = response["choices"][0]["message"]["content"]
+
         return cleanio(output_string)
     except Exception as e:  # This catches all exceptions
         print(f"An error occurred: {e}")
@@ -281,7 +282,7 @@ def gensystem(node, sysinfodict, randomNumber=3):
     uniquesys = list(set(sysinfodict.keys()))
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4",
+            model="gpt-3.5-turbo-0125",
             messages=[
                 {
                     "role": "system",
@@ -325,19 +326,18 @@ def return_input(env, max_tries=3):
         input_val = geninput(env)
         if checklist(input_val):
             return input_val
-    return "Sorry, we can't generate a result from the environment description, please try again."
+    print("Sorry, we can't generate a result from the environment description, please try again.")
+    return None
 
 
 def return_io(input_resources, max_tries=4):
-    for _ in range(max_tries):
-        randomNumber = random.randint(1, 5)
-        flow_list = genio(input_resources, randomNumber)
+    for i in range(max_tries):
+        flow_list = genio(input_resources, i+1)
+        print(f"flow_list: {flow_list}")
         if checknestedlist(flow_list):
             return flow_list
-    return (
-        "Sorry, we can't generate a result from the input resources, please try again."
-    )
-
+    print("Sorry, we can't generate a result from the input resources, please try again.")
+    return None
 
 def return_system(node: list, syscolor: dict = defaultsysdict, max_tries: int = 3):
     if checknestedlist(node):
@@ -354,7 +354,8 @@ def return_system(node: list, syscolor: dict = defaultsysdict, max_tries: int = 
                     return sysdict
             except:
                 print(f"sysdict keys {sysdict.keys()} and node {node} are not the same")
-    return "Sorry, we can't generate a result for the nodes, please try again."
+    print("Sorry, we can't generate a result from the node list, please try again.")
+    return None
 
 
 # ### Build Simple Matrix

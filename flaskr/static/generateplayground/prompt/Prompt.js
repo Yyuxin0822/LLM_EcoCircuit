@@ -122,7 +122,10 @@ export class Prompt {
         let nodeX = 0;
         for (let key in nodeXMap) {
             if (nodeXMap[key] <= (abs / 16)) {
-                nodeX = parseFloat(key);
+                let tempNodeX = parseFloat(key);
+                if (nodeX < tempNodeX) {
+                    nodeX = tempNodeX;
+                }
             }
         }
         return nodeX;
@@ -182,10 +185,10 @@ export class Prompt {
             Object.assign(nodematrix, node.toJSONObj());
         });
         var isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-        var url = isLocal ? 'http://localhost:5000' : 'http://ecocircuitai.com';
+        var url = isLocal ? 'http://localhost:5000' : 'https://www.ecocircuitai.com';
         var socket = io(url, {
             path: '/socket.io',
-            transports: ['polling', 'websocket']
+            transports: ['websocket', 'polling']
         });
         socket.emit('save_prompt', { "prompt_id": prompt_id, "flow": flow, "node": nodematrix });
         return { prompt_id, flow, nodematrix };

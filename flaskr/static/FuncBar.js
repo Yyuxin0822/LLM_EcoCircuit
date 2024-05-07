@@ -34,11 +34,11 @@ export class FuncBar {
     }
 
     activateFunction(id) {
-        console.log(`Activated ${id}`);
+        // console.log(`Activated ${id}`);
     }
 
     deactivateFunction(id) {
-        console.log(`Deactivated ${id}`);
+        // console.log(`Deactivated ${id}`);
     }
 
     initiateDefaultToggle() {

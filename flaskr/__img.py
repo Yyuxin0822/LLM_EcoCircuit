@@ -7,6 +7,7 @@ import openai
 import requests
 import base64
 from instance.config import OPENAI_API_KEY, GITHUB_TOKEN
+from PIL import Image
 
 openai.api_key = OPENAI_API_KEY
 token=GITHUB_TOKEN
@@ -15,58 +16,115 @@ token=GITHUB_TOKEN
 ######################################################
 #Task 1 - Generate Environment Image
 def genexpand(prompt):
-    response = openai.ChatCompletion.create(
-    model="gpt-4",
-    messages=[
-        {
-        "role": "system",
-        "content": "You are to help me expand an environment description to exactly 100 words with specific imagination and sustainable infrastructure"
-        },
-        {
-        "role": "user",
-        "content": prompt,
-        },
-    ],
-    temperature=1,
-    max_tokens=256,
-    top_p=1,
-    frequency_penalty=0,
-    presence_penalty=0
-    )
-    expanded_description = response['choices'][0]['message']['content']
-    return expanded_description
-
-def getcanvas(envir_description):
-    response = openai.Image.create(
-        model="dall-e-3",
-        prompt=f"{envir_description}, photorealistic",
-        n=1,
-        size="1024x1024"
-    )
-    image_url = response['data'][0]['url']
-
-    return image_url
-
-def getdescription(image_url):  
-    response = openai.ChatCompletion.create(
-        model="gpt-4-vision-preview",
-        messages=[{
-        "role": "user",
-        "content": [
-            {"type": "text", "text": "What’s in this image? Provide me with a Dalle image description."},
+    try:
+        response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[
             {
-            "type": "image_url",
-            "image_url": {
-                "url": image_url,
+            "role": "system",
+            "content": "You are to help me expand an environment description to exactly 100 words with specific imagination and sustainable infrastructure"
             },
+            {
+            "role": "user",
+            "content": prompt,
             },
         ],
-        }
-    ],
-    max_tokens=300,
-    )
-    description = response.choices[0]['message']['content']
-    return description
+        temperature=1,
+        max_tokens=256,
+        top_p=1,
+        frequency_penalty=0,
+        presence_penalty=0
+        )
+        expanded_description = response['choices'][0]['message']['content']
+        return expanded_description
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
+
+def getcanvas(envir_description, max_tries=3):
+    for i in range(max_tries):
+        try:
+            response = openai.Image.create(
+                model="dall-e-3",
+                prompt=f"{envir_description}, photorealistic",
+                n=i+1,
+                size="1024x1024"
+            )
+            image_url = response['data'][0]['url']
+            return image_url
+        except Exception as e:
+            print(f"An error occurred: {e}")
+    return None
+
+def encode_image(image_path='../instance/images/envir.jpg'):
+  with open(image_path, "rb") as image_file:
+    return base64.b64encode(image_file.read()).decode('utf-8')
+
+def getdescription(base64_image, max_tries=3):  
+    for i in range(max_tries):
+        try:
+            response = openai.ChatCompletion.create(
+                model="gpt-4-vision-preview",
+                messages=[{
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": "What’s in this image? Provide me with a Dalle image description."},
+                    {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"data:image/jpeg;base64,{base64_image}"
+                    },
+                    },
+                ],
+                } ],
+            n=i+1,
+            max_tokens=300,
+            )
+            description = response.choices[0]['message']['content']
+            # if description starts with "Sorry"
+            if description.startswith("Sorry"):
+                raise Exception(description)
+            else:
+                return description
+        except Exception as e:
+            print(f"An error occurred: {e}")
+    return None
+
+
+def cropImage(localpath: str = '../instance/images/envir.jpg', size: int = 720):
+    try:
+        # Open the image file
+        img = Image.open(localpath)
+        
+        # Get the dimensions of the image
+        width, height = img.size
+        
+        # Calculate the cropping dimensions
+        if width > height:
+            left = int((width - height) / 2)
+            top = 0
+            right = int((width + height) / 2)
+            bottom = height
+        else:
+            left = 0
+            top = int((height - width) / 2)
+            right = width
+            bottom = int((height + width) / 2)
+        
+        # Crop the image
+        img_cropped = img.crop((left, top, right, bottom))
+        
+        # Resize the image
+        img_resized = img_cropped.resize((size, size), Image.LANCZOS)
+        
+        # Save the cropped and resized image
+        img_resized.save(localpath)
+        
+        print("Image cropped and resized successfully!")
+        
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
 
 def genurl(id, local_path='../instance/images/envir.jpg', repo='images', owner='Yyuxin0822', token=GITHUB_TOKEN, branch='main'):
     """
@@ -83,6 +141,7 @@ def genurl(id, local_path='../instance/images/envir.jpg', repo='images', owner='
     Returns:
         str: Public URL of the uploaded/replaced image.
     """
+
     headers = {"Authorization": f"token {token}"}
     # The image is renamed to "{id}.jpg" for uploading
     path = f"{id}.jpg"

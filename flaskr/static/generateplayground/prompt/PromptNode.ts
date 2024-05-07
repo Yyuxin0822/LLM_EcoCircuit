@@ -364,6 +364,7 @@ export class PromptNode {
 
 
   static addCustomNode(event) {
+    console.log(event.target)
     let newNode = new PromptCustomNode(event.offsetX, event.offsetY, event.target.closest('.prompt'));
     newNode.node.id = 'nodecustom';
     newNode.nodeWrapper.contentEditable = true;
@@ -399,6 +400,7 @@ export class PromptCustomNode extends PromptNode {
   constructor(absNodeX: number, absNodeY: number, container: HTMLElement) {
     let PromptObj = Prompt.getPromptItembyPrompt(container);
     let nodeX=PromptObj.convertAbstoNodeX(absNodeX);
+
     let nodeY=PromptObj.convertAbstoNodeY(absNodeY);
     super("", nodeX, nodeY, 'translate(0%, 0%)', hexToRGBA("#888", 0.75), "UNKNOWN", container);
   }

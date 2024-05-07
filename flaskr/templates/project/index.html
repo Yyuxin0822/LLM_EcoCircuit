@@ -6,8 +6,8 @@
   <div class="hey-i-am-ecocircuit">
     <span class="heading-1">Hey, I am EcoCircuit AI!</span><br>
     <span class="normal">Generate sustainable design engineering solutions for your AEC project right away!</span>
-  </div >
-  
+  </div>
+
   <div class="prmopt-frame">
     <div class="frame-wrapper" id="modal-description-activate">
       <div class="component-bar-2">
@@ -29,6 +29,7 @@
     </div>
   </div>
 
+
   <!-- start of modal-text-->
   <div class="modal-description" id="modal-description">
     <span class="icon-common icon-close"></span>
@@ -45,36 +46,42 @@
           </div>
         </div>
         <div id="component-expand-description" class="hidden">
-          <div class="component-bar-selected" >
+          <div class="component-bar-selected">
             <span class='icon-common icon-tik'></span>
             <p>Expand Description with AI</p>
           </div>
         </div>
         <div class="component-bar-2">
           <span class='icon-common icon-add'></span>
-          <div id="generate-text" class="emphasis" style="text-align: center; border: none; background-color: transparent;">
+          <div id="generate-text" class="emphasis" style="text-align: center; border: none; 
+        background-color: transparent; cursor: pointer;">
             Generate</div>
-        </div> 
+        </div>
       </div>
     </div>
-  </div>  <!-- end of modal-text-->
+  </div> <!-- end of modal-text-->
 
   <!-- start of modal-img -->
   <div class="modal-img" id="modal-img">
     <span class='icon-common icon-close'></span>
     <div class="frame">
-        <form method="POST" action="/" enctype="multipart/form-data">
-            <div class="sub-frame-1">        
-                <span class='icon-common icon-upload'></span>
-                <input type="file" id="image-upload" name="image" accept="image/*" class="normal">
-            </div>
-            <div class="component-bar-2">
-                <span class='icon-common icon-add'></span>
-                <input type="submit" value="Generate" id="generate-img" class="emphasis" style="text-align: center; border: none; background-color: transparent;">
-            </div>
-        </form>
+      <form method="POST" action="/" enctype="multipart/form-data">
+        <div class="sub-frame-1">
+          <span class='icon-common icon-upload' id="icon-upload"></span>
+          <input type="file" id="image-upload" name="image" accept="image/*" style="display: none;">
+          <img id="preview-img" src="#" alt="Image preview..." style="display: none; max-width: 100%;">
+          <label for="image-upload" class="custom-file-upload normal" style="cursor: pointer;">Browse File To
+            Upload</label>
+        </div>
+        <div class="component-bar-2">
+          <span class='icon-common icon-add'></span>
+          <div id="generate-img" class="emphasis"
+            style="cursor: pointer;text-align: center; border: none; background-color: transparent;">
+            Generate</div>
+        </div>
+      </form>
     </div>
-  </div>  <!-- end of modal-img -->
+  </div> <!-- end of modal-img -->
 
   <!-- start of modal-label -->
   <div class="modal-label" id="modal-label">
@@ -95,15 +102,13 @@
       </div>
       <div class="component-bar-2">
         <span class='icon-common icon-add'></span>
-        <div id="generate-label" class="generate-label emphasis" style="text-align: center; border: none; background-color: transparent;">
+        <div id="generate-label" class="generate-label emphasis"
+          style="cursor: pointer;text-align: center; border: none; background-color: transparent;">
           Generate</div>
-      </div> 
+      </div>
 
     </div>
   </div> <!-- end of modal-label -->
 
-</div>   <!-- end of prompt-i-o -->
+</div> <!-- end of prompt-i-o -->
 {% endblock %}
-
-
-

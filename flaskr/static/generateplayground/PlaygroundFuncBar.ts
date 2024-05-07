@@ -21,7 +21,7 @@ export class PlaygroundFuncBar extends FuncBar {
         this.disableEditButton = this.container.querySelector("#disable-edit");
     }
 
-    activateFunction(id) {
+    activateFunction(id: string) {
         super.activateFunction(id); // Call base class method
         // Extend with specific functionality
         switch (id) {
@@ -113,7 +113,7 @@ export class PlaygroundFuncBar extends FuncBar {
         PromptNodeDrpDwn.globalEnabled = true;
 
         //get the first prompt
-        let firstPrompt = Prompt.allPrompts[0];
+        let firstPrompt = Prompt.allPrompts[Prompt.allPrompts.length - 1];
         firstPrompt.promptFocus();
     }
 

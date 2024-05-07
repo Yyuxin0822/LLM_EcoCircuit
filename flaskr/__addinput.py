@@ -272,7 +272,7 @@ def genaddinput(output, syslist=defaultsysdict.keys(), randomNumber=3) -> list:
     systring = ",".join(syslist).lower()
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4",
+            model="gpt-3.5-turbo-0125",
             messages=[
                 {
                     "role": "system",
@@ -302,6 +302,7 @@ def genaddinput(output, syslist=defaultsysdict.keys(), randomNumber=3) -> list:
             frequency_penalty=0,
             presence_penalty=0,
             n=randomNumber,
+
         )
         output_string = response["choices"][0]["message"]["content"]
         return cleangenio(output_string, output, querytype="output")
@@ -323,7 +324,7 @@ def genaddoutput(input, syslist=defaultsysdict.keys(), randomNumber=3) -> list:
     systring = ",".join(syslist).lower()
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4",
+            model="gpt-3.5-turbo-0125",
             messages=[
                 {
                     "role": "system",
@@ -353,6 +354,7 @@ def genaddoutput(input, syslist=defaultsysdict.keys(), randomNumber=3) -> list:
             frequency_penalty=0,
             presence_penalty=0,
             n=randomNumber,
+
         )
         output_string = response["choices"][0]["message"]["content"]
         return cleangenio(output_string, input, querytype="input")
@@ -393,6 +395,7 @@ def genknowledge(io, randomNumber=4):
             ],
             temperature=1,
             n=randomNumber,
+
         )
         knowledge = response["choices"][0]["message"]["content"]
         return cleangenknowledge(knowledge)
@@ -406,7 +409,7 @@ def genprocess(io, knowledge=None, randomNumber=4) -> list:
         knowledge = genknowledge(io)
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4",
+            model="gpt-3.5-turbo-0125",
             messages=[
                 {
                     "role": "system",
@@ -450,6 +453,7 @@ def genprocess(io, knowledge=None, randomNumber=4) -> list:
             max_tokens=1200,
             top_p=0.75,
             n=randomNumber,
+    
         )
         processs_string = response["choices"][0]["message"]["content"]
         process=cleangenprocess(processs_string)
@@ -472,7 +476,7 @@ def genaddcooptimization(input: list, randomNumber=3) -> list:
     """
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4",
+            model="gpt-3.5-turbo-0125",
             messages=[
                 {
                     "role": "system",
@@ -559,6 +563,7 @@ def genaddcooptimization(input: list, randomNumber=3) -> list:
             frequency_penalty=0.2,
             presence_penalty=0,
             n=randomNumber,
+            # stream=True,
         )
         output_string = response["choices"][0]["message"]["content"]
         return cleangenio(output_string, input, querytype="input")
@@ -588,7 +593,7 @@ def genaddfeedback(tosearchnode: list, usefulnode: list, randomNumber=3):
 
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4",
+            model="gpt-3.5-turbo-0125",
             messages=[
                 {
                     "role": "system",
@@ -631,9 +636,8 @@ def return_addinput(output_resources: list, max_tries=3):
         flow_list = genaddinput(output_resources, randomNumber=randomNumber)
         if checknestedlist(flow_list):
             return flow_list
-    return (
-        "Sorry, we can't generate a result from the output resources, please try again."
-    )
+    print ("Sorry, we can't generate a result from the output resources, please try again.")
+    return None
 
 
 def return_addoutput(input_resources: list, max_tries=3):
@@ -642,9 +646,8 @@ def return_addoutput(input_resources: list, max_tries=3):
         flow_list = genaddoutput(input_resources, randomNumber=randomNumber)
         if checknestedlist(flow_list):
             return flow_list
-    return (
-        "Sorry, we can't generate a result from the input resources, please try again."
-    )
+    print ("Sorry, we can't generate a result from the input resources, please try again.")
+    return None
 
 
 def return_addprocess(list_of_io, max_tries=4):
@@ -665,7 +668,8 @@ def return_addprocess(list_of_io, max_tries=4):
     if flowlist:
         return knowledgelist, flowlist
     else:
-        return "Sorry, we can't generate a result from the input-output resources, please try again."
+        print ("Sorry, we can't generate a result from the input resources, please try again.")
+        return None, None
 
 
 def return_addcooptimization(input_resources: list, max_tries=3):
@@ -674,7 +678,8 @@ def return_addcooptimization(input_resources: list, max_tries=3):
         flow_list = genaddcooptimization(input_resources, randomNumber=randomNumber)
         if checknestedlist(flow_list):
             return flow_list
-    return "Sorry, we can't generate cooptimization from the input resources, please try again."
+    print ("Sorry, we can't generate a result from the input resources, please try again.")
+    return None
 
 
 def return_addfeedback(toseachnode: list, fullnode: list, max_tries=3):
@@ -683,9 +688,8 @@ def return_addfeedback(toseachnode: list, fullnode: list, max_tries=3):
         flow_list = genaddfeedback(toseachnode, fullnode, randomNumber=randomNumber)
         if checknestedlist(flow_list):
             return flow_list
-    return (
-        "Sorry, we can't generate feedback from the input resources, please try again."
-    )
+    print ("Sorry, we can't generate a result from the input resources, please try again.")
+    return None
 
 
 def return_queryflow_and_nodesys(mode: str, query: list, max_tries=3):
@@ -710,10 +714,14 @@ def return_queryflow_and_nodesys(mode: str, query: list, max_tries=3):
         else:
             return None
 
+        if queryflow is None or userinfo is None:
+            attempts += 1
+            continue
+        
         querynodesys = return_system(queryflow)
 
         # Check if any values are None and retry if so
-        if queryflow is None or querynodesys is None or userinfo is None:
+        if querynodesys is None:
             attempts += 1
             continue
         else:

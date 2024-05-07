@@ -161,15 +161,19 @@ export class Prompt {
     }
 
     convertAbstoNodeX(abs: number): number {
-        //abs in rem
+        //abs in px
         let nodeXMap = this.getrefMapX(); //unit in rem
+
         // console.log(nodeXMap);
         //find the floor value in nodeXMap that is less than abs
         let nodeX = 0;
         //loop through the nearest nodeXMap value to find the cooresponding key as nodeX
         for (let key in nodeXMap) {
-            if (nodeXMap[key] <= (abs / 16)) {
-                nodeX = parseFloat(key);
+            if (nodeXMap[key] <= (abs / 16) ) {
+                let tempNodeX = parseFloat(key);
+                if (nodeX < tempNodeX) {
+                    nodeX = tempNodeX;
+                }
             }
         }
         return nodeX;
@@ -178,6 +182,7 @@ export class Prompt {
     convertNodeXtoAbs(nodeX: number): number {
         //abs in rem
         let nodeXMap = this.getrefMapX();
+
         return nodeXMap[nodeX];
     }
 
@@ -260,12 +265,12 @@ export class Prompt {
 
         // Determine if the app is running locally or on a production server
         var isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-        var url = isLocal ? 'http://localhost:5000' : 'http://ecocircuitai.com';
+        var url = isLocal ? 'http://localhost:5000' : 'https://www.ecocircuitai.com';
 
         // Initialize the Socket.IO client
         var socket = io(url, {
             path: '/socket.io',
-            transports: ['polling', 'websocket']
+            transports: ['websocket', 'polling']
         });
 
         socket.emit('save_prompt', { "prompt_id": prompt_id, "flow": flow, "node": nodematrix });

@@ -1,7 +1,7 @@
 //@ts-ignore
 import { PlaygroundFuncBar } from './PlaygroundFuncBar.js';
 //@ts-ignore
-import { Prompt} from './prompt/Prompt.js';
+import { Prompt } from './prompt/Prompt.js';
 //@ts-ignore
 import { PromptFlowline } from './prompt/PromptFlowline.js';
 //@ts-ignore
@@ -9,7 +9,6 @@ import { PromptNode } from './prompt/PromptNode.js';
 
 ///////////////////////////Main Flow Control ///////////////
 ////////////////////////////////////////////////////////////
-
 const playFuncBar = new PlaygroundFuncBar(document.querySelector('.function-frame'));
 
 ///////////////Helper Func////////////////////
@@ -27,6 +26,18 @@ eventTypes.forEach(type => {
     }, false); // Set useCapture to true to handle the event in the capturing phase
 });
 
+
+//domcument load
+window.onload = function () {
+    PromptFlowline.fixLine();
+    var lastPrompt = Prompt.allPrompts[Prompt.allPrompts.length - 1].prompt;
+    var previousElement = lastPrompt.previousElementSibling;
+
+    if (previousElement && !previousElement.classList.contains('hidden')) {
+        previousElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    finishload();
+}
 
 function processPrompt(prompt) {
     var prIndex = prompt.id.replace('prompt', '');
@@ -176,6 +187,11 @@ function addio() {
             // document.getElementById('prompt-frame').scrollIntoView(false);
             console.log('load success')
         })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Sorry! Failed to process your request. Please try again.');
+            // Optionally, re-enable the form or button for resubmission
+        })
         .finally(() => {
             // finishload();
         });
@@ -207,8 +223,12 @@ quickgen?.addEventListener('click', () => {
             window.location.reload();
             console.log('load success')
         })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Sorry! Failed to process your request. Please try again.');
+            // Optionally, re-enable the form or button for resubmission
+        })
         .finally(() => {
-
             finishload();
         });
 });
@@ -307,7 +327,7 @@ document.querySelector('.prompt-user').classList.add('hidden');
 ///////////////////////////////////////////////////////////////////////////////////
 // // Determine if the app is running locally or on a production server
 // var isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-// var url = isLocal ? 'http://localhost:5000' : 'http://ecocircuitai.com';
+// var url = isLocal ? 'http://localhost:5000' : 'https://www.ecocircuitai.com';
 
 // // Initialize the Socket.IO client
 // var socket = io(url, { path: '/socket.io' });

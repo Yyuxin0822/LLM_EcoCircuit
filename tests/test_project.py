@@ -8,7 +8,7 @@ import logging
 import re
 from werkzeug.datastructures import FileStorage
 
-
+# export PYTHONPATH="/home/ubuntu/Sherbot/App_240429:$PYTHONPATH"
 logging.basicConfig(
     level=logging.DEBUG,
     filename="test_logs_project.log",
@@ -24,14 +24,14 @@ logging.basicConfig(
 
 
 class TestIndex:
-    @pytest.mark.skip(reason="leave this for a while.")
+    # @pytest.mark.skip(reason="leave this for a while.")
     def test_post_description(self, app, client):
         """Test posting a description type."""
         with app.app_context():
             response = client.post(
                 "/",
                 data={
-                    "type": "description",
+                    "requesttype": "description",
                     "description": "This is a coastal island.",
                     "expand": "true",
                 },
@@ -40,20 +40,21 @@ class TestIndex:
             logging.debug(f"Response: {response.data}")
 
             expected_url_pattern = re.compile(r"^/\d+$")
+
             assert expected_url_pattern.match(
                 response.request.path
             ), f"Unexpected final URL: {response.request.path}"
             assert b"Input" in response.data
 
-    @pytest.mark.skip(reason="leave this for a while.")
+    # @pytest.mark.skip(reason="leave this for a while.")
     def test_post_image(self, app, client):
-        """Test posting an image file from the local filesystem."""
+        # """Test posting an image file from the local filesystem."""
         with app.app_context():
             with open(
                 os.path.join(current_app.instance_path, "images/envir.jpg"), "rb"
             ) as f:
                 data = {
-                    "type": "image",
+                    "requesttype": "image",
                     "image": FileStorage(stream=f, filename="test.jpg"),
                 }
                 with client:
@@ -69,14 +70,14 @@ class TestIndex:
                     ), f"Unexpected final URL: {response.request.path}"
                     assert b"Input" in response.data
     
-    @pytest.mark.skip(reason="leave this for a while.")
+    # @pytest.mark.skip(reason="leave this for a while.")
     def test_post_label(self, app, client):
         """Test posting a label type."""
         with app.app_context():
             response = client.post(
                 "/",
                 data={
-                    "type": "label",
+                    "requesttype": "label",
                     "label": "SEA BREEZE, NATURAL COOLING",
                     "expand": "true",
                 },
@@ -96,9 +97,8 @@ class TestIndex:
             response = client.post(
                 "/",
                 data={
-                    "type": "label",
+                    "requesttype": "label",
                     "label": "SUCCULENTS, WETLAND, NON-POTABLE WATER, WETLAND",
-                    "expand": "true",
                 },
                 follow_redirects=True,
             )
