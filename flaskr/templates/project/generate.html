@@ -2,11 +2,15 @@
 {% block scripts %}
 <link rel="stylesheet" href="{{ url_for('static', filename='generate.css') }}">
 <script type="module" src="{{ url_for('static', filename='generateplayground/prompt/Prompt.js') }}" defer></script>
-<script type="module" src="{{ url_for('static', filename='generateplayground/prompt/PromptFuncBar.js') }}" defer></script>
-<script type="module" src="{{ url_for('static', filename='generateplayground/prompt/PromptNodeDrpDwn.js') }}" defer></script>
+<script type="module" src="{{ url_for('static', filename='generateplayground/prompt/PromptFuncBar.js') }}"
+    defer></script>
+<script type="module" src="{{ url_for('static', filename='generateplayground/prompt/PromptNodeDrpDwn.js') }}"
+    defer></script>
 <script type="module" src="{{ url_for('static', filename='generateplayground/prompt/PromptNode.js') }}" defer></script>
-<script type="module" src="{{ url_for('static', filename='generateplayground/prompt/PromptFlowline.js') }}" defer></script>
-<script type="module" src="{{ url_for('static', filename='generateplayground/prompt/PromptIdentifier.js') }}" defer></script>
+<script type="module" src="{{ url_for('static', filename='generateplayground/prompt/PromptFlowline.js') }}"
+    defer></script>
+<script type="module" src="{{ url_for('static', filename='generateplayground/prompt/PromptIdentifier.js') }}"
+    defer></script>
 <script type="module" src="{{ url_for('static', filename='generateplayground/PlaygroundFuncBar.js') }}" defer></script>
 <script type="module" src="{{ url_for('static', filename='generateplayground/generateplayground.js') }}" defer></script>
 <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
@@ -48,7 +52,7 @@
                 <span class="icon-common icon-unfold"></span>
             </div>
             <div class="component-bar-2" id="add-io" style="cursor: pointer;">
-                <span class="icon-common icon-inout"></span>
+                <span class="icon-common icon-add"></span>
                 <p>Add <span class=emphasis>Input </span><svg xmlns="http://www.w3.org/2000/svg" width="25" height="8"
                         viewBox="0 0 25 8" fill="none">
                         <path
@@ -112,7 +116,7 @@
                     </svg>
                     <div class="component-eng-tab inactive toggle" id="add-feedback">
                         <span class="icon-common icon-feedback"></span>
-                        <p>Add <span class=emphasis>Feedback / Regeneration</span> with AI</p>
+                        <p>Add <span class=emphasis>Regeneration / Feedback</span> with AI</p>
                     </div>
                     <svg xmlns="http://www.w3.org/2000/svg" width="228" height="169" viewBox="0 0 228 169" fill="none"
                         style="position:absolute; left:7.25rem; bottom:1.3125rem;">
@@ -133,16 +137,16 @@
 
     <!-- function bar  - temporarily archived at core -->
     <div class="function-bar" id="function-bar">
-        <div id="enable-edit" class="active toggle">
+        <div id="enable-edit" class="component-eng-tab active toggle">
             <div class="wrapper-1">
-                <p>Enable Edit</p>
+                <p>Edit Mode</p>
             </div>
         </div>
-        <div id="disable-edit" class="hidden">
+        <!-- <div id="disable-edit" class="hidden">
             <div class="wrapper-1">
                 <p>Disable Edit</p>
             </div>
-        </div>
+        </div> -->
         <!-- <div id="quicksel-folded">
             <div class="wrapper-1">
                 <p>Quick Select</p>
@@ -166,12 +170,15 @@
     <div id="project_id" class="hidden">{{id}}</div>
     {% if project['type'] == 'label' %}
     <div class="emphasis">Here are the labels that you prompted ...</div>
+    <p style="font-style: italic;">AI may err.</p>
     <p id="info">{{project['info']}}</p>
     {% elif project['type'] == 'image' %}
     <div class="emphasis">Here is a description of your image ...</div>
+    <p style="font-style: italic;">AI may err.</p>
     <p id="info">{{project['info']}}</p>
     {% elif project['type'] == 'description' %}
     <div class="emphasis">Here is your description ...</div>
+    <p style="font-style: italic;">AI may err.</p>
     <p id="info">{{project['info']}}</p>
     {% endif %}
     <div id="system-bar">
@@ -182,6 +189,7 @@
         <span class="icon-common icon-solidwaste"></span>
         <span class="icon-common icon-energy"></span>
         <span class="icon-common icon-transport"></span>
+
     </div>
 </div>
 
@@ -201,9 +209,9 @@
                     <div class="prompt-user-wrapper">
                         <div class="heading-1">User</div>
                         {% set new_text = promptUserinfos[i].replace('<br>', '|') %}
-                        <p>{% for line in new_text.split('|') %}
-                            {{ line }}<br><br>
-                           {% endfor %}
+                        <p class="userinfo">{% for line in new_text.split('|') %}
+                            {{ line }}<br>
+                            {% endfor %}
                     </div>
                 </div>
                 <div class="prompt" id="prompt{{promptIds[i]}}">

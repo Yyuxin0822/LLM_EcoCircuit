@@ -65,8 +65,10 @@ export class PromptNode {
             }
             if (fontSize === 12 && isOverflowing()) {
                 nodeWrapper.style.whiteSpace = 'normal';
-                nodeWrapper.style.lineHeight = '1.05';
-                node.style.height = 'auto';
+                nodeWrapper.style.lineHeight = '1.0';
+                node.style.alignItems = 'flex-start';
+                node.style.overflow = 'hidden';
+                nodeWrapper.title = nodeWrapper.textContent;
             }
         }
         if (document.readyState === 'complete') {

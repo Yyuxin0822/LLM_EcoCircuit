@@ -99,7 +99,7 @@ export class PromptFuncBar extends FuncBar {
     }
     enable() {
         this.container.classList.remove("hidden");
-        this.nodeButton.click();
+        this.activateFunction("nodemode");
     }
     disable() {
         this.container.classList.add("hidden");

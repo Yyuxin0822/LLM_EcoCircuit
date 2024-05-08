@@ -16,6 +16,7 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s",
 )
 
+# export PYTHONPATH="/home/ubuntu/Sherbot/App_240429:$PYTHONPATH"
 
 ################test helper functions################
 #####################################################
@@ -89,165 +90,6 @@ class TestHelperFunctions:
         result1 = sortnode(mergelist(list1, list2), sysdict)
         assert len(result1) == len(mergelist(list1, list2))
     
-# class TestMatrixFunctions_archived:
-#     def test_flow_and_matrix_addinput1(self):
-#         #Addinput after addio
-#         queriedflow=[["i1","output"],["i2","output"],["i3","output"]]
-#         queriednodesys={k:"HYDRO" for k in unielement(queriedflow)}
-#         currentflow=[["input","output"],["A","B"]]
-#         currentmatrix={"A": [[0, 0], "HYDRO"],       "B": [[1, 0], "HYDRO"], 
-#                    "input": [[0, 1], "HYDRO"],  "output": [[1, 1], "HYDRO"], }
-#         updated_flow,updated_matrix=update_flow_and_matrix(queriedflow,queriednodesys,currentflow,currentmatrix,"add-input")
-#         expectedflow=mergeflow(queriedflow,currentflow)
-#         expectedmatrix={"A": [[0, 0], "HYDRO"],       "B": [[1, 0], "HYDRO"], 
-#                        "i1": [[0, 1], "HYDRO"],  "output": [[1, 1], "HYDRO"],    
-#                        "i2": [[0, 2], "HYDRO"], 
-#                        "i3": [[0, 3], "HYDRO"], 
-#                     "input": [[0, 4], "HYDRO"], }
-#         expectedmatrix={clean(k):v for k,v in expectedmatrix.items()}
-#         logging.debug(updated_matrix)
-#         assert len(updated_flow)==len(expectedflow)
-#         assert updated_matrix==expectedmatrix
-        
-#     def test_flow_and_matrix_addprocess1(self):
-#         #add process after addio
-#         queriedflow=[["i1", "p1", "p2", "p3", "output"],
-#                      ["i1", "p4", "p5", "p6", "output"]]
-#         queriednodesys={k:"HYDRO" for k in unielement(queriedflow)}
-#         currentflow=[["i1","output"],["i2","output"],["A","B"]]
-#         currentmatrix={"A": [[0, 0], "HYDRO"],           "B": [[1, 0], "HYDRO"], 
-#                       "i1": [[0, 1], "HYDRO"],      "output": [[1, 1], "HYDRO"], 
-#                       "i2": [[0, 2], "HYDRO"],      }
-#         expectedflow=mergeflow(queriedflow,currentflow)
-#         expectedmatrix={"A": [[0, 0], "HYDRO"],                                                             "B": [[1, 0], "HYDRO"], 
-#                        "i1": [[0, 1], "HYDRO"],                                                        "output": [[1, 1], "HYDRO"],
-#                                         "p1": [[0.1, 1.1], "HYDRO"], "p2": [[0.2, 1.1], "HYDRO"], "p3": [[0.3, 1.1], "HYDRO"], 
-#                                         "p4": [[0.1, 1.2], "HYDRO"], "p5": [[0.2, 1.2], "HYDRO"], "p6": [[0.3, 1.2], "HYDRO"], 
-#                         "i2": [[0, 2], "HYDRO"],    }
-#         expectedmatrix={clean(k):v for k,v in expectedmatrix.items()}
-#         updated_flow,updated_matrix=update_flow_and_matrix(queriedflow,queriednodesys,currentflow,currentmatrix,"add-process")
-#         logging.debug(updated_matrix)
-#         assert len(updated_flow)==len(expectedflow)
-#         assert updated_matrix==expectedmatrix
-        
-#     def test_flow_and_matrix_addprocess2(self):
-#         #add process after add process
-#         queriedflow=[["p1", "pp1", "pp2", "pp3", "p3"]]
-#         queriednodesys={k:"HYDRO" for k in unielement(queriedflow)}
-#         currentflow=[["i1","output"],["i2","output"],["A","B"],
-#                      ["i1", "p1", "p2", "p3", "output"],
-#                      ["i1", "p4", "p5", "p6", "output"],]
-#         currentmatrix={"A": [[0, 0], "HYDRO"],                                                             "B": [[1, 0], "HYDRO"], 
-#                       "i1": [[0, 1], "HYDRO"],                                                   "output": [[1, 1], "HYDRO"],
-#                                         "p1": [[0.1, 1.1], "HYDRO"], "p2": [[0.2, 1.1], "HYDRO"], "p3": [[0.3, 1.1], "HYDRO"], 
-#                                         "p4": [[0.1, 1.2], "HYDRO"], "p5": [[0.2, 1.2], "HYDRO"], "p6": [[0.3, 1.2], "HYDRO"], 
-#                       "i2": [[0, 2], "HYDRO"],   }
-#         expectedflow=mergeflow(queriedflow,currentflow)
-#         expectedmatrix={"A": [[0, 0], "HYDRO"],                                                                           "output": [[1, 0], "HYDRO"], 
-#                    "input1": [[0, 1], "HYDRO"],                                                                                "B": [[1, 1], "HYDRO"],
-#                                         "p1": [[0.1, 1.1], "HYDRO"],                                                              
-#                                         "p4": [[0.1, 1.2], "HYDRO"], "p5": [[0.2, 1.2], "HYDRO"], "p6": [[0.3, 1.2], "HYDRO"], 
-#                    "input2": [[0, 2], "HYDRO"],                                                                               "p3": [[1, 2], "HYDRO"],
-#                        "p2": [[0, 3], "HYDRO"],    
-#                                        "pp1": [[0.1, 3.1], "HYDRO"], "pp2": [[0.2, 3.2], "HYDRO"], "pp3": [[0.3, 3.3], "HYDRO"],}
-#         updated_flow,updated_matrix=update_flow_and_matrix(queriedflow,queriednodesys,currentflow,currentmatrix,"add-process")
-#         logging.debug(updated_matrix)
-#         assert len(updated_flow)==len(expectedflow)
-#         assert updated_matrix==expectedmatrix
-        
-#     def test_flow_and_matrix_addinput2(self):
-#         #Addinput after addprocess
-#         queriedflow=[["pi1","p3"],["pi2","p3"],["pi3","p3"]]
-#         queriednodesys={k:"HYDRO" for k in unielement(queriedflow)}
-#         currentflow=[["i1","output"],["i2","output"],["A","B"],
-#                      ["i1", "p1", "p2", "p3", "output"],
-#                      ["i1", "p4", "p5", "p6", "output"],]
-#         currentmatrix={"A": [[0, 0], "HYDRO"],                                                             "B": [[1, 0], "HYDRO"], 
-#                       "i1": [[0, 1], "HYDRO"],                                                   "output": [[1, 1], "HYDRO"],
-#                                         "p1": [[0.1, 1.1], "HYDRO"], "p2": [[0.2, 1.1], "HYDRO"], "p3": [[0.3, 1.1], "HYDRO"], 
-#                                         "p4": [[0.1, 1.2], "HYDRO"], "p5": [[0.2, 1.2], "HYDRO"], "p6": [[0.3, 1.2], "HYDRO"], 
-#                       "i2": [[0, 2], "HYDRO"],   }
-#         updated_flow,updated_matrix=update_flow_and_matrix(queriedflow,queriednodesys,currentflow,currentmatrix,"add-input")
-#         expectedflow=mergeflow(queriedflow,currentflow)
-#         expectedmatrix={"A": [[0, 0], "HYDRO"],                                                                      "B": [[1, 0], "HYDRO"], 
-#                       "i1": [[0, 1], "HYDRO"],                                                                  "output": [[1, 1], "HYDRO"],
-#                                         "p1": [[0.1, 1.1], "HYDRO"], "p2": [[0.2, 1.1], "HYDRO"], 
-#                                         "p4": [[0.1, 1.2], "HYDRO"], "p5": [[0.2, 1.2], "HYDRO"], "p6": [[0.3, 1.2], "HYDRO"], 
-#                       "i2": [[0, 2], "HYDRO"],                                                                      "p3": [[1, 2], "HYDRO"], 
-#                      "pi1": [[0, 3], "HYDRO"],   
-#                      "pi2": [[0, 4], "HYDRO"],   
-#                      "pi3": [[0, 5], "HYDRO"],   }
-#         expectedmatrix={clean(k):v for k,v in expectedmatrix.items()}
-#         logging.debug(updated_matrix)
-#         assert len(updated_flow)==len(expectedflow)
-#         assert updated_matrix==expectedmatrix
-        
-#     ###########################################################################################################################################
-#     # def test_flow_and_matrix_addinput2(self):
-#     #     #add complexity in currentflow
-#     #     queriedflow=[["i1","output"],["i2","output"],["i3","output"]]
-#     #     queriednodesys={"i1":"HYDRO","i2":"HYDRO","i3":"HYDRO","output":"HYDRO"}
-#     #     currentflow=[["input","p1","output"],["A","B"]]
-#     #     currentmatrix={   "A": [[0, 0], "HYDRO"],                  "B": [[1, 0], "HYDRO"], 
-#     #                   "input": [[0, 1], "HYDRO"],             "output": [[1, 1], "HYDRO"], 
-#     #                                          "p1": [[0.1, 1.1], "HYDRO"],   }
-#     #     updated_flow,updated_matrix=update_flow_and_matrix(queriedflow,queriednodesys,currentflow,currentmatrix,"add-input")
-#     #     expectedflow=mergeflow(queriedflow,currentflow)
-#     #     expectedmatrix={    "A": [[0, 0], "HYDRO"],                  "B": [[1, 0], "HYDRO"], 
-#     #                        "i1": [[0, 1], "HYDRO"],             "output": [[1, 1], "HYDRO"], 
-#     #                        "i2": [[0, 2], "HYDRO"], 
-#     #                        "i3": [[0, 3], "HYDRO"], 
-#     #                     "input": [[0, 4], "HYDRO"],             
-#     #                                          "p1": [[0.1, 4.1], "HYDRO"],   }
-#     #     expectedmatrix={clean(k):v for k,v in expectedmatrix.items()}
-#     #     logging.debug(updated_matrix)
-#     #     assert len(updated_flow)==len(expectedflow)
-#     #     assert updated_matrix==expectedmatrix
-        
-#     # def test_flow_and_matrix_addinput3(self):
-#     #     #add complexity in currentflow
-#     #     queriedflow=[["i1","output"],["i2","output"],["i3","output"]]
-#     #     queriednodesys={"i1":"HYDRO","i2":"HYDRO","i3":"HYDRO","output":"HYDRO"}
-#     #     currentflow=[["input","p1","output"],["A","B"]]
-#     #     currentmatrix={   "A": [[0, 0], "HYDRO"],                  "B": [[1, 0], "HYDRO"], 
-#     #                   "input": [[0, 1], "HYDRO"],             "output": [[1, 1], "HYDRO"], 
-#     #                                          "p1": [[0.1, 1.1], "HYDRO"],   }
-#     #     updated_flow,updated_matrix=update_flow_and_matrix(queriedflow,queriednodesys,currentflow,currentmatrix,"add-input")
-#     #     expectedflow=mergeflow(queriedflow,currentflow)
-#     #     expectedmatrix={    "A": [[0, 0], "HYDRO"],                  "B": [[1, 0], "HYDRO"], 
-#     #                        "i1": [[0, 1], "HYDRO"],             "output": [[1, 1], "HYDRO"], 
-#     #                        "i2": [[0, 2], "HYDRO"], 
-#     #                        "i3": [[0, 3], "HYDRO"], 
-#     #                     "input": [[0, 4], "HYDRO"],             
-#     #                                          "p1": [[0.1, 4.1], "HYDRO"],   }
-#     #     expectedmatrix={clean(k):v for k,v in expectedmatrix.items()}
-#     #     logging.debug(updated_matrix)
-#     #     assert len(updated_flow)==len(expectedflow)
-#     #     assert updated_matrix==expectedmatrix          
-        
-          
-#     # def test_flow_and_matrix_addoutput1(self):
-#     #     queriedflow=[["input","o1"],["input","o2"],["input","o3"]]
-#     #     queriednodesys={"input":"HYDRO","o1":"HYDRO","o2":"HYDRO","o3":"HYDRO"}
-#     #     currentflow=[["input","output"],["A","B"]]
-#     #     currentmatrix={"A": [[0, 0], "HYDRO"],            "B": [[1, 0], "HYDRO"], 
-#     #                "input": [[0, 1], "HYDRO"],       "output": [[1, 1], "HYDRO"], }
-#     #     updated_flow,updated_matrix=update_flow_and_matrix(queriedflow,queriednodesys,currentflow,currentmatrix,"add-output")
-#     #     expectedflow=mergeflow(queriedflow,currentflow)
-#     #     expectedmatrix={"input": [[0, 0], "HYDRO"],       "B": [[1, 0], "HYDRO"], 
-#     #                         "A": [[0, 1], "HYDRO"],      "o1": [[1, 1], "HYDRO"], 
-#     #                                                      "o2": [[1, 2], "HYDRO"], 
-#     #                                                      "o3": [[1, 3], "HYDRO"], 
-#     #                                                  "output": [[1, 4], "HYDRO"], }
-#     #     expectedmatrix={clean(k):v for k,v in expectedmatrix.items()}
-#     #     logging.debug(updated_matrix)
-#     #     assert len(updated_flow)==len(expectedflow)
-#     #     assert updated_matrix==expectedmatrix
-        
-
-            
-#     ###############gen_and_return methods###################
-#     ##################################################
 
 
 class TestGenAndReturnMethods:
@@ -385,6 +227,7 @@ class TestGenAndReturnMethods:
             ["ICE CORES", "METEOROLOGICAL DATA"],
         ]
         result1 = genaddfeedback(test_tosearchnode1, test_usefulnode1)
+        logging.debug(result1)
         assert isinstance(result1, list)
 
     def test_return_addfeedback(self):
@@ -435,19 +278,21 @@ class TestGenAndReturnMethods:
             ["ICE CORES", "METEOROLOGICAL DATA"],
         ]
         result1 = return_addfeedback(test_tosearchnode1, test_usefulnode1)
-        print(result1)
-        self.assertIsInstance(result1, list)
-        self.assertIsInstance(result1[0], list)
-        self.assertTrue(result1[0][0] in unielement(test_tosearchnode1))
+        logging.debug(result1)
+        assert isinstance(result1, list)
+        assert isinstance(result1[0], list)
+        assert result1[0][0] in unielement(test_tosearchnode1) 
 
     def test_genaddcooptimization(self):
         test_input1 = ["biogas", "soil", "ice"]
-        result1 = genaddcooptimization(test_input1)
+        info_string, result1 = genaddcooptimization(test_input1)
+        assert isinstance(info_string, str)
         assert isinstance(result1, list)
 
     def test_return_addcooptimization(self):
         test_input1 = ["biogas", "soil", "ice"]
-        result1 = return_addcooptimization(test_input1)
+        info_string, result1 = return_addcooptimization(test_input1)
+        logging.debug(info_string)
         logging.debug(result1)
         assert isinstance(result1, list)
         assert isinstance(result1[0], list)
@@ -593,8 +438,174 @@ if __name__ == "__main__":
     # pytest.main(["test_addinput.py::TestHelperFunctions::test_sortnode", "-x"])
     pytest.main(
         [
-            "test_addinput.py::TestGenAndReturnMethods::test_genprocess",
+            "test_addinput.py::TestGenAndReturnMethods::test_genaddcooptimization",
+            "-x",
+        ]
+    )
+    pytest.main(
+        [
+            "test_addinput.py::TestGenAndReturnMethods::test_return_addcooptimization",
             "-x",
         ]
     )
     # pytest.main(["test_addinput.py::TestGenAndReturnMethods::test_return_system","-x",])
+    
+    # class TestMatrixFunctions_archived:
+    #     def test_flow_and_matrix_addinput1(self):
+    #         #Addinput after addio
+    #         queriedflow=[["i1","output"],["i2","output"],["i3","output"]]
+    #         queriednodesys={k:"HYDRO" for k in unielement(queriedflow)}
+    #         currentflow=[["input","output"],["A","B"]]
+    #         currentmatrix={"A": [[0, 0], "HYDRO"],       "B": [[1, 0], "HYDRO"], 
+    #                    "input": [[0, 1], "HYDRO"],  "output": [[1, 1], "HYDRO"], }
+    #         updated_flow,updated_matrix=update_flow_and_matrix(queriedflow,queriednodesys,currentflow,currentmatrix,"add-input")
+    #         expectedflow=mergeflow(queriedflow,currentflow)
+    #         expectedmatrix={"A": [[0, 0], "HYDRO"],       "B": [[1, 0], "HYDRO"], 
+    #                        "i1": [[0, 1], "HYDRO"],  "output": [[1, 1], "HYDRO"],    
+    #                        "i2": [[0, 2], "HYDRO"], 
+    #                        "i3": [[0, 3], "HYDRO"], 
+    #                     "input": [[0, 4], "HYDRO"], }
+    #         expectedmatrix={clean(k):v for k,v in expectedmatrix.items()}
+    #         logging.debug(updated_matrix)
+    #         assert len(updated_flow)==len(expectedflow)
+    #         assert updated_matrix==expectedmatrix
+            
+    #     def test_flow_and_matrix_addprocess1(self):
+    #         #add process after addio
+    #         queriedflow=[["i1", "p1", "p2", "p3", "output"],
+    #                      ["i1", "p4", "p5", "p6", "output"]]
+    #         queriednodesys={k:"HYDRO" for k in unielement(queriedflow)}
+    #         currentflow=[["i1","output"],["i2","output"],["A","B"]]
+    #         currentmatrix={"A": [[0, 0], "HYDRO"],           "B": [[1, 0], "HYDRO"], 
+    #                       "i1": [[0, 1], "HYDRO"],      "output": [[1, 1], "HYDRO"], 
+    #                       "i2": [[0, 2], "HYDRO"],      }
+    #         expectedflow=mergeflow(queriedflow,currentflow)
+    #         expectedmatrix={"A": [[0, 0], "HYDRO"],                                                             "B": [[1, 0], "HYDRO"], 
+    #                        "i1": [[0, 1], "HYDRO"],                                                        "output": [[1, 1], "HYDRO"],
+    #                                         "p1": [[0.1, 1.1], "HYDRO"], "p2": [[0.2, 1.1], "HYDRO"], "p3": [[0.3, 1.1], "HYDRO"], 
+    #                                         "p4": [[0.1, 1.2], "HYDRO"], "p5": [[0.2, 1.2], "HYDRO"], "p6": [[0.3, 1.2], "HYDRO"], 
+    #                         "i2": [[0, 2], "HYDRO"],    }
+    #         expectedmatrix={clean(k):v for k,v in expectedmatrix.items()}
+    #         updated_flow,updated_matrix=update_flow_and_matrix(queriedflow,queriednodesys,currentflow,currentmatrix,"add-process")
+    #         logging.debug(updated_matrix)
+    #         assert len(updated_flow)==len(expectedflow)
+    #         assert updated_matrix==expectedmatrix
+            
+    #     def test_flow_and_matrix_addprocess2(self):
+    #         #add process after add process
+    #         queriedflow=[["p1", "pp1", "pp2", "pp3", "p3"]]
+    #         queriednodesys={k:"HYDRO" for k in unielement(queriedflow)}
+    #         currentflow=[["i1","output"],["i2","output"],["A","B"],
+    #                      ["i1", "p1", "p2", "p3", "output"],
+    #                      ["i1", "p4", "p5", "p6", "output"],]
+    #         currentmatrix={"A": [[0, 0], "HYDRO"],                                                             "B": [[1, 0], "HYDRO"], 
+    #                       "i1": [[0, 1], "HYDRO"],                                                   "output": [[1, 1], "HYDRO"],
+    #                                         "p1": [[0.1, 1.1], "HYDRO"], "p2": [[0.2, 1.1], "HYDRO"], "p3": [[0.3, 1.1], "HYDRO"], 
+    #                                         "p4": [[0.1, 1.2], "HYDRO"], "p5": [[0.2, 1.2], "HYDRO"], "p6": [[0.3, 1.2], "HYDRO"], 
+    #                       "i2": [[0, 2], "HYDRO"],   }
+    #         expectedflow=mergeflow(queriedflow,currentflow)
+    #         expectedmatrix={"A": [[0, 0], "HYDRO"],                                                                           "output": [[1, 0], "HYDRO"], 
+    #                    "input1": [[0, 1], "HYDRO"],                                                                                "B": [[1, 1], "HYDRO"],
+    #                                         "p1": [[0.1, 1.1], "HYDRO"],                                                              
+    #                                         "p4": [[0.1, 1.2], "HYDRO"], "p5": [[0.2, 1.2], "HYDRO"], "p6": [[0.3, 1.2], "HYDRO"], 
+    #                    "input2": [[0, 2], "HYDRO"],                                                                               "p3": [[1, 2], "HYDRO"],
+    #                        "p2": [[0, 3], "HYDRO"],    
+    #                                        "pp1": [[0.1, 3.1], "HYDRO"], "pp2": [[0.2, 3.2], "HYDRO"], "pp3": [[0.3, 3.3], "HYDRO"],}
+    #         updated_flow,updated_matrix=update_flow_and_matrix(queriedflow,queriednodesys,currentflow,currentmatrix,"add-process")
+    #         logging.debug(updated_matrix)
+    #         assert len(updated_flow)==len(expectedflow)
+    #         assert updated_matrix==expectedmatrix
+            
+    #     def test_flow_and_matrix_addinput2(self):
+    #         #Addinput after addprocess
+    #         queriedflow=[["pi1","p3"],["pi2","p3"],["pi3","p3"]]
+    #         queriednodesys={k:"HYDRO" for k in unielement(queriedflow)}
+    #         currentflow=[["i1","output"],["i2","output"],["A","B"],
+    #                      ["i1", "p1", "p2", "p3", "output"],
+    #                      ["i1", "p4", "p5", "p6", "output"],]
+    #         currentmatrix={"A": [[0, 0], "HYDRO"],                                                             "B": [[1, 0], "HYDRO"], 
+    #                       "i1": [[0, 1], "HYDRO"],                                                   "output": [[1, 1], "HYDRO"],
+    #                                         "p1": [[0.1, 1.1], "HYDRO"], "p2": [[0.2, 1.1], "HYDRO"], "p3": [[0.3, 1.1], "HYDRO"], 
+    #                                         "p4": [[0.1, 1.2], "HYDRO"], "p5": [[0.2, 1.2], "HYDRO"], "p6": [[0.3, 1.2], "HYDRO"], 
+    #                       "i2": [[0, 2], "HYDRO"],   }
+    #         updated_flow,updated_matrix=update_flow_and_matrix(queriedflow,queriednodesys,currentflow,currentmatrix,"add-input")
+    #         expectedflow=mergeflow(queriedflow,currentflow)
+    #         expectedmatrix={"A": [[0, 0], "HYDRO"],                                                                      "B": [[1, 0], "HYDRO"], 
+    #                       "i1": [[0, 1], "HYDRO"],                                                                  "output": [[1, 1], "HYDRO"],
+    #                                         "p1": [[0.1, 1.1], "HYDRO"], "p2": [[0.2, 1.1], "HYDRO"], 
+    #                                         "p4": [[0.1, 1.2], "HYDRO"], "p5": [[0.2, 1.2], "HYDRO"], "p6": [[0.3, 1.2], "HYDRO"], 
+    #                       "i2": [[0, 2], "HYDRO"],                                                                      "p3": [[1, 2], "HYDRO"], 
+    #                      "pi1": [[0, 3], "HYDRO"],   
+    #                      "pi2": [[0, 4], "HYDRO"],   
+    #                      "pi3": [[0, 5], "HYDRO"],   }
+    #         expectedmatrix={clean(k):v for k,v in expectedmatrix.items()}
+    #         logging.debug(updated_matrix)
+    #         assert len(updated_flow)==len(expectedflow)
+    #         assert updated_matrix==expectedmatrix
+            
+    #     ###########################################################################################################################################
+    #     # def test_flow_and_matrix_addinput2(self):
+    #     #     #add complexity in currentflow
+    #     #     queriedflow=[["i1","output"],["i2","output"],["i3","output"]]
+    #     #     queriednodesys={"i1":"HYDRO","i2":"HYDRO","i3":"HYDRO","output":"HYDRO"}
+    #     #     currentflow=[["input","p1","output"],["A","B"]]
+    #     #     currentmatrix={   "A": [[0, 0], "HYDRO"],                  "B": [[1, 0], "HYDRO"], 
+    #     #                   "input": [[0, 1], "HYDRO"],             "output": [[1, 1], "HYDRO"], 
+    #     #                                          "p1": [[0.1, 1.1], "HYDRO"],   }
+    #     #     updated_flow,updated_matrix=update_flow_and_matrix(queriedflow,queriednodesys,currentflow,currentmatrix,"add-input")
+    #     #     expectedflow=mergeflow(queriedflow,currentflow)
+    #     #     expectedmatrix={    "A": [[0, 0], "HYDRO"],                  "B": [[1, 0], "HYDRO"], 
+    #     #                        "i1": [[0, 1], "HYDRO"],             "output": [[1, 1], "HYDRO"], 
+    #     #                        "i2": [[0, 2], "HYDRO"], 
+    #     #                        "i3": [[0, 3], "HYDRO"], 
+    #     #                     "input": [[0, 4], "HYDRO"],             
+    #     #                                          "p1": [[0.1, 4.1], "HYDRO"],   }
+    #     #     expectedmatrix={clean(k):v for k,v in expectedmatrix.items()}
+    #     #     logging.debug(updated_matrix)
+    #     #     assert len(updated_flow)==len(expectedflow)
+    #     #     assert updated_matrix==expectedmatrix
+            
+    #     # def test_flow_and_matrix_addinput3(self):
+    #     #     #add complexity in currentflow
+    #     #     queriedflow=[["i1","output"],["i2","output"],["i3","output"]]
+    #     #     queriednodesys={"i1":"HYDRO","i2":"HYDRO","i3":"HYDRO","output":"HYDRO"}
+    #     #     currentflow=[["input","p1","output"],["A","B"]]
+    #     #     currentmatrix={   "A": [[0, 0], "HYDRO"],                  "B": [[1, 0], "HYDRO"], 
+    #     #                   "input": [[0, 1], "HYDRO"],             "output": [[1, 1], "HYDRO"], 
+    #     #                                          "p1": [[0.1, 1.1], "HYDRO"],   }
+    #     #     updated_flow,updated_matrix=update_flow_and_matrix(queriedflow,queriednodesys,currentflow,currentmatrix,"add-input")
+    #     #     expectedflow=mergeflow(queriedflow,currentflow)
+    #     #     expectedmatrix={    "A": [[0, 0], "HYDRO"],                  "B": [[1, 0], "HYDRO"], 
+    #     #                        "i1": [[0, 1], "HYDRO"],             "output": [[1, 1], "HYDRO"], 
+    #     #                        "i2": [[0, 2], "HYDRO"], 
+    #     #                        "i3": [[0, 3], "HYDRO"], 
+    #     #                     "input": [[0, 4], "HYDRO"],             
+    #     #                                          "p1": [[0.1, 4.1], "HYDRO"],   }
+    #     #     expectedmatrix={clean(k):v for k,v in expectedmatrix.items()}
+    #     #     logging.debug(updated_matrix)
+    #     #     assert len(updated_flow)==len(expectedflow)
+    #     #     assert updated_matrix==expectedmatrix          
+            
+            
+    #     # def test_flow_and_matrix_addoutput1(self):
+    #     #     queriedflow=[["input","o1"],["input","o2"],["input","o3"]]
+    #     #     queriednodesys={"input":"HYDRO","o1":"HYDRO","o2":"HYDRO","o3":"HYDRO"}
+    #     #     currentflow=[["input","output"],["A","B"]]
+    #     #     currentmatrix={"A": [[0, 0], "HYDRO"],            "B": [[1, 0], "HYDRO"], 
+    #     #                "input": [[0, 1], "HYDRO"],       "output": [[1, 1], "HYDRO"], }
+    #     #     updated_flow,updated_matrix=update_flow_and_matrix(queriedflow,queriednodesys,currentflow,currentmatrix,"add-output")
+    #     #     expectedflow=mergeflow(queriedflow,currentflow)
+    #     #     expectedmatrix={"input": [[0, 0], "HYDRO"],       "B": [[1, 0], "HYDRO"], 
+    #     #                         "A": [[0, 1], "HYDRO"],      "o1": [[1, 1], "HYDRO"], 
+    #     #                                                      "o2": [[1, 2], "HYDRO"], 
+    #     #                                                      "o3": [[1, 3], "HYDRO"], 
+    #     #                                                  "output": [[1, 4], "HYDRO"], }
+    #     #     expectedmatrix={clean(k):v for k,v in expectedmatrix.items()}
+    #     #     logging.debug(updated_matrix)
+    #     #     assert len(updated_flow)==len(expectedflow)
+    #     #     assert updated_matrix==expectedmatrix
+            
+
+                
+    #     ###############gen_and_return methods###################
+    #     ##################################################

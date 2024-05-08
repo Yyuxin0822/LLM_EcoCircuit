@@ -19,6 +19,23 @@ window.onload = function () {
     }
     finishload();
 };
+let findFeedback = (parentPrompt) => {
+    var userPrompt = parentPrompt.previousElementSibling;
+    var userInfoElement = userPrompt.querySelector('.userinfo');
+    if (userInfoElement) {
+        var feedbackInfo = userInfoElement.innerHTML.trim();
+        var feedbackType = feedbackInfo.split(' ')[0];
+        if (feedbackType != 'Feedback' && feedbackType != 'Regeneration') {
+            return;
+        }
+        var regex = /\s*(.*?)\s*--&gt;\s*(.*?)\s*(?=<br>|$)/g;
+        var matches, pairs = [];
+        while (matches = regex.exec(feedbackInfo)) {
+            pairs.push([matches[1], matches[2]]);
+        }
+        return pairs;
+    }
+};
 function processPrompt(prompt) {
     var prIndex = prompt.id.replace('prompt', '');
     var flowString = prompt.querySelector('#promptFlow' + prIndex).innerText;
@@ -74,6 +91,21 @@ function processPrompt(prompt) {
             var line = new PromptFlowline(nodeStart.node, nodeEnd.node);
         }
     });
+    if (nodeArray.length == 0) {
+        parentPrompt.style.display = 'none';
+        let feedbackLines = findFeedback(parentPrompt);
+        if (feedbackLines) {
+            feedbackLines.forEach((line) => {
+                PromptFlowline.getAllLines().forEach((flowline) => {
+                    if (flowline.start.querySelector('.node-wrapper').innerText == line[0] && flowline.end.querySelector('.node-wrapper').innerText == line[1]) {
+                        flowline.feedback = true;
+                        flowline.setFeedbackStyle();
+                    }
+                });
+            });
+        }
+        return;
+    }
 }
 function toggleEngineerBar() {
     document.getElementById('engineer-bar-unfolded')?.classList.toggle('hidden');
@@ -91,7 +123,6 @@ function addio() {
     let info = document.getElementById('info').innerHTML;
     fetch('/addio', {
         method: 'POST',
-        body: JSON.stringify({}),
         headers: {
             'Content-Type': 'application/json'
         },
@@ -102,21 +133,22 @@ function addio() {
         window.location.reload();
         console.log('load success');
     })
-        .catch(error => {
-        console.error('Error:', error);
-        alert('Sorry! Failed to process your request. Please try again.');
-    })
         .finally(() => {
+        console.log('finish load');
     });
 }
 let quickgen = document.getElementById('quickgen');
 quickgen?.addEventListener('click', () => {
     let mode = playFuncBar.returnMode();
-    if (!mode)
+    if (!mode) {
+        alert('Please select a generation mode in controller and some contents to prompt');
         return;
+    }
     let { prompt_id_array, query_array } = Prompt.returnAllQuery();
-    if (prompt_id_array.length == 0)
+    if (prompt_id_array.length == 0) {
+        alert('Please select at least one node or one flow prompt');
         return;
+    }
     startload();
     fetch('/quickgen', {
         method: 'POST',
@@ -134,12 +166,8 @@ quickgen?.addEventListener('click', () => {
         window.location.reload();
         console.log('load success');
     })
-        .catch(error => {
-        console.error('Error:', error);
-        alert('Sorry! Failed to process your request. Please try again.');
-    })
         .finally(() => {
-        finishload();
+        console.log('finish load');
     });
 });
 function absPostionMatrix(prompt) {

@@ -19,7 +19,7 @@ export class PromptFlowline extends LeaderLine {
   promptItem: Prompt;
   commonOptions: {}; //common options for all lines
   selected: boolean;
-
+  feedback: boolean;
   //constructor
   constructor(start: HTMLElement, end: HTMLElement) {
     if (PromptFlowline.isLineExists(start, end)) {
@@ -33,6 +33,7 @@ export class PromptFlowline extends LeaderLine {
     this.startNodeItem = PromptNode.getNodeObjbyNode(this.start, this.prompt);
     this.endNodeItem = PromptNode.getNodeObjbyNode(this.end, this.prompt);
     this.selected = false;
+    this.feedback = false;
     // Initialize commonOptions here where start and end are defined
     this.commonOptions = {
       startPlug: "hidden",
@@ -51,6 +52,7 @@ export class PromptFlowline extends LeaderLine {
       startPlugColor: this.start.style.backgroundColor,
       endPlugColor: this.end.style.backgroundColor,
       startPlugOutlineColor: this.start.style.backgroundColor,
+      // startLabel: LeaderLine.captionLabel('Feedback', {color: 'black', offset: [0, -10]}),
     };
 
     // Assuming updatePositionOptions is intended to be an instance method, not static
@@ -69,34 +71,59 @@ export class PromptFlowline extends LeaderLine {
   updatePositionOptions() {
     let startRect = this.start.getBoundingClientRect();
     let endRect = this.end.getBoundingClientRect();
-    let startIdentifier = this.start.querySelector('.input-identifier');
-    let endIdentifier = this.end.querySelector('.output-identifier');
-    if (startRect.left <= endRect.left) {
+    //if startRect is within 100px to the left of endRect, then set gravity differently
+    if ((endRect.left - startRect.left) <= 225) {
       this.setOptions({
         startSocket: 'Right', endSocket: 'Left',
-        startSocketGravity: [150, 0], endSocketGravity: [-150, 0],
-        dash: false
+        startSocketGravity: [225, 0], endSocketGravity: [-225, 0],
+        // dash: false
       });
-      if (startIdentifier) {
-        startIdentifier.style.right = "0rem";
-      }
-      if (endIdentifier) {
-        endIdentifier.style.left = "0rem";
-      }
     } else {
       this.setOptions({
-        startSocket: 'Left', endSocket: 'Right',
-        startSocketGravity: [-150, 0], endSocketGravity: [150, 0],
-        dash: { animation: true, len: 12, gap: 6 }
+        startSocket: 'Right', endSocket: 'Left',
+        startSocketGravity: [75, 0], endSocketGravity: [-75, 0],
       });
-      if (startIdentifier) {
-        startIdentifier.style.right = "11rem";
-      }
-      if (endIdentifier) {
-        endIdentifier.style.left = "11rem";
-      }
-
     }
+
+
+    let startIdentifier = this.start.querySelector('.input-identifier');
+    let endIdentifier = this.end.querySelector('.output-identifier');
+
+    if (startIdentifier) {
+      startIdentifier.style.right = "0rem";
+    }
+    if (endIdentifier) {
+      endIdentifier.style.left = "0rem";
+    }
+
+
+
+    // if (startRect.left <= endRect.left) {
+    //   this.setOptions({
+    //     startSocket: 'Right', endSocket: 'Left',
+    //     startSocketGravity: [200, 0], endSocketGravity: [-200, 0],
+    //     // dash: false
+    //   });
+    //   if (startIdentifier) {
+    //     startIdentifier.style.right = "0rem";
+    //   }
+    //   if (endIdentifier) {
+    //     endIdentifier.style.left = "0rem";
+    //   }
+    // } else {
+    //   this.setOptions({
+    //     startSocket: 'Left', endSocket: 'Right',
+    //     startSocketGravity: [-200, 0], endSocketGravity: [200, 0],
+    //     // dash: { animation: true, len: 12, gap: 6 }
+    //   });
+    //   if (startIdentifier) {
+    //     startIdentifier.style.right = "11rem";
+    //   }
+    //   if (endIdentifier) {
+    //     endIdentifier.style.left = "11rem";
+    //   }
+
+    // }
   }
 
   updateColorOptions() {
@@ -105,9 +132,68 @@ export class PromptFlowline extends LeaderLine {
       endPlugColor: this.end.style.backgroundColor,
       startPlugOutlineColor: this.start.style.backgroundColor,
     });
-
+    if (this.feedback) {
+      this.setFeedbackStyle();
+    }
   }
 
+  updateOptions(options: {}) {
+    this.setOptions(options);
+  }
+
+  setFeedbackStyle() {
+
+    this.updateOptions({
+      dash: { animation: true, len: 9, gap: 3, duration: 500 },
+      dropShadow: {
+        dx: 1,
+        dy: 2,
+        blur: 0.2
+      },
+      // startPlugColor: 'black',
+      // endPlugColor: 'black',
+      // startLabel: LeaderLine.pathLabel('Feedback', {
+      //     color: 'black',
+      //     offset: [150, 0],
+      //     outlineColor: '',
+      //     fontFamily: "Inter, Helvetica",
+      //     fontWeight: "bold",
+      // }),
+
+    });
+    //add a square to the start node
+    let startRect = this.start.getBoundingClientRect();
+    let endRect = this.end.getBoundingClientRect();
+
+    let startSquare = document.createElement('div');
+    startSquare.classList.add('start-square');
+    startSquare.style.backgroundColor = this.start.style.backgroundColor;
+    startSquare.style.zIndex = '2';
+    this.start.appendChild(startSquare);
+    let anno = document.createElement('div');
+    anno.classList.add('card-14');
+    anno.innerHTML = 'Regenerate';
+    anno.style.color = this.start.style.backgroundColor;
+
+    anno.style.position = 'absolute';
+    anno.style.bottom = '0.5rem';
+    startSquare.appendChild(anno);
+
+    startSquare.style.right = '-0.25rem';
+    anno.style.left = '0.25rem';
+
+    // if (startRect.left < endRect.left) {
+    //   startSquare.style.right = '-0.25rem';
+    //   anno.style.left = '0.25rem';
+    // }
+    // else {
+    //   startSquare.style.left = '-0.25rem';
+    //   anno.style.right = '0.25rem';
+    // }
+
+
+
+  }
   // equals(otherLine) {
   //   if (!(otherLine instanceof PromptFlowline)) {
   //     return false;
@@ -233,7 +319,7 @@ export class PromptFlowline extends LeaderLine {
     return PromptFlowline.myLines;
   }
 
-  static getLinebyEndTexts(startText: string, endText: string, prompt:Prompt): PromptFlowline {
+  static getLinebyEndTexts(startText: string, endText: string, prompt: Prompt): PromptFlowline {
     return prompt.promptLines.find(line => {
       return line.startNodeItem.nodeContent === startText && line.endNodeItem.nodeContent === endText;
     });

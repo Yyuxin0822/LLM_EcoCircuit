@@ -51,7 +51,6 @@ export class PromptIdentifier {
         }
     }
     select() {
-        console.log('Selected');
         if (this.selected)
             return;
         this.identifier.querySelector('.identifier-dot').classList?.add('identifier-selected');
@@ -64,8 +63,6 @@ export class PromptIdentifier {
         }
     }
     unselect() {
-        console.log(this.identifierClass);
-        console.log('Unselected');
         if (!this.selected)
             return;
         this.identifier.querySelector('.identifier-dot').classList?.remove('identifier-selected');

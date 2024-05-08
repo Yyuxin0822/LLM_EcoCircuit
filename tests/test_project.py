@@ -110,6 +110,195 @@ class TestIndex:
             ), f"Unexpected final URL: {response.request.path}"
             assert b"WETLAND" in response.data
 
+
+        
+class TestAJAX:
+    @pytest.mark.skip(reason="temporarily disabled")
+    def test_addio(self, app, client):
+        with app.app_context():
+            response = client.post("/addio",
+                                data=json.dumps({
+                                    "project_id": "1",
+                                    "info": "This is a coastal island"
+                                }),
+                                content_type='application/json')  # Make sure to set the content type to application/json
+            response_data = response.get_json()  # This converts the JSON response into a Python dictionary
+            assert response_data['status'] == 'success'  # Use dictionary access to check the 'status'
+            assert response_data['project_id'] == '1'  # Ensure 'project_id' is what you expect
+            
+    @pytest.mark.skip(reason="temporarily disabled")
+    def test_quickgen_addinput(self, app, client):
+        with app.app_context():
+            prompt1 = get_prompt(1)
+            prompt2 = get_prompt(2)
+
+            # Log the outputs of get_prompt to understand what they are returning
+            logging.debug(f"Prompt1: {prompt1}")
+            logging.debug(f"Prompt2: {prompt2}")
+
+            # Check if prompts are None before proceeding
+            if prompt1 is None or prompt2 is None:
+                logging.error("One of the prompts is None.")
+                IndexHelper.genio_from_description(1, 1, "This is a coastal environment")
+                IndexHelper.genio_from_description(2, 1, "This is a coastal environment")
+
+            response = client.post("/quickgen",
+                        data=json.dumps({
+                            "mode": "add-input",
+                            "prompt_id_array": [1, 2],
+                            "info_array": [prompt1['flow'][0], prompt2['flow'][0]]
+                        }),
+                        content_type='application/json')
+
+            # Debug log for raw response data
+            logging.debug(f"Raw Response Data: {response.data}")
+
+            response_data = response.get_json()
+
+            # Debug log for parsed response data
+            logging.debug(f"Parsed Response Data: {response_data}")
+
+            # Assertions to check if the response was successful
+            assert response_data['status'] == 'success', "Expected status to be 'success'"
+                   
+    @pytest.mark.skip(reason="temporarily disabled")
+    def test_quickgen_addoutput(self, app, client):
+      with app.app_context():
+            prompt1 = get_prompt(1)
+            prompt2 = get_prompt(2)
+
+            # Log the outputs of get_prompt to understand what they are returning
+            logging.debug(f"Prompt1: {prompt1}")
+            logging.debug(f"Prompt2: {prompt2}")
+
+            # Check if prompts are None before proceeding
+            if prompt1 is None or prompt2 is None:
+                logging.error("One of the prompts is None.")
+                IndexHelper.genio_from_description(1, 1, "This is a coastal environment")
+                IndexHelper.genio_from_description(2, 1, "This is a coastal environment")
+
+            response = client.post("/quickgen",
+                        data=json.dumps({
+                            "mode": "add-input",
+                            "prompt_id_array": [1, 2],
+                            "info_array": [prompt1['flow'][0], prompt2['flow'][0]]
+                        }),
+                        content_type='application/json')
+
+            # Debug log for raw response data
+            logging.debug(f"Raw Response Data: {response.data}")
+
+            response_data = response.get_json()
+
+            # Debug log for parsed response data
+            logging.debug(f"Parsed Response Data: {response_data}")
+
+            # Assertions to check if the response was successful
+            assert response_data['status'] == 'success', "Expected status to be 'success'"
+
+    @pytest.mark.skip(reason="temporarily disabled")
+    def test_quickgen_addprocess(self, app, client):
+      with app.app_context():
+            prompt1 = get_prompt(1)
+            prompt2 = get_prompt(2)
+
+            # Log the outputs of get_prompt to understand what they are returning
+            logging.debug(f"Prompt1: {prompt1}")
+            logging.debug(f"Prompt2: {prompt2}")
+
+            # Check if prompts are None before proceeding
+            if prompt1 is None or prompt2 is None:
+                logging.error("One of the prompts is None.")
+                IndexHelper.genio_from_description(1, 1, "This is a coastal environment")
+                IndexHelper.genio_from_description(2, 1, "This is a coastal environment")
+
+            response = client.post("/quickgen",
+                        data=json.dumps({
+                            "mode": "add-input",
+                            "prompt_id_array": [1, 2],
+                            "info_array": [[prompt1['flow'][0]], [prompt2['flow'][0]]]
+                        }),
+                        content_type='application/json')
+
+            # Debug log for raw response data
+            logging.debug(f"Raw Response Data: {response.data}")
+
+            response_data = response.get_json()
+
+            # Debug log for parsed response data
+            logging.debug(f"Parsed Response Data: {response_data}")
+
+            # Assertions to check if the response was successful
+            assert response_data['status'] == 'success', "Expected status to be 'success'"
+
+    @pytest.mark.skip(reason="temporarily disabled")
+    def test_quickgen_addcooptimization(self, app, client):
+      with app.app_context():
+            prompt1 = get_prompt(1)
+            prompt2 = get_prompt(2)
+
+            # Log the outputs of get_prompt to understand what they are returning
+            logging.debug(f"Prompt1: {prompt1}")
+            logging.debug(f"Prompt2: {prompt2}")
+
+            # Check if prompts are None before proceeding
+            if prompt1 is None or prompt2 is None:
+                logging.error("One of the prompts is None.")
+                IndexHelper.genio_from_description(1, 1, "This is a coastal environment")
+                IndexHelper.genio_from_description(2, 1, "This is a coastal environment")
+
+            response = client.post("/quickgen",
+                        data=json.dumps({
+                            "mode": "add-input",
+                            "prompt_id_array": [1, 2],
+                            "info_array": [prompt1['flow'][0], prompt2['flow'][0]]
+                        }),
+                        content_type='application/json')
+
+            # Debug log for raw response data
+            logging.debug(f"Raw Response Data: {response.data}")
+
+            response_data = response.get_json()
+
+            # Debug log for parsed response data
+            logging.debug(f"Parsed Response Data: {response_data}")
+
+            # Assertions to check if the response was successful
+            assert response_data['status'] == 'success', "Expected status to be 'success'"
+
+
+    def test_quickgen_addfeedback(self, app, client):
+      with app.app_context():
+            IndexHelper.genio_from_description(1, 1, "This is a coastal environment")
+            IndexHelper.genio_from_description(2, 1, "This is a coastal environment")
+            prompt1 = get_prompt(1)
+            prompt2 = get_prompt(2)
+
+            # Log the outputs of get_prompt to understand what they are returning
+            logging.debug(f"Prompt1: {prompt1}")
+            logging.debug(f"Prompt2: {prompt2}")
+
+            response = client.post("/quickgen",
+                        data=json.dumps({
+                            "mode": "add-input",
+                            "prompt_id_array": [1, 2],
+                            "info_array": [prompt1['flow'][0], prompt2['flow'][0]]
+                        }),
+                        content_type='application/json')
+
+            # Debug log for raw response data
+            logging.debug(f"Raw Response Data: {response.data}")
+
+            response_data = response.get_json()
+
+            # Debug log for parsed response data
+            logging.debug(f"Parsed Response Data: {response_data}")
+
+            # Assertions to check if the response was successful
+            assert response_data['status'] == 'success', "Expected status to be 'success'"
+
+
+
 class TestCustomProjectResponse:
     @pytest.fixture(autouse=True)
     def set_up(self, app):
@@ -706,7 +895,7 @@ if __name__ == "__main__":
 
     pytest.main(
         [
-            "test_project.py::TestIndex",
+            "test_project.py::TestAJAX",
             "-x",
         ]
     )

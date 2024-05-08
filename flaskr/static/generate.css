@@ -90,17 +90,18 @@
   flex: 0 0 auto;
   border-radius: 0.5rem;
   overflow: hidden;
-  box-shadow: var(--regular);
+  /* box-shadow: var(--regular); */
+  border: 2px solid var(--variable-collection-themedarkpurple);
   cursor: pointer;
 }
 
-.component-eng-tab.active{
+.component-eng-tab:hover, .component-eng-tab.active{
   background-color: var(--variable-collection-themedarkpurple);
 }
 
-.component-eng-tab.inactive {
+/* .component-eng-tab.inactive {
   background-color: var(--variable-collection-themelightpurple);
-}
+} */
 
 
 .sub-wapper-2>.wrapper {
@@ -127,7 +128,8 @@
   gap: 1.625rem;
   /* style */
   border-radius: 0.5rem;
-  background: rgba(244, 247, 254, 0.75);
+  /* background: rgba(244, 247, 254, 0.75); */
+  /* border: 2px dashed var(--variable-collection-themedarkpurple); */
 }
 
 #quickgenerate>.wrapper {
@@ -307,8 +309,11 @@ text-decoration-line: underline;
 .node>.node-wrapper {
   overflow: hidden;
   flex: 1 0 0;
-  user-select: none;
+  /* user-select: none; */
 }
+
+
+
 
 .prompt-funcbar>.wrapper{
   /* layout */
@@ -334,7 +339,14 @@ text-decoration-line: underline;
   cursor: pointer;
 }
 
-
+.node>.start-square {
+  position: absolute;
+  /* right: -0.25rem; */
+  width: 0.5rem;
+  height: 0.5rem;
+  flex-shrink: 0;
+  
+}
 
 .node>.input-identifier,
 .node>.output-identifier {

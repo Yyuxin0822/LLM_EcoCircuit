@@ -83,7 +83,7 @@ def index():
                     imgurl, info = IndexHelper.gen_from_image(
                         (max_project_id + 1), filepath
                     )
-                    print(info)
+                    # print(info)
         IndexHelper.genio_from_description(
             (max_prompt_id + 1), (max_project_id + 1), info
         )
@@ -160,16 +160,14 @@ def quickgen():
     mode = data["mode"]
     prompt_id_list = data["prompt_id_array"]
     info_list = data["info_array"]
+
     prompt_id = update(mode, prompt_id_list, info_list)
     if prompt_id is None:
         error = "Gereration error, please ask again."
         flash(error)
         return 400
-    elif prompt_id == -1:
-        return jsonify({"status": "success", "message": "Feedback added."})
     else:
-        prompt = get_prompt(prompt_id)
-        return jsonify({"status": "success", "prompts": prompt, "data": data})
+        return jsonify({"status": "success"})
 
 
 # (UD)
@@ -406,15 +404,23 @@ def update(
 
     # solve feedback later
     if mode == "add-feedback":
-        userinfo = f"Feedback for {combinedquery} added in each prompt frame."
+        combinedquerystring = ", ".join(combinedquery)
+        userinfo = f"Regeneration / Feedback for {combinedquerystring} added in each prompt frame as dashline.\n"
+        userinfo+=f'<br>'
         for i in range(len(prompt_id_array)):
-            prompt_id = prompt_id_array[0]
+            prompt_id = prompt_id_array[i]
             prompt = get_prompt(prompt_id)
+            
             updatedflow = []
-            updatedflow = return_queryflow_add_feedback(
+            queryflow = return_queryflow_add_feedback(
                 "add-feedback", query_array[i], prompt["flow"]
             )
-
+            updatedflow=mergeflow(queryflow, prompt["flow"])
+            for flow in queryflow:
+                flowstring = " --> ".join(flow)
+                userinfo+=f'<br>{flowstring}'
+            
+        
             db = get_db()
             cursor = db.cursor()
             cursor.execute(

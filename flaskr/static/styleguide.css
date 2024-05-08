@@ -393,7 +393,9 @@ p,
   box-shadow: var(--regular);
   position: relative;
 }
-
+.component-bar-1>.div-wrapper:hover {
+  background-color: var(--variable-collection-themedarkpurple);
+}
 
 /* component with "hug content" width */
 .component-bar-2 {
@@ -408,8 +410,12 @@ p,
   border-radius: 0.5rem;
   overflow: hidden;
   box-shadow: var(--regular);
+  cursor: pointer;
 }
 
+.component-bar-2:hover {
+  background-color: var(--variable-collection-themedarkpurple);
+}
 .component-bar-2>.div-wrapper>.text-wrapper-2 {
   position: relative;
   width: fit-content;

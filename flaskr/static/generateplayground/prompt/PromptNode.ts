@@ -119,8 +119,11 @@ export class PromptNode {
   
       if (fontSize === 12 && isOverflowing()) {
         nodeWrapper.style.whiteSpace = 'normal';
-        nodeWrapper.style.lineHeight = '1.05';
-        node.style.height = 'auto'; // Allow node height to adjust to content
+        nodeWrapper.style.lineHeight = '1.0';
+        // node.style.height = '1.5rem'; // Allow node height to adjust to content
+        node.style.alignItems = 'flex-start';
+        node.style.overflow = 'hidden';
+        nodeWrapper.title = nodeWrapper.textContent;  
       }
     }
   

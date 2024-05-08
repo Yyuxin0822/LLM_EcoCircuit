@@ -39,6 +39,52 @@ window.onload = function () {
     finishload();
 }
 
+
+
+// let findFeedback = (parentPrompt: HTMLElement) => {
+//     var userPrompt = parentPrompt.previousElementSibling;
+//     var userInfoElement = userPrompt.querySelector('.userinfo');
+//     if (userInfoElement) {
+//         var feedbackInfo = userInfoElement.innerHTML;
+//         // Regex to find patterns like ['...', '...']
+//         var regex = /\['(.*?)',\s*'(.*?)'\]/g;
+//         var matches, pairs = [];
+
+//         // Extracting pairs using the regex
+//         while (matches = regex.exec(feedbackInfo)) {
+//             // matches[1] and matches[2] are the captured groups from the regex
+//             pairs.push([matches[1], matches[2]]);
+//         }
+//         // console.log(pairs);
+//         return pairs;
+
+//     }
+// }
+let findFeedback = (parentPrompt: HTMLElement) => {
+    var userPrompt = parentPrompt.previousElementSibling;
+    var userInfoElement = userPrompt.querySelector('.userinfo');
+    if (userInfoElement) {
+        var feedbackInfo = userInfoElement.innerHTML.trim();
+        //trim whitespace and find the first word
+        var feedbackType = feedbackInfo.split(' ')[0];
+        if (feedbackType != 'Feedback' && feedbackType != 'Regeneration') {
+            return;
+        }
+        
+        // Regex to find patterns like 'Element1--&gt; Element2' considering HTML entity
+        var regex = /\s*(.*?)\s*--&gt;\s*(.*?)\s*(?=<br>|$)/g;
+        var matches, pairs = [];
+
+        // Extracting pairs using the regex
+        while (matches = regex.exec(feedbackInfo)) {
+            // matches[1] and matches[2] are the captured groups from the regex
+            pairs.push([matches[1], matches[2]]);
+        }
+        return pairs;
+
+    }
+}
+
 function processPrompt(prompt) {
     var prIndex = prompt.id.replace('prompt', '');
     // console.log(prIndex);
@@ -101,6 +147,24 @@ function processPrompt(prompt) {
             var line = new PromptFlowline(nodeStart.node, nodeEnd.node);
         }
     });
+
+
+    if (nodeArray.length == 0) {
+        parentPrompt.style.display = 'none';
+        let feedbackLines = findFeedback(parentPrompt);
+        if (feedbackLines) {
+            feedbackLines.forEach((line) => {
+                PromptFlowline.getAllLines().forEach((flowline) => {
+                    if (flowline.start.querySelector('.node-wrapper').innerText == line[0] && flowline.end.querySelector('.node-wrapper').innerText == line[1]) {
+                        flowline.feedback = true;
+                        flowline.setFeedbackStyle();
+
+                    }
+                })
+            })
+        }
+        return;
+    }
 }
 
 ////////////// function-frame ////////////// 
@@ -171,7 +235,6 @@ function addio() {
     let info = document.getElementById('info').innerHTML;
     fetch('/addio', {
         method: 'POST',
-        body: JSON.stringify({}),
         headers: {
             'Content-Type': 'application/json'
         },
@@ -187,23 +250,32 @@ function addio() {
             // document.getElementById('prompt-frame').scrollIntoView(false);
             console.log('load success')
         })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Sorry! Failed to process your request. Please try again.');
-            // Optionally, re-enable the form or button for resubmission
-        })
+        // .catch(error => {
+        //     console.error('Error:', error);
+        //     alert('Sorry! Failed to process your request. Please try again.');
+        //     // Optionally, re-enable the form or button for resubmission
+        //     finishload();
+        // })
         .finally(() => {
             // finishload();
+            console.log('finish load');
         });
 }
 
 let quickgen = document.getElementById('quickgen');
 quickgen?.addEventListener('click', () => {
     let mode = playFuncBar.returnMode();
-    if (!mode) return;
+    if (!mode) {
+        alert('Please select a generation mode in controller and some contents to prompt')
+        return;
+    }
     let { prompt_id_array, query_array } = Prompt.returnAllQuery();
+
     // console.log(prompt_id_array, query_array);
-    if (prompt_id_array.length == 0) return;
+    if (prompt_id_array.length == 0) {
+        alert('Please select at least one node or one flow prompt');
+        return;
+    }
 
     startload();
 
@@ -223,13 +295,15 @@ quickgen?.addEventListener('click', () => {
             window.location.reload();
             console.log('load success')
         })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Sorry! Failed to process your request. Please try again.');
-            // Optionally, re-enable the form or button for resubmission
-        })
+        // .catch(error => {
+        //     console.error('Error:', error);
+        //     alert('Sorry! Failed to process your request. Please try again.');
+        //     finishload();
+        //     // Optionally, re-enable the form or button for resubmission
+        // })
         .finally(() => {
-            finishload();
+            // finishload();
+            console.log('finish load');
         });
 });
 

@@ -80,8 +80,6 @@ export class PlaygroundFuncBar extends FuncBar {
         document.dispatchEvent(event);
     }
     setEditMode() {
-        this.enableEditButton?.classList?.add('hidden');
-        this.disableEditButton?.classList?.remove('hidden');
         PromptFlowline.lineSel = false;
         PromptNode.nodeSel = false;
         Prompt.allPrompts.forEach(prompt => {
@@ -97,8 +95,6 @@ export class PlaygroundFuncBar extends FuncBar {
             prompt.focusable = false;
         });
         PromptNodeDrpDwn.globalEnabled = false;
-        this.enableEditButton?.classList?.remove('hidden');
-        this.disableEditButton?.classList?.add('hidden');
     }
     returnMode() {
         this.activeToggle = this.container.querySelector(".active");

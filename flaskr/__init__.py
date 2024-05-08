@@ -18,7 +18,7 @@ def create_app(test_config=None):
         SECRET_KEY='dev',
         DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
     )
-    
+    app.config['MAX_CONTENT_LENGTH'] = 25 * 1024 * 1024 # 50 Megabytes
     # Apply CORS to your Flask app with support for all origins
     CORS(app, supports_credentials=True)  # Enable CORS for all routes
     socketio.init_app(app)
@@ -55,11 +55,19 @@ def create_app(test_config=None):
     
     
     @app.errorhandler(404)
-    def bad_request(error):
+    def not_found(error):
         # Redirecting back to the previous page
         if session.get('prev_url') == request.url:
             return redirect(url_for('index'))  # Redirect to homepage if current and prev URLs match
         return redirect(session.get('prev_url', url_for('index')))
+    
+    @app.errorhandler(413)
+    def file_size_too_large(error):
+        # Redirecting back to the previous page
+        if session.get('prev_url') == request.url:
+            return redirect(url_for('index'))  # Redirect to homepage if current and prev URLs match
+        return redirect(session.get('prev_url', url_for('index')))
+    
     
     @app.errorhandler(504)
     def handle_504_error(e):

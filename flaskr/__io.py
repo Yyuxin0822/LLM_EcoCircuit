@@ -50,7 +50,7 @@ def cleanio(output_string):
                 flow_temp = []
                 flow_temp.append(clean(flow_str[0]))
                 flow_temp.append(clean(templist[i]))
-            flowlist.append(flow_temp)
+                flowlist.append(flow_temp)
     return flowlist
 
 
@@ -182,7 +182,7 @@ def geninput(
     systring = ", ".join(syslist).lower()
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo-0125",
+            model="gpt-4",
             messages=[
                 {
                     "role": "system",

@@ -10,7 +10,14 @@ from instance.config import OPENAI_API_KEY
 from flaskr.project import *
 from flaskr.__io import *
 import math
+import logging
 
+logging.basicConfig(
+    level=logging.DEBUG,
+    filename="test_logs_addiput.log",
+    filemode="a",
+    format="%(asctime)s - %(levelname)s - %(message)s",
+)
 openai.api_key = OPENAI_API_KEY
 
 defaultsysdict = {
@@ -54,6 +61,40 @@ def cleangenio(string: str, query: list, querytype: str = "output"):
             continue
 
     return flowlist
+
+def cleangencoop(string: str, query: list)->(str, list):
+    query = [clean(node) for node in query]
+
+    first_index = string.index("[")
+    last_index = string.rindex("]")
+    # do not use the below syntax to extract the string by intention,
+    # in gencooptimization, the first "[" is not placed at the beginning of the string
+    # new_string = string.strip()[1:-1]
+    flow_string = string[first_index + 1 : last_index]
+    tempflow = extract_brackets(flow_string)
+    flowlist = []
+    for temp in tempflow:
+        try:
+            templist = extract_quotation(temp)
+            templist = [clean(node) for node in templist]
+            if templist[0] in query:
+                flowlist.append(templist)
+
+        except:
+            print(f"{temp} cannot be converted")
+            continue
+    
+    # info_string = string[:first_index]
+    know_string = string[:first_index]
+    cleaned_string=''
+    #find the first ":"
+    first_semicolon = know_string.index(":")
+    #find the last quotation mark
+    last_quotation = know_string.rindex('"')
+    cleaned_string = know_string[first_semicolon+1:last_quotation+1].strip()
+    logging.debug(f"cleangencoop: {cleaned_string}")
+    return cleaned_string, flowlist
+
 
 
 def cleangenprocess(flow_string):
@@ -287,7 +328,7 @@ def genaddinput(output, syslist=defaultsysdict.keys(), randomNumber=3) -> list:
                 {"role": "user", "content": '["irrigation water", "wind energy"]'},
                 {
                     "role": "assistant",
-                    "content": '[["rainwater harvesting", "irrigation water"], ["river diversion and canal", "irrigation water"], ["solar-powered water pumps", "irrigation water"],  ["desalination plants powered by renewable energy", "irrigation water"], ["wastewater treatment and reuse", "irrigation water"],  ["smart irrigation systems", "irrigation water"], ["water storage", "irrigation water"], ["constructed Wetlands", "irrigation water"], ["agroforestry", "irrigation water"], ["wind turbine", "wind energy"], ["meteorological data",  "wind energy"], ["composting", "wind energy"]]',
+                    "content": '[["rainwater harvesting", "irrigation water"],["reclaimed water", "irrigation water"],  ["river diversion and canal", "irrigation water"], ["solar-powered water pumps", "irrigation water"],  ["desalination plants powered by renewable energy", "irrigation water"], ["wastewater treatment and reuse", "irrigation water"],  ["smart irrigation systems", "irrigation water"], ["water storage", "irrigation water"], ["constructed Wetlands", "irrigation water"], ["agroforestry", "irrigation water"], ["wind turbine", "wind energy"], ["meteorological data",  "wind energy"], ["composting", "wind energy"]]',
                 },
                 {"role": "user", "content": '["biofuel", "wifi"]'},
                 {
@@ -324,7 +365,7 @@ def genaddoutput(input, syslist=defaultsysdict.keys(), randomNumber=3) -> list:
     systring = ",".join(syslist).lower()
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo-0125",
+            model="gpt-4",
             messages=[
                 {
                     "role": "system",
@@ -339,12 +380,12 @@ def genaddoutput(input, syslist=defaultsysdict.keys(), randomNumber=3) -> list:
                 },
                 {
                     "role": "assistant",
-                    "content": '[["waste water", "fresh water"], ["waste water", "nutrients"], ["waste water", "biofuel"], \n["organic waste", "biofuel"], ["organic waste", "biogas"], \n["wind","electricity"], ["wind", "humidity"]]',
+                    "content": '[["waste water", "fresh water"], ["waste water", "nutrients"], ["waste water", "biosolids"],["waste water", "biofuel"], \n["organic waste", "biofuel"], ["organic waste", "biogas"], \n["wind","electricity"], ["wind", "humidity"]]',
                 },
                 {"role": "user", "content": '["biofuel", "wifi"]'},
                 {
                     "role": "assistant",
-                    "content": '[["biofuel", "greenhouse gas reduction"], ["biofuel", "renewable energy generation"],\n["wifi", "digital connectivity"], ["wifi", "smart city integration"]]',
+                    "content": '[["biofuel", "greenhouse gas reduction"], ["biofuel", "soil improvement"],["biofuel", "renewable energy generation"],\n["wifi", "digital connectivity"], ["wifi", "smart city integration"]]',
                 },
                 {"role": "user", "content": str(input)},
             ],
@@ -409,7 +450,7 @@ def genprocess(io, knowledge=None, randomNumber=4) -> list:
         knowledge = genknowledge(io)
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo-0125",
+            model="gpt-4",
             messages=[
                 {
                     "role": "system",
@@ -476,7 +517,7 @@ def genaddcooptimization(input: list, randomNumber=3) -> list:
     """
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo-0125",
+            model="gpt-4",
             messages=[
                 {
                     "role": "system",
@@ -558,7 +599,7 @@ def genaddcooptimization(input: list, randomNumber=3) -> list:
                 {"role": "user", "content": str(input)},
             ],
             temperature=1,
-            max_tokens=5000,
+            max_tokens=4096,
             top_p=1,
             frequency_penalty=0.2,
             presence_penalty=0,
@@ -566,7 +607,8 @@ def genaddcooptimization(input: list, randomNumber=3) -> list:
             # stream=True,
         )
         output_string = response["choices"][0]["message"]["content"]
-        return cleangenio(output_string, input, querytype="input")
+        logging.debug(f"genaddcooptimization: {output_string}")
+        return cleangencoop(output_string, input)
     except Exception as e:  # This catches all exceptions
         print(f"An error occurred: {e}")
         return None
@@ -593,15 +635,28 @@ def genaddfeedback(tosearchnode: list, usefulnode: list, randomNumber=3):
 
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo-0125",
+            model="gpt-4",
             messages=[
                 {
                     "role": "system",
-                    "content": 'You are an environmental engineering specialist for regenerative environments. Here are two lists of nodes. One list includes useful resources to achieve a net-zero environment, and the other list includes  extra, abundant resources, or even waste. \nFor each node in the second list, please search in the first list to suggest potential regeneration.\nPlease answer in this format: \n[["to_search_node1":["useful_node1","useful_node2","useful_node3"]],\n     ["to_search_node2": ["useful_node1","useful_node2","useful_node3"]],\n     ...]',
+                    "content": 'You are an environmental engineering specialist for regenerative environments. Here are two lists of nodes. \
+                    One list includes useful resources to achieve a net-zero environment, and the other list includes resources that are extra and abundant. \n\
+                    For each node in the second list, please search in the first list to suggest potential regeneration.\n\
+                    Please answer in this format: \n[["to_search_node1":["useful_node1","useful_node2","useful_node3"]],\n\
+                    ["to_search_node2": ["useful_node1","useful_node2","useful_node3"]],\n     ...]',
                 },
                 {
                     "role": "user",
-                    "content": "useful_node: ['RAINWATER', 'ORGANIC EDIBLES', 'ORGANIC MATTER', 'HABITAT PROTECTION', 'SOIL NUTRIENTS', 'WIND ENERGY', 'CARBON SEQUESTRATION', 'ANIMAL FEED', 'WAVES', 'SAND', 'PLANT BIODIVERSITY', 'SEA BREEZES', 'SEA LIFE', 'DISPOSER', 'TOURIST ATTRACTION', 'ROCKS', 'CONSTRUCTION MATERIAL', 'SHELLS', 'EROSION CONTROL', 'SOLAR ENERGY', 'TOPOGRAPHY', 'INDIGENOUS PLANTS', 'IMPROVED HUMAN HEALTH', 'RAINWATER COLLECTING SYSTEMS', 'COASTAL PROTECTION', 'GROUND COVER', 'PHOTOVOLTAIC PANELS', 'NATURAL LIGHTING', 'SHORES', 'SALTWATER', 'BEACH', 'POLLINATORS', 'NUTRIENT EXTRACTION', 'RECYCLABLE', 'REDUCED STORMWATER RUNOFF', 'WIND TURBINES', 'BAMBOO MATERIAL', 'FOOTPRINTS', 'AGRICULTURE', 'SOLAR HOT WATER', 'FOOD SOURCE', 'MARINE BIODIVERSITY', 'WILDLIFE', 'JOB CREATION', 'COMPOST', 'SUNLIGHT', 'GREEN ROOFS', 'CARBON DIOXIDE REDUCTION', 'IRRIGATION', 'THERMAL ENERGY', 'BAMBOO', 'CLEAN AIR', 'SEDIMENT', 'AESTHETIC PLEASURE', 'BIRD SPECIES', 'PLANT SPECIES', 'THERMAL HEATING', 'SOIL', 'ECO-FRIENDLY MATERIALS', 'GARDENS', 'SEAGRASS', 'SUN ENERGY', 'DURABLE GRASS', 'TOURISM', 'SEDUM', 'OCEAN', 'SEAWEED', 'COASTAL ISLAND']\n\nto_search_node: [\"SHELLS\", \"ANIMAL FEED\"]",
+                    "content": "useful_node: ['RAINWATER', 'ORGANIC EDIBLES', 'ORGANIC MATTER', 'HABITAT PROTECTION', 'SOIL NUTRIENTS', \
+                    'WIND ENERGY', 'CARBON SEQUESTRATION', 'ANIMAL FEED', 'WAVES', 'SAND', 'PLANT BIODIVERSITY', 'SEA BREEZES', 'SEA LIFE', \
+                    'DISPOSER', 'TOURIST ATTRACTION', 'ROCKS', 'CONSTRUCTION MATERIAL', 'SHELLS', 'EROSION CONTROL', 'SOLAR ENERGY', 'TOPOGRAPHY', \
+                    'INDIGENOUS PLANTS', 'IMPROVED HUMAN HEALTH', 'RAINWATER COLLECTING SYSTEMS', 'COASTAL PROTECTION', 'GROUND COVER', 'PHOTOVOLTAIC PANELS', \
+                    'NATURAL LIGHTING', 'SHORES', 'SALTWATER', 'BEACH', 'POLLINATORS', 'NUTRIENT EXTRACTION', 'RECYCLABLE', 'REDUCED STORMWATER RUNOFF', \
+                    'WIND TURBINES', 'BAMBOO MATERIAL', 'FOOTPRINTS', 'AGRICULTURE', 'SOLAR HOT WATER', 'FOOD SOURCE', 'MARINE BIODIVERSITY', 'WILDLIFE', \
+                    'JOB CREATION', 'COMPOST', 'SUNLIGHT', 'GREEN ROOFS', 'CARBON DIOXIDE REDUCTION', 'IRRIGATION', 'THERMAL ENERGY', 'BAMBOO', 'CLEAN AIR', \
+                    'SEDIMENT', 'AESTHETIC PLEASURE', 'BIRD SPECIES', 'PLANT SPECIES', 'THERMAL HEATING', 'SOIL', 'ECO-FRIENDLY MATERIALS', 'GARDENS', 'SEAGRASS', \
+                    'SUN ENERGY', 'DURABLE GRASS', 'TOURISM', 'SEDUM', 'OCEAN', 'SEAWEED', 'COASTAL ISLAND']\n\n\
+                        to_search_node: [\"SHELLS\", \"ANIMAL FEED\"]",
                 },
                 {
                     "role": "assistant",
@@ -613,14 +668,14 @@ def genaddfeedback(tosearchnode: list, usefulnode: list, randomNumber=3):
                 },
             ],
             temperature=1,
-            max_tokens=5000,
+            max_tokens=4096,
             top_p=1,
             frequency_penalty=0.2,
             presence_penalty=0,
             n=randomNumber,
         )
         output_string = response["choices"][0]["message"]["content"]
-        print(output_string)
+        logging.debug(f"genaddfeedback: {output_string}")
         return cleanio(output_string)
     except Exception as e:  # This catches all exceptions
         print(f"An error occurred: {e}")
@@ -675,9 +730,9 @@ def return_addprocess(list_of_io, max_tries=4):
 def return_addcooptimization(input_resources: list, max_tries=3):
     for _ in range(max_tries):
         randomNumber = random.randint(1, 5)
-        flow_list = genaddcooptimization(input_resources, randomNumber=randomNumber)
+        knowstring, flow_list = genaddcooptimization(input_resources, randomNumber=randomNumber)
         if checknestedlist(flow_list):
-            return flow_list
+            return knowstring, flow_list
     print ("Sorry, we can't generate a result from the input resources, please try again.")
     return None
 
@@ -699,18 +754,31 @@ def return_queryflow_and_nodesys(mode: str, query: list, max_tries=3):
     while attempts < max_tries:
         if mode == "add-input":
             queryflow = return_addinput(query)
-            userinfo = f'More input resources added for {query}'
+            string= ", ".join(query)
+            userinfo = f'More input resources added for {string}.'
         elif mode == "add-output":
             queryflow = return_addoutput(query)
-            userinfo = f'More output resources added for {query}'
+            string= ", ".join(query)
+            userinfo = f'More output resources added for {string}.'
         elif mode == "add-process":
             queryknowledge, queryflow = return_addprocess(query)
-            userinfo = f'More process added for {query}.'
+            userinfo = f'More process added for flow '
+            flowstring = ", ".join(" --> ".join(q) for q in query)
+            userinfo += flowstring+'.'
+            
+            userinfo+=f'<br>'
             for knowledge in queryknowledge:
                 userinfo += f'<br>{knowledge[0]}'
         elif mode == "add-cooptimization":
-            queryflow = return_addcooptimization(query)
-            userinfo = f'More co-optimization added for {query}'
+            queryknowledge, queryflow = return_addcooptimization(query)
+            string= ", ".join(query)
+            userinfo = f'More co-optimization added for {string}.'
+            userinfo+=f'<br><br>'
+            #replace"/n" with "<br>" in queryknowledge, if there are multiple "\n" like"\n\n", replace with "only one <br>"
+            knowledge_formatted = queryknowledge.replace("\n\n", "<br>").replace("\n", "<br>")
+            # Now use the formatted string in the f-string without any backslashes in the expression part
+            userinfo += f'<br>{knowledge_formatted}'
+            
         else:
             return None
 
@@ -734,7 +802,7 @@ def return_queryflow_and_nodesys(mode: str, query: list, max_tries=3):
 def return_queryflow_add_feedback(mode: str, query: list, currentflow: list):
     if mode =="add-feedback":
         queryflow = return_addfeedback(query, currentflow)
-        return mergeflow(queryflow, currentflow)
+        return queryflow
     
 ## transform matrix
 

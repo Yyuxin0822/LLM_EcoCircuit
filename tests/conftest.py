@@ -55,3 +55,11 @@ class AuthActions(object):
 @pytest.fixture
 def auth(client):
     return AuthActions(client)
+
+
+@pytest.fixture(scope="class")
+def class_scoped_app():
+    """Create an app instance with a class scope for specific tests."""
+    app = create_app({'TESTING': True})
+    with app.app_context():
+        yield app

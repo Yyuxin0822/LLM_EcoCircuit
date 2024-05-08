@@ -12,6 +12,7 @@ export class PromptFlowline extends LeaderLine {
         this.startNodeItem = PromptNode.getNodeObjbyNode(this.start, this.prompt);
         this.endNodeItem = PromptNode.getNodeObjbyNode(this.end, this.prompt);
         this.selected = false;
+        this.feedback = false;
         this.commonOptions = {
             startPlug: "hidden",
             startPlugSize: 4,
@@ -42,33 +43,25 @@ export class PromptFlowline extends LeaderLine {
     updatePositionOptions() {
         let startRect = this.start.getBoundingClientRect();
         let endRect = this.end.getBoundingClientRect();
-        let startIdentifier = this.start.querySelector('.input-identifier');
-        let endIdentifier = this.end.querySelector('.output-identifier');
-        if (startRect.left <= endRect.left) {
+        if ((endRect.left - startRect.left) <= 225) {
             this.setOptions({
                 startSocket: 'Right', endSocket: 'Left',
-                startSocketGravity: [150, 0], endSocketGravity: [-150, 0],
-                dash: false
+                startSocketGravity: [225, 0], endSocketGravity: [-225, 0],
             });
-            if (startIdentifier) {
-                startIdentifier.style.right = "0rem";
-            }
-            if (endIdentifier) {
-                endIdentifier.style.left = "0rem";
-            }
         }
         else {
             this.setOptions({
-                startSocket: 'Left', endSocket: 'Right',
-                startSocketGravity: [-150, 0], endSocketGravity: [150, 0],
-                dash: { animation: true, len: 12, gap: 6 }
+                startSocket: 'Right', endSocket: 'Left',
+                startSocketGravity: [75, 0], endSocketGravity: [-75, 0],
             });
-            if (startIdentifier) {
-                startIdentifier.style.right = "11rem";
-            }
-            if (endIdentifier) {
-                endIdentifier.style.left = "11rem";
-            }
+        }
+        let startIdentifier = this.start.querySelector('.input-identifier');
+        let endIdentifier = this.end.querySelector('.output-identifier');
+        if (startIdentifier) {
+            startIdentifier.style.right = "0rem";
+        }
+        if (endIdentifier) {
+            endIdentifier.style.left = "0rem";
         }
     }
     updateColorOptions() {
@@ -77,6 +70,38 @@ export class PromptFlowline extends LeaderLine {
             endPlugColor: this.end.style.backgroundColor,
             startPlugOutlineColor: this.start.style.backgroundColor,
         });
+        if (this.feedback) {
+            this.setFeedbackStyle();
+        }
+    }
+    updateOptions(options) {
+        this.setOptions(options);
+    }
+    setFeedbackStyle() {
+        this.updateOptions({
+            dash: { animation: true, len: 9, gap: 3, duration: 500 },
+            dropShadow: {
+                dx: 1,
+                dy: 2,
+                blur: 0.2
+            },
+        });
+        let startRect = this.start.getBoundingClientRect();
+        let endRect = this.end.getBoundingClientRect();
+        let startSquare = document.createElement('div');
+        startSquare.classList.add('start-square');
+        startSquare.style.backgroundColor = this.start.style.backgroundColor;
+        startSquare.style.zIndex = '2';
+        this.start.appendChild(startSquare);
+        let anno = document.createElement('div');
+        anno.classList.add('card-14');
+        anno.innerHTML = 'Regenerate';
+        anno.style.color = this.start.style.backgroundColor;
+        anno.style.position = 'absolute';
+        anno.style.bottom = '0.5rem';
+        startSquare.appendChild(anno);
+        startSquare.style.right = '-0.25rem';
+        anno.style.left = '0.25rem';
     }
     toJSONArray() {
         let startText = this.start.querySelector('.node-wrapper').innerHTML;

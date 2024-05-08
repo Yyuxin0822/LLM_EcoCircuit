@@ -169,7 +169,7 @@ export class Prompt {
         let nodeX = 0;
         //loop through the nearest nodeXMap value to find the cooresponding key as nodeX
         for (let key in nodeXMap) {
-            if (nodeXMap[key] <= (abs / 16) ) {
+            if (nodeXMap[key] <= (abs / 16)) {
                 let tempNodeX = parseFloat(key);
                 if (nodeX < tempNodeX) {
                     nodeX = tempNodeX;
@@ -189,7 +189,7 @@ export class Prompt {
     convertAbstoNodeY(abs: number) {
         //abs(px) = nodeY * 1.5 + 'rem';
         //consider px to rem conversion
-        return Math.floor(abs / 16 / 1.5)-2;
+        return Math.floor(abs / 16 / 1.5) - 2;
     }
 
 
@@ -327,8 +327,10 @@ export class Prompt {
         Prompt.allPrompts.forEach(prompt => {
             let { prompt_id, query } = prompt.returnQuery();
             if (query.length > 0) {
+
                 prompt_id_array.push(prompt_id);
                 query_array.push(query);
+
             }
         });
         return { prompt_id_array, query_array };

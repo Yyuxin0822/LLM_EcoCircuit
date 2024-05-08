@@ -102,8 +102,6 @@ export class PlaygroundFuncBar extends FuncBar {
 
     setEditMode() {
         //toggle edit button
-        this.enableEditButton?.classList?.add('hidden');
-        this.disableEditButton?.classList?.remove('hidden');
         PromptFlowline.lineSel = false;
         PromptNode.nodeSel = false;
         //enable all prompts, then autofocus to the first prompt
@@ -124,9 +122,6 @@ export class PlaygroundFuncBar extends FuncBar {
         });
 
         PromptNodeDrpDwn.globalEnabled = false;
-
-        this.enableEditButton?.classList?.remove('hidden');
-        this.disableEditButton?.classList?.add('hidden');
     }
 
     returnMode() {
