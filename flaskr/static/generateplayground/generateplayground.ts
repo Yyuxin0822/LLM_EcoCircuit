@@ -35,6 +35,7 @@ window.onload = function () {
 
     if (previousElement && !previousElement.classList.contains('hidden')) {
         previousElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setTimeout(finishload, 500);// Estimate the scroll duration (e.g., 500 milliseconds)
     }
     finishload();
 }

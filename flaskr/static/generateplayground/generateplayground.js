@@ -16,6 +16,7 @@ window.onload = function () {
     var previousElement = lastPrompt.previousElementSibling;
     if (previousElement && !previousElement.classList.contains('hidden')) {
         previousElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setTimeout(finishload, 500);
     }
     finishload();
 };
