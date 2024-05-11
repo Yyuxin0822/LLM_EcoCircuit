@@ -6,7 +6,7 @@ import urllib
 import openai
 import ast
 
-from flaskr.config import OPENAI_API_KEY
+from instance.config import OPENAI_API_KEY
 openai.api_key = OPENAI_API_KEY
 
 defaultsysdict = {

@@ -1,6 +1,7 @@
 import functools
 
 from flask import (
+    current_app,
     Blueprint,
     flash,
     g,
@@ -94,6 +95,9 @@ def logout():
 def login_required(view):
     @functools.wraps(view)
     def wrapped_view(**kwargs):
+        if current_app.config.get('LOGIN_DISABLED', False):
+            return view(**kwargs)
+
         if g.user is None:
             return redirect(url_for("auth.signin"))
 

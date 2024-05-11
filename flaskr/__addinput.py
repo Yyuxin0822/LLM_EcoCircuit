@@ -6,7 +6,7 @@ import urllib
 import openai
 import numpy as np
 from collections import defaultdict
-from flaskr.config import OPENAI_API_KEY
+from instance.config import OPENAI_API_KEY
 from flaskr.project import *
 from flaskr.__io import *
 import math

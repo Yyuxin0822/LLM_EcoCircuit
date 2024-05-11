@@ -2,7 +2,7 @@
 
 EcoCircuit is an LLM-based web application for generative flow diagrams. As an educative tool for environmental engineering, it generates flow / circular economy diagram and allows freedom for users to doodle and modify.
 
-This realease realizes all below function of Sherbot. The interactivity of the web will be improved in the next release
+This realease realizes all the below functions of Sherbot. The interactivity of the web will be improved in the next release
 ### Init
 1. Activate virtual environment and python dependencies
 2. cd "static", install node modules in package-lock, this project uses leader-line and plain-draggable package by anseki
@@ -105,3 +105,4 @@ Below are some examples.
 ![text-to-flow](__Pic__/c.png)
 
 ![text-to-flow](__Pic__/d.png)
+

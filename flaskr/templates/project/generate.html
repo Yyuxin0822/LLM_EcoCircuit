@@ -133,10 +133,6 @@
                         <p><span class="emphasis">Save</span> to Custom</p>
                     </button>
                 </div>
-                <div class="sub-wrapper-2">
-                    <p>Select All</p>
-                    <p>Clear All</p>
-                </div>
             </div>
         </div>
     </div>
@@ -194,7 +190,7 @@
     </div>
     <div id="content-custom-frame" class="hidden">
         <div class="wrapper">
-            <iframe src="{{ url_for('project.custom', id=project['id']) }}" id="custom-iframe" sandbox="allow-scripts allow-same-origin"></iframe>
+            <iframe src="{{ url_for('project.custom', id=project['id']) }}" tabindex="0" id="custom-iframe" sandbox="allow-scripts allow-same-origin"></iframe>
         </div>
     </div>
 </div>

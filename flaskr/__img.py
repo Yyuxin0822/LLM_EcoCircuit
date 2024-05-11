@@ -6,7 +6,7 @@ import urllib
 import openai 
 import requests
 import base64
-from flaskr.config import OPENAI_API_KEY, GITHUB_TOKEN
+from instance.config import OPENAI_API_KEY, GITHUB_TOKEN
 
 openai.api_key = OPENAI_API_KEY
 token=GITHUB_TOKEN
