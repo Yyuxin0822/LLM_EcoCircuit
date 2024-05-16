@@ -6,10 +6,9 @@ import { Prompt } from './prompt/Prompt.js';
 import { PromptFlowline } from './prompt/PromptFlowline.js';
 //@ts-ignore
 import { PromptNode } from './prompt/PromptNode.js';
+//@ts-ignore
+import {DefaultSystem, System, SystemFuncBar} from '../SystemBar.js';
 
-///////////////////////////Main Flow Control ///////////////
-////////////////////////////////////////////////////////////
-const playFuncBar = new PlaygroundFuncBar(document.querySelector('.function-frame'));
 
 ///////////////Helper Func////////////////////
 const eventTypes = ['click', 'keydown', 'keyup', 'scroll', 'load'];
@@ -26,8 +25,9 @@ eventTypes.forEach(type => {
     }, false); // Set useCapture to true to handle the event in the capturing phase
 });
 
+///////////////////////////Main Flow Control ///////////////
+////////////////////////////////////////////////////////////
 
-//domcument load
 window.onload = function () {
     PromptFlowline.fixLine();
     var lastPrompt = Prompt.allPrompts[Prompt.allPrompts.length - 1].prompt;
@@ -41,134 +41,9 @@ window.onload = function () {
 }
 
 
-
-// let findFeedback = (parentPrompt: HTMLElement) => {
-//     var userPrompt = parentPrompt.previousElementSibling;
-//     var userInfoElement = userPrompt.querySelector('.userinfo');
-//     if (userInfoElement) {
-//         var feedbackInfo = userInfoElement.innerHTML;
-//         // Regex to find patterns like ['...', '...']
-//         var regex = /\['(.*?)',\s*'(.*?)'\]/g;
-//         var matches, pairs = [];
-
-//         // Extracting pairs using the regex
-//         while (matches = regex.exec(feedbackInfo)) {
-//             // matches[1] and matches[2] are the captured groups from the regex
-//             pairs.push([matches[1], matches[2]]);
-//         }
-//         // console.log(pairs);
-//         return pairs;
-
-//     }
-// }
-let findFeedback = (parentPrompt: HTMLElement) => {
-    var userPrompt = parentPrompt.previousElementSibling;
-    var userInfoElement = userPrompt.querySelector('.userinfo');
-    if (userInfoElement) {
-        var feedbackInfo = userInfoElement.innerHTML.trim();
-        //trim whitespace and find the first word
-        var feedbackType = feedbackInfo.split(' ')[0];
-        if (feedbackType != 'Feedback' && feedbackType != 'Regeneration') {
-            return;
-        }
-        
-        // Regex to find patterns like 'Element1--&gt; Element2' considering HTML entity
-        var regex = /\s*(.*?)\s*--&gt;\s*(.*?)\s*(?=<br>|$)/g;
-        var matches, pairs = [];
-
-        // Extracting pairs using the regex
-        while (matches = regex.exec(feedbackInfo)) {
-            // matches[1] and matches[2] are the captured groups from the regex
-            pairs.push([matches[1], matches[2]]);
-        }
-        return pairs;
-
-    }
-}
-
-function processPrompt(prompt) {
-    var prIndex = prompt.id.replace('prompt', '');
-    // console.log(prIndex);
-    var flowString = prompt.querySelector('#promptFlow' + prIndex).innerText;
-    var flowArray = parseJson(flowString);
-    var nodeString = prompt.querySelector('#promptNode' + prIndex).innerText;
-    var nodeArray = parseJson(nodeString);
-    var systemString = prompt.querySelector('#promptSystem' + prIndex).innerText;
-    var systemArray = parseJson(systemString);
-
-    var promptObject = new Prompt(prIndex);
-    var parentPrompt = promptObject.prompt;
-
-    let NodeX = Array.from(new Set(nodeArray.map(node => node[1][0])));
-    let coorXMap = Prompt.processNodeX(NodeX.sort());
-    let NodeY = Array.from(new Set(nodeArray.map(node => node[1][1])));
-    let NodeYMax = Math.max(...NodeY);
-    parentPrompt.style.height = ((NodeYMax + 1) * 1.5 + 6) + 'rem';
-    NodeX.forEach((x) => {
-        let col = document.createElement("div");
-        col.classList.add('col');
-        col.id = 'col' + validId(x.toString());
-        col.style.left = coorXMap[x] + 'rem';
-        parentPrompt.appendChild(col);
-    });
-
-    nodeArray.forEach((node, nIndex) => {
-        var nodeName = node[0];
-        var nodeX = node[1][0];
-        var nodeY = node[1][1];
-        var nodeSystem = node[2];
-        var nodeTransform = "translate(0,0)";
-        if (node[3]) { nodeTransform = node[3]; }
-        let defaultRGB = systemArray.find((system) => { system[0] === "UNKNOWN" });
-        let nodeRGB = defaultRGB ? hexToRGBA(defaultRGB[1], 0.75) : hexToRGBA("#888", 0.75);
-        let nodeSys = "UNKNOWN";
-
-        systemArray.forEach((system) => {
-            if (system[0] === nodeSystem) {
-                nodeSys = system[0];
-                nodeRGB = hexToRGBA(system[1], 0.75);
-            }
-        });
-        var promptNode = new PromptNode(nodeName, nodeX, nodeY, nodeTransform, nodeRGB, nodeSys, parentPrompt);
-    });
-
-    flowArray.forEach((flow) => {
-        // console.log(flow);
-        for (var i = 1; i < flow.length - 1; i++) {
-            // console.log(flow[i]);
-            // console.log(flow[i + 1]);
-            var nodeStart = PromptNode.getNodeById('node' + validId(flow[i]), parentPrompt);
-            var nodeEnd = PromptNode.getNodeById('node' + validId(flow[i + 1]), parentPrompt);
-            if (nodeStart == null || nodeEnd == null) {
-                return;
-            }
-            if (PromptFlowline.isLineExists(nodeStart.node, nodeEnd.node)) {
-                continue;
-            }
-            var line = new PromptFlowline(nodeStart.node, nodeEnd.node);
-        }
-    });
-
-
-    if (nodeArray.length == 0) {
-        parentPrompt.style.display = 'none';
-        let feedbackLines = findFeedback(parentPrompt);
-        if (feedbackLines) {
-            feedbackLines.forEach((line) => {
-                PromptFlowline.getAllLines().forEach((flowline) => {
-                    if (flowline.start.querySelector('.node-wrapper').innerText == line[0] && flowline.end.querySelector('.node-wrapper').innerText == line[1]) {
-                        flowline.feedback = true;
-                        flowline.setFeedbackStyle();
-
-                    }
-                })
-            })
-        }
-        return;
-    }
-}
-
 ////////////// function-frame ////////////// 
+const playFuncBar = new PlaygroundFuncBar(document.querySelector('.function-frame'));
+
 // toggling views //temporarily deactivated 
 // function toggleViews() {
 //     document.getElementById('view-playground')?.classList.toggle('hidden');
@@ -221,9 +96,143 @@ document.getElementById('unfold')?.addEventListener('click', toggleEngineerBar);
 // const addcooptimizationtab = document.getElementById('add-cooptimization');
 // const addfeedbacktab = document.getElementById('add-feedback');
 
+////////////// info-frame ////////////// 
+const systemBar = new SystemFuncBar(document.getElementById('system-bar'));
+var systemString = systemBar.container.querySelector('#project-system').innerText;
+console.log(systemString);
+var systemArray = parseJson(systemString);
+console.log(systemArray);
+
+function processSystem(container: HTMLElement) {
+    systemArray.forEach((system) => {
+        let systemIcon = new System(container, system[0], system[1],system[2]);
+        DefaultSystem.currentSystems.push({
+            "content": system[0],
+            "color": system[1],
+            "iconUrl": system[2]
+        });
+    });
+}
+
+processSystem(systemBar.container);
+
+// function confirmColor(){
+//     systemArray=System.returnSysArray();
+//     systemBar.container.querySelector('#project-system').innerText = JSON.stringify(systemArray);
+//     window.location.reload();
+// }
+// function resetColor(){}
 
 
 ////////////// prompt-frame ////////////// 
+let findFeedback = (parentPrompt: HTMLElement) => {
+    var userPrompt = parentPrompt.previousElementSibling;
+    var userInfoElement = userPrompt.querySelector('.userinfo');
+    if (userInfoElement) {
+
+        var feedbackInfo = userInfoElement.innerHTML.trim();
+        //trim whitespace and find the first word
+        var feedbackType = feedbackInfo.split(' ')[0];
+        if (feedbackType != 'Feedback' && feedbackType != 'Regeneration') {
+            return;
+        }
+
+        // Regex to find patterns like 'Element1--&gt; Element2' considering HTML entity
+        var regex = /\s*(.*?)\s*--&gt;\s*(.*?)\s*(?=<br>|$)/g;
+        var matches, pairs = [];
+
+        // Extracting pairs using the regex
+        while (matches = regex.exec(feedbackInfo)) {
+            // matches[1] and matches[2] are the captured groups from the regex
+            pairs.push([matches[1], matches[2]]);
+        }
+        return pairs;
+
+    }
+}
+
+function processPrompt(prompt) {
+    var prIndex = prompt.id.replace('prompt', '');
+    // console.log(prIndex);
+    var flowString = prompt.querySelector('#promptFlow' + prIndex).innerText;
+    var flowArray = parseJson(flowString);
+    var nodeString = prompt.querySelector('#promptNode' + prIndex).innerText;
+    var nodeArray = parseJson(nodeString);
+
+    var promptObject = new Prompt(prIndex);
+    var parentPrompt = promptObject.prompt;
+
+    let NodeX = Array.from(new Set(nodeArray.map(node => node[1][0])));
+    let coorXMap = Prompt.processNodeX(NodeX.sort());
+    let NodeY = Array.from(new Set(nodeArray.map(node => node[1][1])));
+    let NodeYMax = Math.max(...NodeY);
+    parentPrompt.style.height = ((NodeYMax + 1) * 1.5 + 6) + 'rem';
+    NodeX.forEach((x) => {
+        let col = document.createElement("div");
+        col.classList.add('col');
+        col.id = 'col' + validId(x.toString());
+        col.style.left = coorXMap[x] + 'rem';
+        parentPrompt.appendChild(col);
+    });
+
+    nodeArray.forEach((node, nIndex) => {
+        var nodeName = node[0];
+        var nodeX = node[1][0];
+        var nodeY = node[1][1];
+        var nodeSystem = node[2];
+        var nodeTransform = "translate(0,0)";
+        if (node[3]) { nodeTransform = node[3]; }
+        let defaultRGB = systemArray.find((system) => { system[0] === "UNKNOWN" });
+        let nodeRGB = defaultRGB ? hexToRGBA(defaultRGB[1], 0.75) : hexToRGBA("#888", 0.75);
+        let nodeSys = "UNKNOWN";
+
+        systemArray.forEach((system) => {
+            if (system[0] === nodeSystem) {
+                nodeSys = system[0];
+                nodeRGB = hexToRGBA(system[1], 0.75);
+            }
+        });
+        var promptNode = new PromptNode(nodeName, nodeX, nodeY, nodeTransform, nodeRGB, nodeSys, parentPrompt);
+    });
+
+    flowArray.forEach((flow) => {
+        // console.log(flow);
+        for (var i = 1; i < flow.length - 1; i++) {
+            // console.log(flow[i]);
+            // console.log(flow[i + 1]);
+            var nodeStart = PromptNode.getNodeById('node' + validId(flow[i]), parentPrompt);
+            var nodeEnd = PromptNode.getNodeById('node' + validId(flow[i + 1]), parentPrompt);
+   
+            if (nodeStart == null || nodeEnd == null || nodeStart.node == nodeEnd.node) {
+                return;
+            }
+            if (PromptFlowline.isLineExists(nodeStart.node, nodeEnd.node)) {
+                continue;
+            }
+            var line = new PromptFlowline(nodeStart.node, nodeEnd.node);
+        }
+    });
+
+
+    if (nodeArray.length == 0) {
+        parentPrompt.style.display = 'none';
+        let feedbackLines = findFeedback(parentPrompt);
+
+        if (feedbackLines) {
+            feedbackLines.forEach((line) => {
+                PromptFlowline.getAllLines().forEach((flowline) => {
+                    if (flowline.start.querySelector('.node-wrapper').innerText == line[0] && flowline.end.querySelector('.node-wrapper').innerText == line[1]) {
+                        flowline.feedback = true;
+                        flowline.setFeedbackStyle();
+
+                    }
+                })
+            })
+        }
+        return;
+    }
+}
+
 var prompts = document.querySelectorAll('.prompt');
 prompts.forEach(processPrompt);
 
@@ -234,12 +243,13 @@ function addio() {
     startload();
     let id = document.getElementById('project_id').innerHTML;
     let info = document.getElementById('info').innerHTML;
+    let sysdict = DefaultSystem.returnPrjDict();
     fetch('/addio', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ 'project_id': id, 'info': info }),
+        body: JSON.stringify({ 'project_id': id, 'info': info, 'sysdict': JSON.stringify(sysdict) })
     })
         .then(response => response.json())
         .then(data => {
@@ -278,6 +288,8 @@ quickgen?.addEventListener('click', () => {
         return;
     }
 
+    let sysdict = DefaultSystem.returnPrjDict();
+
     startload();
 
     fetch('/quickgen', {
@@ -286,6 +298,7 @@ quickgen?.addEventListener('click', () => {
             'mode': mode,
             'prompt_id_array': prompt_id_array,
             'info_array': query_array,
+            'sysdict': JSON.stringify(sysdict)
         }),
         headers: {
             'Content-Type': 'application/json'
@@ -307,13 +320,6 @@ quickgen?.addEventListener('click', () => {
             console.log('finish load');
         });
 });
-
-
-
-// quickgen sending data
-
-
-
 
 
 // function returnInfo(absposition = false) {

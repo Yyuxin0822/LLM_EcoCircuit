@@ -14,21 +14,11 @@ import logging
 
 logging.basicConfig(
     level=logging.DEBUG,
-    filename="test_logs_addiput.log",
+    filename="./logs/test_logs_addiput.log",
     filemode="a",
     format="%(asctime)s - %(levelname)s - %(message)s",
 )
 openai.api_key = OPENAI_API_KEY
-
-defaultsysdict = {
-    "HYDRO": "#0BF",
-    "ENERGY": "#FC0",
-    "SOLID WASTE": "#A75",
-    "TELECOMMUNICATION": "#95A",
-    "TRANSPORT": "#F44",
-    "ECOSYSTEM": "#3C4",
-    "UNKNOWN": "#888",
-}
 
 
 ######################################################
@@ -94,8 +84,6 @@ def cleangencoop(string: str, query: list)->(str, list):
     cleaned_string = know_string[first_semicolon+1:last_quotation+1].strip()
     logging.debug(f"cleangencoop: {cleaned_string}")
     return cleaned_string, flowlist
-
-
 
 def cleangenprocess(flow_string):
     # Get the first index of "["
@@ -218,7 +206,7 @@ def npsearcher(twodimensionlist: list, tosearchnode: list) -> list:
     return [search_x, min_y]
 
 
-def refactormatrixy(matrix: dict, use_sys_sort: bool = False) -> dict:
+def refactormatrixy(matrix: dict, syscolor:dict ,use_sys_sort: bool = False) -> dict:
     """
     Refactor the y-coordinates of nodes in the matrix such that for each unique x-coordinate,
     the y-coordinates are sorted and then re-assigned starting from 0 in ascending order.
@@ -246,7 +234,7 @@ def refactormatrixy(matrix: dict, use_sys_sort: bool = False) -> dict:
     for coorx, nodetup in sorted_by_x.items():
         if use_sys_sort:
             nodelist = [node for node, coory in nodetup]
-            nodelist = sortnode(nodelist, sysdict)
+            nodelist = sortnode(nodelist, sysdict,syscolor)
             for i, node in enumerate(nodelist):
                 refactored_matrix[node] = [[coorx, i], sysdict[node]]
         else:
@@ -301,7 +289,7 @@ def is_process(node: list) -> bool:
 ######################################################
 ######################################################
 ## gen "add-input"
-def genaddinput(output, syslist=defaultsysdict.keys(), randomNumber=3) -> list:
+def genaddinput(output:list, sysdict:dict, randomNumber=3) -> list:
     """return input resources from output
     Args:
     output(list) -- the output resources
@@ -310,15 +298,15 @@ def genaddinput(output, syslist=defaultsysdict.keys(), randomNumber=3) -> list:
     Returns:
     [[i1,o1],[i2,o2],...] -- a list of list of input and output
     """
-    systring = ",".join(syslist).lower()
+    systring = ",".join(sysdict.keys()).lower()
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo-0125",
+            model="gpt-4o",
             messages=[
                 {
                     "role": "system",
                     "content": f"""
-                You are an environmental engineering specialist; 
+                You are an environmental engineering and planning specialist; 
                 given the output, please come up with input resources from the following system: {systring}.\n 
                 These input-output pairs aim at resource co-optimization and net-zero environment.  
                 Please come up with two to three inputs for each output provided, and return in this format: 
@@ -335,7 +323,7 @@ def genaddinput(output, syslist=defaultsysdict.keys(), randomNumber=3) -> list:
                     "role": "assistant",
                     "content": '[["organic waste", "biofuel"], ["algae biomass", "biofuel"], ["crop residues", "biofuel"], ["land dedicated to energy crops", "biofuel"], ["atmospheric CO2", "biofuel"], ["digesters", "biofuel"], ["fats, oils, and grease (FOG) from wastewater", "biofuel"], ["broadband infrastructure", "wifi"], ["fiber-optic networks", "wifi"], ["antenna", "wifi"], ["satellite", "wifi"], ["regulated radio waves", "wifi"], ["existing electrical grid", "wifi"]]',
                 },
-                {"role": "user", "content": str(output)},
+                {"role": "user", "content": f'[{systring}]'},
             ],
             temperature=1,
             max_tokens=512,
@@ -353,7 +341,7 @@ def genaddinput(output, syslist=defaultsysdict.keys(), randomNumber=3) -> list:
 
 
 ## gen "add-output"
-def genaddoutput(input, syslist=defaultsysdict.keys(), randomNumber=3) -> list:
+def genaddoutput(input, sysdict:dict, randomNumber=3) -> list:
     """return input resources from output
     Args:
     output(list) -- the output resources
@@ -362,32 +350,31 @@ def genaddoutput(input, syslist=defaultsysdict.keys(), randomNumber=3) -> list:
     Returns:
     [[i1,o1],[i2,o2],...] -- a list of list of input and output
     """
-    systring = ",".join(syslist).lower()
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4",
+            model="gpt-4o",
             messages=[
                 {
                     "role": "system",
-                    "content": f"""You are an environmental engineering specialist; 
-                    given the input, please come up with output resources from the following system: {systring}\n
-                    These input-output pairs aim at resource co-optimization and net-zero environment.  
-                    Please come up with two to three outputs for each input provided, and return them in this format: [[input1, output1], [input2, output2],...]""",
+                    "content": f"""You are an encyclopedia. Given the input, please come up with output resources from the system I provided. \
+                                These input-output pairs aim at resource co-optimization, net-zero environment, circular economy, etc. \
+                                Please come up with two to three outputs for each input provided, and return them in this format: [[input1, output1], [input2, output2],...]""",
                 },
                 {
                     "role": "user",
-                    "content": '["waste water", "organic waste", "wind energy"]',
+                    "content": 'input: ["waste water", "organic waste", "wind"], \
+                                system:["HYDRO", "ENERGY", "ECOSYSTEM"]',
                 },
                 {
                     "role": "assistant",
-                    "content": '[["waste water", "fresh water"], ["waste water", "nutrients"], ["waste water", "biosolids"],["waste water", "biofuel"], \n["organic waste", "biofuel"], ["organic waste", "biogas"], \n["wind","electricity"], ["wind", "humidity"]]',
+                    "content": '[["waste water", "agricultural irrigation"], ["waste water", "safe drinkning water"], ["waste water", "biosolids"],["waste water", "biofuel"], ["organic waste", "soil health in urban garden"], ["organic waste", "biogas"], ["wind","hydrogen"], ["wind","stored in batteries"], ["wind", "humidity"]]',
                 },
-                {"role": "user", "content": '["biofuel", "wifi"]'},
+                {"role": "user", "content": 'input: ["biofuel", "wifi"], system:["ENERGY", "ECOSYSTEM", "TELECOMMUNICATION"]'},
                 {
                     "role": "assistant",
-                    "content": '[["biofuel", "greenhouse gas reduction"], ["biofuel", "soil improvement"],["biofuel", "renewable energy generation"],\n["wifi", "digital connectivity"], ["wifi", "smart city integration"]]',
+                    "content": '[["biofuel", "greenhouse gas reduction"], ["biofuel", "soil improvement"],["biofuel", "heat for industrial process"],\n["wifi", "telemedicine access"], ["wifi", "smart city integration"], ["wifi", "IoT devices for energy management"]]',
                 },
-                {"role": "user", "content": str(input)},
+                {"role": "user", "content": f'input: {input}, system:{list(sysdict.keys())}',}
             ],
             temperature=1,
             max_tokens=512,
@@ -408,7 +395,7 @@ def genaddoutput(input, syslist=defaultsysdict.keys(), randomNumber=3) -> list:
 def genknowledge(io, randomNumber=4):
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4",
+            model="gpt-4o",
             messages=[
                 {
                     "role": "system",
@@ -450,7 +437,7 @@ def genprocess(io, knowledge=None, randomNumber=4) -> list:
         knowledge = genknowledge(io)
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4",
+            model="gpt-4o",
             messages=[
                 {
                     "role": "system",
@@ -517,7 +504,7 @@ def genaddcooptimization(input: list, randomNumber=3) -> list:
     """
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4",
+            model="gpt-4o",
             messages=[
                 {
                     "role": "system",
@@ -635,7 +622,7 @@ def genaddfeedback(tosearchnode: list, usefulnode: list, randomNumber=3):
 
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4",
+            model="gpt-4o",
             messages=[
                 {
                     "role": "system",
@@ -685,20 +672,20 @@ def genaddfeedback(tosearchnode: list, usefulnode: list, randomNumber=3):
 ######################################################
 ######################################################
 ## exectution
-def return_addinput(output_resources: list, max_tries=3):
+def return_addinput(output_resources: list, syscolor:dict,  max_tries=3):
     for _ in range(max_tries):
         randomNumber = random.randint(1, 5)
-        flow_list = genaddinput(output_resources, randomNumber=randomNumber)
+        flow_list = genaddinput(output_resources, syscolor, randomNumber=randomNumber)
         if checknestedlist(flow_list):
             return flow_list
     print ("Sorry, we can't generate a result from the output resources, please try again.")
     return None
 
 
-def return_addoutput(input_resources: list, max_tries=3):
+def return_addoutput(input_resources: list, sysdict:dict, max_tries=3):
     for _ in range(max_tries):
         randomNumber = random.randint(1, 5)
-        flow_list = genaddoutput(input_resources, randomNumber=randomNumber)
+        flow_list = genaddoutput(input_resources, sysdict, randomNumber=randomNumber)
         if checknestedlist(flow_list):
             return flow_list
     print ("Sorry, we can't generate a result from the input resources, please try again.")
@@ -747,17 +734,17 @@ def return_addfeedback(toseachnode: list, fullnode: list, max_tries=3):
     return None
 
 
-def return_queryflow_and_nodesys(mode: str, query: list, max_tries=3):
+def return_queryflow_and_nodesys(mode: str, query: list, syscolor:dict, max_tries=3):
     attempts = 0
 
 
     while attempts < max_tries:
         if mode == "add-input":
-            queryflow = return_addinput(query)
+            queryflow = return_addinput(query, syscolor)
             string= ", ".join(query)
             userinfo = f'More input resources added for {string}.'
         elif mode == "add-output":
-            queryflow = return_addoutput(query)
+            queryflow = return_addoutput(query, syscolor)
             string= ", ".join(query)
             userinfo = f'More output resources added for {string}.'
         elif mode == "add-process":
@@ -765,9 +752,9 @@ def return_queryflow_and_nodesys(mode: str, query: list, max_tries=3):
             userinfo = f'More process added for flow '
             flowstring = ", ".join(" --> ".join(q) for q in query)
             userinfo += flowstring+'.'
-            
             userinfo+=f'<br>'
             for knowledge in queryknowledge:
+                print(knowledge)
                 userinfo += f'<br>{knowledge[0]}'
         elif mode == "add-cooptimization":
             queryknowledge, queryflow = return_addcooptimization(query)
@@ -786,7 +773,7 @@ def return_queryflow_and_nodesys(mode: str, query: list, max_tries=3):
             attempts += 1
             continue
         
-        querynodesys = return_system(queryflow)
+        querynodesys = return_system(queryflow, syscolor)
 
         # Check if any values are None and retry if so
         if querynodesys is None:
@@ -806,7 +793,7 @@ def return_queryflow_add_feedback(mode: str, query: list, currentflow: list):
     
 ## transform matrix
 
-def return_matrix(mode:str, queriedflow: list, querynodesys: dict):
+def return_matrix(mode:str, queriedflow: list, querynodesys: dict, syscolor:dict):
     newmatrix={}
     if mode=="add-input":
         # step 1: categorize a dict according to output
@@ -867,15 +854,16 @@ def return_matrix(mode:str, queriedflow: list, querynodesys: dict):
             inputset.add(input)
             outputset.add(output)
         
-        sorted_inputlist = sortnode(list(inputset), querynodesys)
-        sorted_outputlist = sortnode(list(outputset), querynodesys)
+        sorted_inputlist = sortnode(list(inputset), querynodesys,syscolor)
+        sorted_outputlist = sortnode(list(outputset), querynodesys,syscolor)
         
         for input, output in queriedflow:
             newmatrix[input] = [[0, sorted_inputlist.index(input)], querynodesys.get(input, "UNKNOWN")]
             newmatrix[output] = [[1, sorted_outputlist.index(output)], querynodesys.get(output, "UNKNOWN")]
 
     return newmatrix     
-def sortnode(nodelist: list, nodesys: dict, syscolor=defaultsysdict):
+
+def sortnode(nodelist: list, nodesys: dict, syscolor:dict):
     """
     group nodelist by system, order them alphabetically according to the system order and then node name
     Args:

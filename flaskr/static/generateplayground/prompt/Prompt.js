@@ -185,7 +185,7 @@ export class Prompt {
             Object.assign(nodematrix, node.toJSONObj());
         });
         var isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-        var url = isLocal ? 'http://localhost:5000' : 'https://www.ecocircuitai.com';
+        var url = isLocal ? 'http://localhost:8000' : 'https://www.ecocircuitai.com';
         var socket = io(url, {
             path: '/socket.io',
             transports: ['websocket', 'polling']

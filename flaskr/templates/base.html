@@ -1,37 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<title>EcoCircuit AI {% block title %}{% endblock %} </title>
-<link rel="stylesheet" href="{{ url_for('static', filename='styleguide.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
 
-<script src="{{ url_for('static', filename='node_modules/leader-line/leader-line.min.js') }}" defer></script>
-<script src="{{ url_for('static', filename='node_modules/plain-draggable/plain-draggable.min.js') }}" defer></script>
-<script src="{{ url_for('static', filename='base.js') }}" defer></script>
-<script src="{{ url_for('static', filename='index.js') }}" defer></script>
-{% block scripts %}
-{% endblock %}
+<head>
+  <title>EcoCircuit AI {% block title %}{% endblock %} </title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styleguide.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='auth.css') }}">
+  <script src="{{ url_for('static', filename='node_modules/leader-line/leader-line.min.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='node_modules/plain-draggable/plain-draggable.min.js') }}" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@jaames/iro@5"></script>
+  <script src="{{ url_for('static', filename='base.js') }}" defer></script>
+  <script type="module" src="{{ url_for('static', filename='SystemBar.js') }}" defer></script>
+  <script type="module" src="{{ url_for('static', filename='index.js') }}" defer></script>
+
+  {% block scripts %}
+  {% endblock %}
 
 
 </head>
 
 
 <body>
-<div class="title-bar">
+  <div class="title-bar">
     <div class="title heading-2">EcoCircuit</div>
     <div class="navbar">
       <div class="heading-2">About</div>
       <div class="heading-2">Help</div>
       <div class="heading-2">Contact</div>
       <div class="heading-2">Share</div>
-        {% if g.user %}
-            <div class="component-bar-2"><div class="heading-2">{{ g.user['username'] }}</div></div>
-            <div class="component-bar-2"><div class="heading-2"><a href="{{ url_for('auth.logout') }}">Sign Out</a></div></div>
-        {% else %}
-            <div class="component-bar-2"><div class="heading-2"><a href="{{ url_for('auth.signin') }}">Sign In</a></div></div>         
-        {% endif %}
+      {% if g.user %}
+      <div class="component-bar-2">
+        <div class="heading-2">{{ g.user['username'] }}</div>
+      </div>
+      <div class="component-bar-2">
+        <div class="heading-2"><a href="{{ url_for('auth.logout') }}">Sign Out</a></div>
+      </div>
+      {% else %}
+      <div class="component-bar-2">
+        <div class="heading-2"><a href="{{ url_for('auth.signin') }}">Sign In</a></div>
+      </div>
+      {% endif %}
     </div>
-</div>
+  </div>
   {% for message in get_flashed_messages() %}
   <div class="flash">{{ message }}</div>
   {% endfor %}

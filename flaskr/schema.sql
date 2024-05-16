@@ -21,6 +21,7 @@ CREATE TABLE project (
   type TEXT NOT NULL CHECK (type IN ('description', 'image', 'label')),
   info TEXT,
   img_url TEXT,
+  system TEXT,
   FOREIGN KEY (author_id) REFERENCES user (id)
 );
 
@@ -29,7 +30,6 @@ CREATE TABLE prompt (
   prompt TEXT,
   flow TEXT,
   node TEXT,
-  system TEXT,
   userinfo TEXT DEFAULT ' ',
   project_id INTEGER,
   FOREIGN KEY (project_id) REFERENCES project (id)
@@ -39,7 +39,6 @@ CREATE TABLE customprompt (
   id INTEGER PRIMARY KEY AUTOINCREMENT, 
   flow TEXT,
   node TEXT,
-  system TEXT,
   img_url TEXT,
   canvas TEXT,
   project_id INTEGER UNIQUE,

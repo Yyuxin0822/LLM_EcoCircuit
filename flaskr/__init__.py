@@ -5,7 +5,7 @@ from flask_socketio import SocketIO, emit
 from flask_cors import CORS  
 
 
-socketio = SocketIO(cors_allowed_origins=['http://localhost:5000', 'http://127.0.0.1:5000','https://www.ecocircuitai.com'])  # Allow all origins for SocketIO
+socketio = SocketIO(cors_allowed_origins=['http://localhost:8000', 'http://127.0.0.1:8000','https://www.ecocircuitai.com'])  # Allow all origins for SocketIO
 
 def create_app(test_config=None):
     # create and configure the app
@@ -77,13 +77,16 @@ def create_app(test_config=None):
             return redirect(url_for('index'))  # Redirect to homepage if current and prev URLs match
         return redirect(session.get('prev_url', url_for('index')))
 
-
-    @app.route('/some_long_running_process')
-    def some_long_running_process():
-        # Simulate a process that might cause a timeout
-        # This is just a placeholder logic
-        return abort(504)
-
+    if not app.debug:
+        import logging
+        from logging import FileHandler
+        file_handler = FileHandler('errorlog.txt')
+        file_handler.setLevel(logging.DEBUG)
+        file_handler.setFormatter(logging.Formatter(
+            "%(asctime)s - %(levelname)s - %(message)s"
+        ))
+        app.logger.addHandler(file_handler)
+        
     from . import db
     db.init_app(app)
 

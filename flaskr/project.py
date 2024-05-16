@@ -23,17 +23,10 @@ import json
 from flask_socketio import SocketIO, send, emit
 from . import socketio
 
+
 bp = Blueprint("project", __name__)
 
-defaultsysdict = {
-    "HYDRO": "#0BF",
-    "ENERGY": "#FC0",
-    "SOLID WASTE": "#A75",
-    "TELECOMMUNICATION": "#95A",
-    "TRANSPORT": "#F44",
-    "ECOSYSTEM": "#3C4",
-    "UNKNOWN": "#888",
-}
+
 
 @bp.before_request
 def set_test_user():
@@ -54,10 +47,10 @@ def index():
         max_project_id = get_max_project_id()
         max_prompt_id = get_max_prompt_id()
 
-        save_sysinfo_to_db(defaultsysdict)
+        # save_sysinfo_to_db(defaultsysdict)
 
         requesttype = request.form["requesttype"]
-        # print("Type: ", requesttype)
+        system= request.form["system"]
 
         if requesttype == "description":
             prompt = request.form["description"]
@@ -85,9 +78,9 @@ def index():
                     )
                     # print(info)
         IndexHelper.genio_from_description(
-            (max_prompt_id + 1), (max_project_id + 1), info
+            (max_prompt_id + 1), (max_project_id + 1), info, json.loads(system)
         )
-
+        logging.debug(max_prompt_id + 1)
         error = None
 
         if imgurl is None or info is None:
@@ -101,9 +94,11 @@ def index():
             db = get_db()
             cursor = db.cursor()
             cursor.execute(
-                "INSERT INTO project (author_id, title, type, info, img_url) \
-                VALUES (?, ?, ?, ?, ?)",
-                (g.user["id"], prompt, requesttype, info, imgurl),
+                "INSERT INTO project (author_id, title, type, info, img_url, system) \
+                VALUES (?, ?, ?, ?, ?, ?)",
+                (g.user["id"], prompt, 
+                 requesttype, info, imgurl,
+                 system),
             )
             db.commit()
             project_id = cursor.lastrowid  # This gets the last inserted ID
@@ -126,10 +121,12 @@ def generate(id):
 @login_required
 def addio():
     data = request.get_json()
-    sysdict = defaultsysdict
+    print("type of data: ", (data["sysdict"]))
+    print("type of data: ", type(json.loads(data["sysdict"])))
+    
     prompt_id = get_max_prompt_id() + 1
     prompt_id = IndexHelper.genio_from_description(
-        prompt_id, data["project_id"], data["info"], sysdict
+        prompt_id, data["project_id"], data["info"], json.loads(data["sysdict"])
     )
     if prompt_id is None:
         error = "Gereration error, please ask again."
@@ -161,7 +158,7 @@ def quickgen():
     prompt_id_list = data["prompt_id_array"]
     info_list = data["info_array"]
 
-    prompt_id = update(mode, prompt_id_list, info_list)
+    prompt_id = update(mode, prompt_id_list, info_list, json.loads(data["sysdict"]))
     if prompt_id is None:
         error = "Gereration error, please ask again."
         flash(error)
@@ -178,10 +175,9 @@ def save_prompt(data):
     Returns:
         _type_: _description_
     """
-    print("Saved data to prompt: ", data)
+    # print("Saved data to prompt: ", data)
     db = get_db()
     cursor = db.cursor()
-
     cursor.execute(
         """
         UPDATE prompt
@@ -198,6 +194,27 @@ def save_prompt(data):
 
     db.commit()
     return data["prompt_id"]
+
+# (UD)
+@socketio.on("save_system")
+def save_system_to_project(data):
+    print("Saved data to project: ", data)
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute(
+        """
+        UPDATE project
+        SET system = ?
+        WHERE id = ?
+        """,
+        (
+            json.dumps(data["system"]),  # Serialize the node data to a JSON string
+            data["project_id"],  # The ID for the record to update
+        ),
+    )
+
+    db.commit()
+    return data["project_id"]
 
 
 #################custom.html###################
@@ -276,6 +293,7 @@ class IndexHelper:
         if expand == "true" or expand == True:
             info = genexpand(prompt)
         tempurl = getcanvas(info)
+        # logging.debug(f"Temp URL: {tempurl}")
         urllib.request.urlretrieve(tempurl, filepath)
         imgurl = genurl(id, local_path=filepath)
         return imgurl, info
@@ -284,7 +302,7 @@ class IndexHelper:
         prompt_id: int,
         project_id: int,
         env: str | list,
-        syscolor: dict[str, any] = defaultsysdict,
+        syscolor: dict[str, any],
     ):
         """
         Generate input and output from description
@@ -297,32 +315,31 @@ class IndexHelper:
         # print("Generating IO from description - " + env)
         # gen input
         if isinstance(env, str):
-            input = return_input(env)
+            input = return_input(env, syscolor)
         elif isinstance(env, list):
             input = env
 
-        io = return_addoutput(input)
+        io = return_addoutput(input, syscolor)
         # io = return_io(input)
         if io is None:
             return None
         
         iosys = return_system(io, syscolor)
-
+        logging.debug(f"IO System: {iosys}")
         if iosys is None:
             return None
 
-        iomatrix = nodematrix(io, iosys)
-
+        iomatrix = nodematrix(io, iosys, syscolor)
+        logging.debug(f"IO Matrix: {iomatrix}")
         # save io to db
         db = get_db()
         cursor = db.cursor()
         cursor.execute(
-            "INSERT OR REPLACE INTO prompt (id, flow, node, system, userinfo, project_id) VALUES (?,?,?,?,?,?)",
+            "INSERT OR REPLACE INTO prompt (id, flow, node, userinfo, project_id) VALUES (?,?,?,?,?)",
             (
                 prompt_id,
                 json.dumps(io),
                 json.dumps(iomatrix),
-                json.dumps(syscolor),
                 "Add more input -> output with AI",
                 project_id,
             ),
@@ -374,7 +391,7 @@ def update(
     mode: str,
     prompt_id_array: list,
     query_array: list,
-    syscolor: dict[str, any] = defaultsysdict,
+    syscolor: dict[str, any],
 ):
     """update db and return updated prompt_id
 
@@ -433,19 +450,18 @@ def update(
             db.commit()
     else:
         queryflow, querynodesys, userinfo = return_queryflow_and_nodesys(
-            mode, combinedquery
+            mode, combinedquery, syscolor
         )
-        querymatrix = return_matrix(mode, queryflow, querynodesys)
+        querymatrix = return_matrix(mode, queryflow, querynodesys, syscolor)
 
     db = get_db()
     cursor = db.cursor()
     cursor.execute(
-        "INSERT OR REPLACE INTO prompt (id, flow, node, system, userinfo, project_id) VALUES (?,?,?,?,?,?)",
+        "INSERT OR REPLACE INTO prompt (id, flow, node, userinfo, project_id) VALUES (?,?,?,?,?)",
         (
             new_prompt_id,
             json.dumps(queryflow),
             json.dumps(querymatrix),
-            json.dumps(syscolor),
             userinfo,
             project_id,
         ),
@@ -474,12 +490,11 @@ def save_custom_view(data):
     db = get_db()
     cursor = db.cursor()
     cursor.execute(
-        "INSERT OR REPLACE INTO customprompt (id, flow, node, system, project_id) VALUES (?,?,?,?,?)",
+        "INSERT OR REPLACE INTO customprompt (id, flow, node, project_id) VALUES (?,?,?,?)",
         (
             customprompt_id,
             json.dumps(data["flow"]),
             json.dumps(data["node"]),
-            json.dumps(defaultsysdict),
             project_id,
         ),
     )
@@ -527,10 +542,9 @@ def get_project(id, check_author=True):
     project = (
         get_db()
         .execute(
-            "SELECT p.id, p.author_id, p.created, p.title, p.type, p.info, p.img_url, "  # Added comma here
+            "SELECT p.id, p.author_id, p.created, p.title, p.type, p.info, p.img_url, p.system,"  # Added comma here
             'GROUP_CONCAT(pr.flow, ";") AS flow, '  # Ensure column names match your table definition
             'GROUP_CONCAT(pr.node, ";") AS node, '  # Same here
-            'GROUP_CONCAT(pr.system, ";") AS system, '  # And here
             'GROUP_CONCAT(pr.id, ";") AS prompt_id, '  # And here
             'GROUP_CONCAT(pr.userinfo, ";") AS userinfo '  # And here
             "FROM project p "
@@ -611,7 +625,6 @@ def get_prompt(prompt_id: int, check_project: bool = False):
         "id": prompt["id"],
         "flow": json.loads(prompt["flow"]),
         "node": json.loads(prompt["node"]),
-        "system": json.loads(prompt["system"]),
         "userinfo": prompt["userinfo"],
         "project_id": prompt["project_id"],
     }

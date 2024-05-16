@@ -24,3 +24,5 @@ static/node_modules/
 config.py
 
 __temp_archive__/
+
+logs/

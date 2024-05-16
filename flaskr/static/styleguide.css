@@ -4,6 +4,44 @@
   box-sizing: border-box;
 }
 
+
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width:auto;
+  min-width: 120px;
+  background-color: rgba(255, 255, 255, 0.95);
+  box-shadow: var(--highlight);
+  color: black;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 10px; 
+  position: absolute;
+  z-index: 1;
+  bottom: 150%;
+  left: 50%;
+  margin-left: -60px;
+  outline: 1px solid var(--variable-collection-themedarkpurple);
+  font-family: var(--card-14-font-family);
+  font-weight: var(--card-14-font-weight);
+  font-size: var(--card-14-font-size);
+}
+
+.tooltip .tooltiptext::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: var(--variable-collection-themedarkpurple) transparent transparent  transparent;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}
+
+
 a {
   text-decoration: none;
   /* Removes underline */
@@ -55,7 +93,7 @@ a {
   --card-node-font-style: normal;
   --node: 0.5px 0.5px rgba(0, 0, 0, 0.1);
   --regular: 2px 2px 0.5px 0px rgba(109, 120, 148, 0.25);
-  --highlight: 12px 1px 2px 0px rgba(109, 120, 148, 1);
+  --highlight: 0px 0px 12px 0px rgba(109, 120, 148, 0.25);
   --HYDRO: #0BF;
   --ECOSYSTEM: #3C4;
   --ICT: #95A;
@@ -68,7 +106,6 @@ a {
   --variable-collection-themelightpurple: rgba(232, 237, 250, 1);
   --variable-collection-themedarkpurple: rgba(161, 173, 204, 1);
 }
-
 
 img {
   /* style */
@@ -192,17 +229,24 @@ p,
 .icon-common {
   height: 1.875rem;
   width: 1.875rem;
-  display: block;
+  display: flex;
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
   border-radius: 8rem;
   box-shadow: var(--regular);
   pointer-events: auto;
+ align-items: center;
+  justify-content: center;
 }
 
 .icon-close {
   background-image: url('icon/07_Close.png');
+  background-color: #F4F6FC;
+  cursor: pointer;
+}
+.icon-close:hover {
+  background-color: var(--variable-collection-themedarkpurple);
 }
 
 .icon-description {

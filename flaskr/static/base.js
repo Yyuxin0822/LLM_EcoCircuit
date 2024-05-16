@@ -39,11 +39,28 @@ function startload() {
   document.body.appendChild(loader);
 }
 
-function hexToRGBA(hex, opacity) {
-  // Remove the hash at the start if it's there
-  hex = hex.replace(/^#/, '');
+function hexToRGBA(input, opacity) {
+  // Check if input is in RGBA format
+  if (input.startsWith('rgba')) {
+    return input; // Skip if it's already in RGBA format
+  }
+  
+  // Check if input is in RGB format
+  if (input.startsWith('rgb')) {
+    // Extract the RGB values
+    let rgbValues = input.match(/\d+/g);
+    let r = rgbValues[0];
+    let g = rgbValues[1];
+    let b = rgbValues[2];
+    
+    // Return the formatted RGBA color string
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+  }
+  
+  // If input is in HEX format, remove the hash at the start if it's there
+  let hex = input.replace(/^#/, '');
 
-  // Solve 3digit hex color
+  // Solve 3-digit hex color
   if (hex.length === 3) {
     hex = hex.split('').map(char => char + char).join('');
   }
@@ -56,6 +73,7 @@ function hexToRGBA(hex, opacity) {
   // Return the formatted RGBA color string
   return `rgba(${r}, ${g}, ${b}, ${opacity})`;
 }
+
 
 
 function validId(nodeName) {
@@ -108,4 +126,25 @@ function parseJson(jsonString) {
 
 // fetchData();  // Call your function that makes the AJAX request
 
+function emitSocket(endpoint, data) {
+  // Determine if the app is running locally or on a production server
+  var isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+  var url = isLocal ? 'http://localhost:8000' : 'https://www.ecocircuitai.com';
 
+  // Initialize the Socket.IO client
+  var socket = io(url, {
+    path: '/socket.io',
+    transports: ['websocket', 'polling']
+  });
+  return new Promise((resolve, reject) => {
+    socket.emit(endpoint, data, response => {
+      if (response.error) {
+        reject(response.error);
+      } else {
+        resolve(response);
+      }
+    });
+  });
+
+
+}

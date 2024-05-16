@@ -46,13 +46,13 @@ export class PromptFlowline extends LeaderLine {
         if ((endRect.left - startRect.left) <= 225) {
             this.setOptions({
                 startSocket: 'Right', endSocket: 'Left',
-                startSocketGravity: [225, 0], endSocketGravity: [-225, 0],
+                startSocketGravity: [150, 0], endSocketGravity: [-150, 0],
             });
         }
         else {
             this.setOptions({
                 startSocket: 'Right', endSocket: 'Left',
-                startSocketGravity: [75, 0], endSocketGravity: [-75, 0],
+                startSocketGravity: [150, 0], endSocketGravity: [-150, 0],
             });
         }
         let startIdentifier = this.start.querySelector('.input-identifier');

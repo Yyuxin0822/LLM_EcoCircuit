@@ -8,7 +8,7 @@ import logging
 import re
 from werkzeug.datastructures import FileStorage
 
-# export PYTHONPATH="/home/ubuntu/Sherbot/App_240429:$PYTHONPATH"
+# export PYTHONPATH="/home/ubuntu/Sherbot/App_Development:$PYTHONPATH"
 logging.basicConfig(
     level=logging.DEBUG,
     filename="test_logs_project.log",
@@ -34,6 +34,7 @@ class TestIndex:
                     "requesttype": "description",
                     "description": "This is a coastal island.",
                     "expand": "true",
+                    "system":'{"FOOD":"#FC0","SOLID WASTE":"#A75","TELECOMMUNICATION":"#95A","MOBILITY":"#F44","BIOSYSTEM":"#3C4","UNKNOWN":"#888"}'
                 },
                 follow_redirects=True,
             )
@@ -56,6 +57,7 @@ class TestIndex:
                 data = {
                     "requesttype": "image",
                     "image": FileStorage(stream=f, filename="test.jpg"),
+                    "system":'{"FOOD":"#FC0","SOLID WASTE":"#A75","TELECOMMUNICATION":"#95A","MOBILITY":"#F44","BIOSYSTEM":"#3C4","UNKNOWN":"#888"}'
                 }
                 with client:
                     response = client.post(
@@ -79,7 +81,7 @@ class TestIndex:
                 data={
                     "requesttype": "label",
                     "label": "SEA BREEZE, NATURAL COOLING",
-                    "expand": "true",
+                    "system":'{"FOOD":"#FC0","SOLID WASTE":"#A75","TELECOMMUNICATION":"#95A","MOBILITY":"#F44","BIOSYSTEM":"#3C4","UNKNOWN":"#888"}'
                 },
                 follow_redirects=True,
             )
@@ -99,6 +101,7 @@ class TestIndex:
                 data={
                     "requesttype": "label",
                     "label": "SUCCULENTS, WETLAND, NON-POTABLE WATER, WETLAND",
+                    "system":'{"HYDRO":"#0BF","ENERGY":"#FC0","SOLID WASTE":"#A75","TELECOMMUNICATION":"#95A","MOBILITY":"#F44","BIOSYSTEM":"#3C4","UNKNOWN":"#888"}'
                 },
                 follow_redirects=True,
             )
@@ -895,7 +898,7 @@ if __name__ == "__main__":
 
     pytest.main(
         [
-            "test_project.py::TestAJAX",
+            "test_project.py::TestIndex::test_post_description",
             "-x",
         ]
     )

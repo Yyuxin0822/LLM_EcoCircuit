@@ -18,7 +18,7 @@ token=GITHUB_TOKEN
 def genexpand(prompt):
     try:
         response = openai.ChatCompletion.create(
-        model="gpt-4",
+        model="gpt-4-turbo",
         messages=[
             {
             "role": "system",
@@ -42,15 +42,16 @@ def genexpand(prompt):
         return None
 
 def getcanvas(envir_description, max_tries=3):
-    for i in range(max_tries):
+    for _ in range(max_tries):
         try:
             response = openai.Image.create(
                 model="dall-e-3",
                 prompt=f"{envir_description}, photorealistic",
-                n=i+1,
+                n=1,
                 size="1024x1024"
             )
             image_url = response['data'][0]['url']
+            # logging.debug(f"Image URL: {image_url}")
             return image_url
         except Exception as e:
             print(f"An error occurred: {e}")

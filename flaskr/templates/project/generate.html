@@ -12,7 +12,8 @@
 <script type="module" src="{{ url_for('static', filename='generateplayground/prompt/PromptIdentifier.js') }}"
     defer></script>
 <script type="module" src="{{ url_for('static', filename='generateplayground/PlaygroundFuncBar.js') }}" defer></script>
-<script type="module" src="{{ url_for('static', filename='generateplayground/generateplayground.js') }}" defer></script>
+<script type="module" src="{{ url_for('static', filename='generateplayground/generateplayground.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='SystemBar.js') }}" defer></script>
 <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
 {% endblock %}
 
@@ -46,7 +47,7 @@
     </div> -->
 
     <!-- engineer bar -->
-    <div id="engineer-bar-folded">
+    <div id="engineer-bar-folded" class="hidden">
         <div class="wrapper">
             <div class="component-bar-2" id="unfold" style="cursor: pointer;">
                 <span class="icon-common icon-unfold"></span>
@@ -62,7 +63,7 @@
             </div>
         </div>
     </div>
-    <div id="engineer-bar-unfolded" class="hidden">
+    <div id="engineer-bar-unfolded">
         <div class="wrapper">
             <div class="sub-wapper-1">
                 <div class="component-bar-2" id="fold" style="cursor: pointer;">
@@ -166,7 +167,7 @@
     </div>
 </div>
 
-<div class="info-frame">
+<div class="info-frame" id="info-frame">
     <div id="project_id" class="hidden">{{id}}</div>
     {% if project['type'] == 'label' %}
     <div class="emphasis">Here are the labels that you prompted ...</div>
@@ -182,14 +183,20 @@
     <p id="info">{{project['info']}}</p>
     {% endif %}
     <div id="system-bar">
-        <span class="icon-common icon-water"></span>
-        <span class="icon-common icon-bio"></span>
-        <span class="icon-common icon-unknown"></span>
-        <span class="icon-common icon-ict"></span>
-        <span class="icon-common icon-solidwaste"></span>
-        <span class="icon-common icon-energy"></span>
-        <span class="icon-common icon-transport"></span>
-
+        <div class="project-system hidden" id="project-system">{{project['system']}}</div>
+        <!-- <div class="toggle" id="hydro"> <span class="icon-common icon-water"></span></div>
+        <div class="toggle" id="bio"> <span class="icon-common icon-bio"></span></div>
+        <div class="toggle" id="unknown"> <span class="icon-common icon-unknown"></span></div>
+        <div class="toggle" id="ict"> <span class="icon-common icon-ict"></span></div>
+        <div class="toggle" id="solidwaste"> <span class="icon-common icon-solidwaste"></span></div>
+        <div class="toggle" id ="energy"> <span class="icon-common icon-energy"></span></div>
+        <div class="toggle" id="transport"> <span class="icon-common icon-transport"></span></div> -->
+        <div id="colorPicker" class="stopper" style="display: none;"></div>
+        <div id="colorPickerFunc" style="display: none;">
+            <p class="pickerfunc" id="confirm-color">+ Confirm System Color</p>
+            <br>
+            <p class="pickerfunc" id="reset-color">+ Reset System Color</p>
+        </div>
     </div>
 </div>
 
@@ -217,14 +224,13 @@
                 <div class="prompt" id="prompt{{promptIds[i]}}">
                     <div class="prompt-flow hidden" id="promptFlow{{promptIds[i]}}">{{promptFlows[i]}}</div>
                     <div class="prompt-node hidden" id="promptNode{{promptIds[i]}}">{{promptNodes[i]}}</div>
-                    <div class="prompt-system hidden" id="promptSystem{{promptIds[i]}}">{{promptSystems[i]}}</div>
                     <div class="prompt-funcbar hidden" id="promptFuncBar{{promptIds[i]}}">
                         <div class="wrapper">
                             <!-- <button id="selmode" class="toggle inactive icon-common icon-selM"></button> -->
                             <!-- <span class="normal"> | </span> -->
-                            <button id="nodemode" class="toggle active  icon-common icon-nodeM"></button>
+                            <button id="nodemode" class="toggle active icon-common icon-nodeM"></button>
                             <span class="normal"> | </span>
-                            <button id="flowmode" class="toggle inactive  icon-common icon-flowM"></button>
+                            <button id="flowmode" class="toggle inactive icon-common icon-flowM"></button>
                         </div>
                     </div>
                 </div>
@@ -238,7 +244,6 @@
         </div>
     </div> -->
 </div>
-
 
 <div class="iconbutton-frame">
     <!-- <div class="icon-common icon-info" id="icon-info"></div> -->

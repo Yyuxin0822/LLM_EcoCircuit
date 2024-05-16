@@ -76,9 +76,8 @@
   gap: 0.75rem;
   /*style*/
   border-radius: 0.5rem;
-  border: 2px dashed var(--variable-collection-themedarkpurple);
+  border: 2px solid var(--variable-collection-themedarkpurple);
 }
-
 
 .component-eng-tab {
   display: flex;
@@ -95,7 +94,8 @@
   cursor: pointer;
 }
 
-.component-eng-tab:hover, .component-eng-tab.active{
+.component-eng-tab:hover,
+.component-eng-tab.active {
   background-color: var(--variable-collection-themedarkpurple);
 }
 
@@ -168,13 +168,13 @@
 
   /* typography */
   color: rgba(27, 30, 37, 0.50);
-text-align: right;
-font-family: Inter;
-font-size: 1.25rem;
-font-style: normal;
-font-weight: 300;
-line-height: normal;
-text-decoration-line: underline;
+  text-align: right;
+  font-family: Inter;
+  font-size: 1.25rem;
+  font-style: normal;
+  font-weight: 300;
+  line-height: normal;
+  text-decoration-line: underline;
 }
 
 /* info-frame */
@@ -195,10 +195,48 @@ text-decoration-line: underline;
   gap: 1.5rem;
 }
 
+#system-bar .toggle {
+  padding: 0.25rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
 
+#system-bar .toggle:hover {
+  background-color: var(--variable-collection-themedarkpurple);
+  box-shadow: var(--regular);
+}
+
+#system-bar .toggle.active {
+  background-color: var(--variable-collection-themedarkpurple);
+  box-shadow: var(--regular);
+}
+
+#system-bar #colorpicker-wrapper {
+  display: inline-flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+
+#colorPickerFunc {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 2rem;
+  cursor: pointer;
+}
+
+.pickerfunc:hover{
+  text-decoration: underline;
+}
 /* content-frame */
 
-#content-frame >.wrapper{
+#content-frame>.wrapper {
   display: flex;
   height: 115.5rem;
   padding: 1rem 0rem;
@@ -289,11 +327,11 @@ text-decoration-line: underline;
   pointer-events: none;
 }
 
-.prompt .node{
+.prompt .node {
   /* layout */
   display: flex;
-    /* testing width */
-  width: 14rem; 
+  /* testing width */
+  width: 14rem;
   height: 1.375rem;
   padding: 0rem 1.25rem;
   justify-content: center;
@@ -315,7 +353,7 @@ text-decoration-line: underline;
 
 
 
-.prompt-funcbar>.wrapper{
+.prompt-funcbar>.wrapper {
   /* layout */
   display: flex;
   padding: 0.5rem 1rem;
@@ -329,7 +367,7 @@ text-decoration-line: underline;
   pointer-events: auto;
 }
 
-.prompt-funcbar .toggle.active{
+.prompt-funcbar .toggle.active {
   background-color: var(--variable-collection-themedarkpurple);
   cursor: pointer;
 }
@@ -345,7 +383,7 @@ text-decoration-line: underline;
   width: 0.5rem;
   height: 0.5rem;
   flex-shrink: 0;
-  
+
 }
 
 .node>.input-identifier,
@@ -366,7 +404,8 @@ text-decoration-line: underline;
   left: 0rem;
 }
 
-.identifier-dot, .identifier-temp {
+.identifier-dot,
+.identifier-temp {
   width: 0.5rem;
   height: 0.5rem;
   flex-shrink: 0;

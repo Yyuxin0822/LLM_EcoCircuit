@@ -36,7 +36,7 @@ export class PromptNodeDrpDwn extends Dropdown {
         }
     }
     addReclassifyOption() {
-        var systemString = document.querySelector('.prompt-system').innerHTML;
+        var systemString = document.querySelector('#project-system').innerText;
         this.systemArray = parseJson(systemString);
         if (Object.keys(this.systemArray).length > 0) {
             for (let key in this.systemArray) {
@@ -73,8 +73,7 @@ export class PromptNodeDrpDwn extends Dropdown {
         }
     }
     handleReclassify(e) {
-        console.log('Reclassify');
-        var systemString = document.querySelector('.prompt-system').innerText;
+        var systemString = document.querySelector('#project-system').innerText;
         this.systemArray = parseJson(systemString);
         let sys = e.target.innerHTML.substring(3);
         if (Object.keys(this.systemArray).length > 0) {

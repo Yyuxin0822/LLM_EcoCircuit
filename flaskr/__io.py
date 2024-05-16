@@ -9,15 +9,15 @@ import ast
 from instance.config import OPENAI_API_KEY
 openai.api_key = OPENAI_API_KEY
 
-defaultsysdict = {
-    "HYDRO": "#0BF",
-    "ENERGY": "#FC0",
-    "SOLID WASTE": "#A75",
-    "TELECOMMUNICATION": "#95A",
-    "TRANSPORT": "#F44",
-    "ECOSYSTEM": "#3C4",
-    "UNKNOWN": "#888",
-}
+# defaultsysdict = {
+#     "HYDRO": "#0BF",
+#     "ENERGY": "#FC0",
+#     "SOLID WASTE": "#A75",
+#     "TELECOMMUNICATION": "#95A",
+#     "TRANSPORT": "#F44",
+#     "ECOSYSTEM": "#3C4",
+#     "UNKNOWN": "#888",
+# }
 
 
 ######################################################
@@ -141,7 +141,7 @@ def checkdict(sysdict):
     return True
 
 
-def sortnode(nodelist, nodesys, syscolor=defaultsysdict):
+def sortnode(nodelist, nodesys, syscolor):
     """
     group nodelist by system, order them alphabetically according to the system order and then node name
     Args:
@@ -167,46 +167,50 @@ def sortnode(nodelist, nodesys, syscolor=defaultsysdict):
 
 
 def geninput(
-    envir_description,
-    syslist=[
-        "HYDRO",
-        "ENERGY",
-        "SOLID WASTE",
-        "TELECOMMUNICATION",
-        "TRANSPORT",
-        "ECOSYSTEM",
-    ],
+    envir_description: str,
+    sysdict: dict,
     randomNumber=3,
 ):
     """return unique input from environment description"""
-    systring = ", ".join(syslist).lower()
+    systring = ", ".join(list(sysdict.keys())).upper()
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4",
+            model="gpt-4o",
             messages=[
                 {
                     "role": "system",
-                    "content": f"You are a environmental engineering specialist, you will extract and imagine potential resources in the environment description as keywords. The resources in the environment include potential organisms, chemicals, materials; and they come from various systems, such as {systring}. Please try to imagine as many as possible, and provide me around 40 in total.\n\n",
+                    "content": f"You will extract and imagine potential resources in the environment description of various systems as keywords. \
+                            The resources include potential components, objects, materials, organisms, and even chemicals. \
+                            Please provide me with 40 resources in total and make sure at least three for each different system listed.",
                 },
                 {
                     "role": "user",
-                    "content": "This scene depicts an agricultural village in the mountains. There are a couple flood valleys with turbulent water.  To empower this village, there are some windfarms nearby. Cheetahs in the mountains need to be preserved. Food and potable water can be very valuable here.",
+                    "content": f"environment: 'This scene depicts an agricultural village in the mountains. There are a couple flood valleys with turbulent water. \
+                                                To empower this village, there are some windfarms nearby. Cheetahs in the mountains need to be preserved. \
+                                                Food and potable water can be very valuable here.'\
+                                system: 'ecosystem, hydro, energy'",
                 },
                 {
                     "role": "assistant",
-                    "content": "cheetah, fresh water, wind, biomass, groundwater, wild herbs, flora, potable water, irrigation water, mountain soil, spring water, timber, medicine plants, granite, geothermal energy",
+                    "content": f"Crops, Soil, Wind, Fresh Water, Flood valleys, Turbulent water, Wind turbines, Cheetahs, Mountain terrain, Potable water, Timber, Agricultural tools, Irrigation systems, \
+                                Wildlife, Rocks, Grass, Sunlight, Seeds, Fertilizers, Community wells, Herbal plants, Streams, Fish, Firewood, Birds, Bees, Greenhouses, Solar panels, Livestock, Natural springs, Berries, \
+                                Clay, Sand, Compost, Pollinators, Aquifers, Fungi, Rainwater, Earthworms, Organic Waste",
                 },
                 {
                     "role": "user",
-                    "content": "This area displays a lush mangrove forest, where roots dive deep into the brackish waters. Brightly colored crabs scuttle about, and the chirping of unseen insects is constant. Fishermen navigate through channels, casting nets in a dance as old as time.",
+                    "content": f"environment: 'This is an urban plaza with tech events and livehouse.' \
+                                system: 'food, economy, mobility'",
                 },
                 {
                     "role": "assistant",
-                    "content": "mangrove trees, brackish water, crabs, insects, fish, fishermen, channels, nets, marine life, biodiversity, oysters, algae, tidal energy, medicinal plants, shrimp, seagrass, salt, wood, mud, plankton, microorganisms, bird nests, pelicans, shellfish, coral reefs, sand, silt, phosphates, estuary, larva, turtles, seahorses, moss, roots, fruits",
+                    "content": "Smart kiosks, Food trucks, Event stages, Crowds, WiFi hotspots, Vending machines, Electric scooters, Charging stations, Walking paths, Local cuisine, Stalls, Digital signage, Public seating, \
+                                Recycling bins, Tech gadgets, Street performers, Micro-mobility devices, Public transit stops, Parking spaces, Food stalls, Security cameras, Public restrooms, Designed landscapes, Information booths, \
+                                Smartphones, Laptops, Lighting fixtures, Crafted beverages, E-commerce stands, Merchandise stands, Delicious snacks, Network infrastructure, Tablets, Interactive displays, Amphitheaters, Taxis, Smart benches, Delivery drones, Renewable energy sources, Tech merchandise, Mobile apps",
                 },
                 {
                     "role": "user",
-                    "content": envir_description,
+                    "content": f"environment:'{envir_description}',\
+                                system:'{systring}'",
                 },
             ],
             temperature=1,
@@ -224,57 +228,59 @@ def geninput(
         return None
 
 
-def genio(input_resources, randomNumber=3):
-    """return output resources from input resources"""
-    try:
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo-0125",
-            messages=[
-                {
-                    "role": "system",
-                    "content": """You are a environmental engineering specialist, given the input resources, please come up with output resources. 
-            These output resources are values and helpful optimize the environmental process to achive net zero energy, net zero carbon, and net positive water systems. Please come up with two to three output for each input.
+# def genio(input_resources, sysdict:dict, randomNumber=3):
+#     """return output resources from input resources"""
+#     sys_string = ", ".join(list(sysdict.keys())).upper()
+#     try:
+#         response = openai.ChatCompletion.create(
+#             model="gpt-3.5-turbo",
+#             messages=[
+#                 {
+#                     "role": "system",
+#                     "content": """You are a sustainabilty specialist, given the input resources, please come up with output resources. 
+#             These output resources are values and helpful optimize the environmental process to achive net-zero and net-positive vision for these systems: {sys_string}. Please come up with two to three output for each input.
             
-            I will ask in this list format:["input1","input2","input3"], such as ["waste water", "organic waste", "wind energy"].
-            Step 1, think for each input in the list, such as "waste water" can generate "fresh water" and "nutrients".
-            Step 2, please also try multiple inputs to co-optimize, such as "waste water" and "organic waste" can be combined in digestor to generate "biofuel".
-            Please answer in this list format, please put the co-optimized output in each input list, such as:
-            [  ["input1":["output1","output2","co-optimized output3"]],
-                ["input2":["output1","output2","co-optimized output3"]],
-                ["input3":["output1","output2"]], ]""",
-                },
-                {
-                    "role": "user",
-                    "content": """["waste water", "organic waste", "wind energy"]""",
-                },
-                {
-                    "role": "assistant",
-                    "content": """[["waste water":["fresh water","nutrients","biofuel"]], ["organic waste":["biofuel"; "biogas"]], ["wind":["electricity","humidity"]]]""",
-                },
-                {"role": "user", "content": """["salt water", "organics"]"""},
-                {
-                    "role": "assistant",
-                    "content": """ [["salt water":["NaCl","fresh water"]], ["organic waste":["biofuel","biogas"]]]""",
-                },
-                {
-                    "role": "user",
-                    "content": """["wetland", "non-potable water storage"]""",
-                },
-                {
-                    "role": "assistant",
-                    "content": """ [["wetland":"irrigation"], ["non-potable water storage":["irrigation","water treatment"]]]""",
-                },
-                {"role": "user", "content": str(input_resources)},
-            ],
-            temperature=1,
-            n=randomNumber
-        )
-        output_string = response["choices"][0]["message"]["content"]
+#             I will ask in this list format:["input1","input2","input3"], such as ["waste water", "organic waste", "wind energy"].
+#             Step 1, think for each input in the list, such as "waste water" can generate "fresh water" and "nutrients".
+#             Step 2, please also try multiple inputs to co-optimize, such as "waste water" and "organic waste" can be combined in digestor to generate "biofuel".
+#             Please answer in this list format, please put the co-optimized output in each input list, such as:
+#             [  ["input1":["output1","output2","co-optimized output3"]],
+#                 ["input2":["output1","output2","co-optimized output3"]],
+#                 ["input3":["output1","output2"]], ]""",
+#                 },
+#                 {
+#                     "role": "user",
+#                     "content": """["waste water", "organic waste", "wind energy"]""",
+#                 },
+#                 {
+#                     "role": "assistant",
+#                     "content": """[["waste water":["fresh water","nutrients","biofuel"]], ["organic waste":["biofuel"; "biogas"]], ["wind":["electricity","humidity"]]]""",
+#                 },
+#                 {"role": "user", "content": """["salt water", "organics"]"""},
+#                 {
+#                     "role": "assistant",
+#                     "content": """ [["salt water":["NaCl","fresh water"]], ["organic waste":["biofuel","biogas"]]]""",
+#                 },
+#                 {
+#                     "role": "user",
+#                     "content": """["wetland", "non-potable water storage"]""",
+#                 },
+#                 {
+#                     "role": "assistant",
+#                     "content": """ [["wetland":"irrigation"], ["non-potable water storage":["irrigation","water treatment"]]]""",
+#                 },
+#                 {"role": "user", "content": str(input_resources)},
+#             ],
+#             temperature=1,
+#             max_tokens=4096,
+#             n=randomNumber
+#         )
+#         output_string = response["choices"][0]["message"]["content"]
 
-        return cleanio(output_string)
-    except Exception as e:  # This catches all exceptions
-        print(f"An error occurred: {e}")
-        return None
+#         return cleanio(output_string)
+#     except Exception as e:  # This catches all exceptions
+#         print(f"An error occurred: {e}")
+#         return None
 
 
 def gensystem(node, sysinfodict, randomNumber=3):
@@ -282,16 +288,16 @@ def gensystem(node, sysinfodict, randomNumber=3):
     uniquesys = list(set(sysinfodict.keys()))
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo-0125",
+            model="gpt-4-turbo",
             messages=[
                 {
                     "role": "system",
-                    "content": f"""You are an encyclopedia. Your job is to classify the node list into the following category: {uniquesys}.\n
+                    "content": f"""You are an encyclopedia. Your job is to classify the node list into systems.\n
                     Output in this format: [["node1","system1"],["node2","system2"]]""",
                 },
                 {
                     "role": "user",
-                    "content": '["Cheetah", "wildlife corridors", "wadis"]',
+                    "content": 'nodelist: ["Cheetah", "wildlife corridors", "wadis"], system:["HYDRO", "ECOSYSTEM", "SOLID WASTE","ENERGY"]',
                 },
                 {
                     "role": "assistant",
@@ -299,13 +305,13 @@ def gensystem(node, sysinfodict, randomNumber=3):
                 },
                 {
                     "role": "user",
-                    "content": '["forest", "irrigation", "organic waste", "biofuel"]',
+                    "content": 'nodelist: ["forest", "irrigation", "organic waste", "biofuel"], system:["HYDRO", "ECOSYSTEM", "SOLID WASTE","ENERGY"]',
                 },
                 {
                     "role": "assistant",
                     "content": '[["forest","ECOSYSTEM"], ["irrigation","HYDRO"], ["organic waste", "SOLID WASTE"], ["biofuel", "ENERGY"]]',
                 },
-                {"role": "user", "content": f"{node}"},
+                {"role": "user", "content": f"nodelist:{node}, system:{uniquesys}"},
             ],
             temperature=1,
             max_tokens=4096,
@@ -321,25 +327,25 @@ def gensystem(node, sysinfodict, randomNumber=3):
 
 
 ## exectution
-def return_input(env, max_tries=3):
+def return_input(env:str, sysdict:dict, max_tries=3):
     for _ in range(max_tries):
-        input_val = geninput(env)
+        input_val = geninput(env, sysdict)
         if checklist(input_val):
             return input_val
     print("Sorry, we can't generate a result from the environment description, please try again.")
     return None
 
 
-def return_io(input_resources, max_tries=4):
-    for i in range(max_tries):
-        flow_list = genio(input_resources, i+1)
-        print(f"flow_list: {flow_list}")
-        if checknestedlist(flow_list):
-            return flow_list
-    print("Sorry, we can't generate a result from the input resources, please try again.")
-    return None
+# def return_io(input_resources, sysdict:dict, max_tries=4):
+#     for i in range(max_tries):
+#         flow_list = genio(input_resources, sysdict, i+1)
+#         print(f"flow_list: {flow_list}")
+#         if checknestedlist(flow_list):
+#             return flow_list
+#     print("Sorry, we can't generate a result from the input resources, please try again.")
+#     return None
 
-def return_system(node: list, syscolor: dict = defaultsysdict, max_tries: int = 3):
+def return_system(node: list, syscolor: dict, max_tries: int = 3):
     if checknestedlist(node):
         node = unielement(node)
 
@@ -359,7 +365,7 @@ def return_system(node: list, syscolor: dict = defaultsysdict, max_tries: int = 
 
 
 # ### Build Simple Matrix
-def nodematrix(nodelist, nodesys):
+def nodematrix(nodelist, nodesys, syscolor):
     listin = set()
     listout = set()
 
@@ -369,8 +375,8 @@ def nodematrix(nodelist, nodesys):
         if ele1 not in listin:
             listout.add(ele1)
 
-    listinput = sortnode(list(listin), nodesys)
-    listoutput = sortnode(list(listout - listin), nodesys)
+    listinput = sortnode(list(listin), nodesys, syscolor)
+    listoutput = sortnode(list(listout - listin), nodesys, syscolor)
 
     nodematrix = {}
     for n in listinput:

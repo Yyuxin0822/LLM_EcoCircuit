@@ -265,7 +265,7 @@ export class Prompt {
 
         // Determine if the app is running locally or on a production server
         var isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-        var url = isLocal ? 'http://localhost:5000' : 'https://www.ecocircuitai.com';
+        var url = isLocal ? 'http://localhost:8000' : 'https://www.ecocircuitai.com';
 
         // Initialize the Socket.IO client
         var socket = io(url, {

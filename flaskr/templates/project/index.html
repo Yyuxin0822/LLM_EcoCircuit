@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
 
-
 {% block content %}
 <div class="prompt-i-o">
   <div class="hey-i-am-ecocircuit">
@@ -28,15 +27,21 @@
       </div>
     </div>
   </div>
+</div> <!-- end of prompt-i-o -->
 
-
+<div id="modal-popup-prompt">
   <!-- start of modal-text-->
   <div class="modal-description" id="modal-description">
-    <span class="icon-common icon-close"></span>
+    <span class="icon-common icon-close icon-prompt-close"></span>
     <div class="frame">
       <div class="sub-frame-1">
         <span class='icon-common icon-description'></span>
         <span role="textbox" class="description" id="description" contenteditable></span>
+      </div>
+      <div class="system-frame">
+        <!--  <span class="icon-common icon-unknown"></span> -->
+        <span class="stopper">|</span>
+        <span class="normal">Customize System</span>
       </div>
       <div class="sub-frame-2">
         <div id="component-dont-expand-description">
@@ -63,7 +68,7 @@
 
   <!-- start of modal-img -->
   <div class="modal-img" id="modal-img">
-    <span class='icon-common icon-close'></span>
+    <span class='icon-common icon-close icon-prompt-close'></span>
     <div class="frame">
       <form method="POST" action="/" enctype="multipart/form-data">
         <div class="sub-frame-1">
@@ -73,11 +78,26 @@
           <label for="image-upload" class="custom-file-upload normal" style="cursor: pointer;">Browse File To
             Upload</label>
         </div>
-        <div class="component-bar-2">
-          <span class='icon-common icon-add'></span>
-          <div id="generate-img" class="emphasis"
-            style="cursor: pointer;text-align: center; border: none; background-color: transparent;">
-            Generate</div>
+        <div class="sub-frame-2">
+          <div id="system-bar-default" class="system-bar-default">
+            <div class="system-frame">
+              <!-- <span class="icon-common icon-water"></span>
+              <span class="icon-common icon-bio"></span>
+              <span class="icon-common icon-unknown"></span>
+              <span class="icon-common icon-ict"></span>
+              <span class="icon-common icon-solidwaste"></span>
+              <span class="icon-common icon-energy"></span>
+              <span class="icon-common icon-transport"></span> -->
+              <span class="stopper">|</span>
+              <span class="normal">Customize System</span>
+            </div>
+          </div>
+          <div class="component-bar-2">
+            <span class='icon-common icon-add'></span>
+            <div id="generate-img" class="emphasis"
+              style="cursor: pointer;text-align: center; border: none; background-color: transparent;">
+              Generate</div>
+          </div>
         </div>
       </form>
     </div>
@@ -85,7 +105,7 @@
 
   <!-- start of modal-label -->
   <div class="modal-label" id="modal-label">
-    <span class='icon-common icon-close'></span>
+    <span class='icon-common icon-close icon-prompt-close'></span>
     <div class="frame">
       <div class="sub-frame-1">
         <div class="component-bar-custom card-14">POTABLE WATER</div>
@@ -100,15 +120,70 @@
         <div class="component-bar-custom card-14">URBAN FARM</div>
         <div class="component-bar-custom card-14" id="custom" contenteditable></div>
       </div>
-      <div class="component-bar-2">
-        <span class='icon-common icon-add'></span>
-        <div id="generate-label" class="generate-label emphasis"
-          style="cursor: pointer;text-align: center; border: none; background-color: transparent;">
-          Generate</div>
+      <div class="sub-frame-2">
+        <div id="system-bar-default" class="system-bar-default">
+          <div class="project-system-default hidden" id="project-system-default">
+            {"HYDRO": "#0BF", "ENERGY": "#FC0", "SOLID WASTE": "#A75",
+            "TELECOMMUNICATION": "#95A", "MOBILITY": "#F44",
+            "BIOSYSTEM": "#3C4", "UNKNOWN": "#888"}</div>
+          <div class="system-frame">
+            <!-- <span class="icon-common icon-water"></span>
+            <span class="icon-common icon-bio"></span>
+            <span class="icon-common icon-unknown"></span>
+            <span class="icon-common icon-ict"></span>
+            <span class="icon-common icon-solidwaste"></span>
+            <span class="icon-common icon-energy"></span>
+            <span class="icon-common icon-transport"></span> -->
+            <span class="stopper">|</span>
+            <span class="normal">Customize System</span>
+          </div>
+        </div>
+        <div class="component-bar-2">
+          <span class='icon-common icon-add'></span>
+          <div id="generate-label" class="generate-label emphasis"
+            style="cursor: pointer;text-align: center; border: none; background-color: transparent;">
+            Generate</div>
+        </div>
       </div>
-
     </div>
   </div> <!-- end of modal-label -->
 
-</div> <!-- end of prompt-i-o -->
+</div>
+
+<div id="modal-popup-system">
+  <!-- start of modal-system -->
+  <div class="modal-system" id="modal-system">
+    <span class='icon-common icon-close' id="icon-close-system"></span>
+    <div class="frame">
+      <div class="sub-frame-1">
+        <div class="syslist-wrapper">
+          <div class="wrapper" id="syslist">
+            <!-- <div class="sysfunc">
+              <div class="sysicon" id="hydro"><span class="icon-common icon-water"></span></div>
+              <p>HYDRO</p>
+            </div> -->
+            <div class="normal modalbtn" id="addnew">+ Add New</div>
+          </div>
+        </div>
+        <div class="icon-editer stopper">
+          <div id="colorPicker"></div>
+          <!-- <form id="icon-form" method="POST" action="/" enctype="multipart/form-data">
+            <input type="file" id="customicon-upload" name="icon" accept="image/svg+xml" style="display: none;">
+            <label for="customicon-upload" class="modalbtn normal" style="cursor: pointer;">+ Upload Icon (.svg)</label>
+          </form> -->
+        </div>
+      </div>
+      <div class="sub-frame-2">
+        <div class="component-bar-2">
+          <span class='icon-common icon-add'></span>
+          <div id="set-system" class="set-system emphasis"
+            style="cursor: pointer;text-align: center; border: none; background-color: transparent;">
+            Set System</div>
+        </div>
+        <div class="normal modalbtn" id="reset-system">+ Reset System</div>
+      </div>
+    </div>
+  </div>
+  <!-- end of modal-system -->
+</div>
 {% endblock %}

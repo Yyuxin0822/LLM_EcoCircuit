@@ -2,7 +2,7 @@ import { PlaygroundFuncBar } from './PlaygroundFuncBar.js';
 import { Prompt } from './prompt/Prompt.js';
 import { PromptFlowline } from './prompt/PromptFlowline.js';
 import { PromptNode } from './prompt/PromptNode.js';
-const playFuncBar = new PlaygroundFuncBar(document.querySelector('.function-frame'));
+import { DefaultSystem, System, SystemFuncBar } from '../SystemBar.js';
 const eventTypes = ['click', 'keydown', 'keyup', 'scroll', 'load'];
 eventTypes.forEach(type => {
     const target = type === 'load' ? window : document;
@@ -20,6 +20,29 @@ window.onload = function () {
     }
     finishload();
 };
+const playFuncBar = new PlaygroundFuncBar(document.querySelector('.function-frame'));
+function toggleEngineerBar() {
+    document.getElementById('engineer-bar-unfolded')?.classList.toggle('hidden');
+    document.getElementById('engineer-bar-folded')?.classList.toggle('hidden');
+}
+document.getElementById('fold')?.addEventListener('click', toggleEngineerBar);
+document.getElementById('unfold')?.addEventListener('click', toggleEngineerBar);
+const systemBar = new SystemFuncBar(document.getElementById('system-bar'));
+var systemString = systemBar.container.querySelector('#project-system').innerText;
+console.log(systemString);
+var systemArray = parseJson(systemString);
+console.log(systemArray);
+function processSystem(container) {
+    systemArray.forEach((system) => {
+        let systemIcon = new System(container, system[0], system[1], system[2]);
+        DefaultSystem.currentSystems.push({
+            "content": system[0],
+            "color": system[1],
+            "iconUrl": system[2]
+        });
+    });
+}
+processSystem(systemBar.container);
 let findFeedback = (parentPrompt) => {
     var userPrompt = parentPrompt.previousElementSibling;
     var userInfoElement = userPrompt.querySelector('.userinfo');
@@ -43,8 +66,6 @@ function processPrompt(prompt) {
     var flowArray = parseJson(flowString);
     var nodeString = prompt.querySelector('#promptNode' + prIndex).innerText;
     var nodeArray = parseJson(nodeString);
-    var systemString = prompt.querySelector('#promptSystem' + prIndex).innerText;
-    var systemArray = parseJson(systemString);
     var promptObject = new Prompt(prIndex);
     var parentPrompt = promptObject.prompt;
     let NodeX = Array.from(new Set(nodeArray.map(node => node[1][0])));
@@ -83,7 +104,7 @@ function processPrompt(prompt) {
         for (var i = 1; i < flow.length - 1; i++) {
             var nodeStart = PromptNode.getNodeById('node' + validId(flow[i]), parentPrompt);
             var nodeEnd = PromptNode.getNodeById('node' + validId(flow[i + 1]), parentPrompt);
-            if (nodeStart == null || nodeEnd == null) {
+            if (nodeStart == null || nodeEnd == null || nodeStart.node == nodeEnd.node) {
                 return;
             }
             if (PromptFlowline.isLineExists(nodeStart.node, nodeEnd.node)) {
@@ -108,12 +129,6 @@ function processPrompt(prompt) {
         return;
     }
 }
-function toggleEngineerBar() {
-    document.getElementById('engineer-bar-unfolded')?.classList.toggle('hidden');
-    document.getElementById('engineer-bar-folded')?.classList.toggle('hidden');
-}
-document.getElementById('fold')?.addEventListener('click', toggleEngineerBar);
-document.getElementById('unfold')?.addEventListener('click', toggleEngineerBar);
 var prompts = document.querySelectorAll('.prompt');
 prompts.forEach(processPrompt);
 const addiotab = document.getElementById('add-io');
@@ -122,12 +137,13 @@ function addio() {
     startload();
     let id = document.getElementById('project_id').innerHTML;
     let info = document.getElementById('info').innerHTML;
+    let sysdict = DefaultSystem.returnPrjDict();
     fetch('/addio', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ 'project_id': id, 'info': info }),
+        body: JSON.stringify({ 'project_id': id, 'info': info, 'sysdict': JSON.stringify(sysdict) })
     })
         .then(response => response.json())
         .then(data => {
@@ -150,6 +166,7 @@ quickgen?.addEventListener('click', () => {
         alert('Please select at least one node or one flow prompt');
         return;
     }
+    let sysdict = DefaultSystem.returnPrjDict();
     startload();
     fetch('/quickgen', {
         method: 'POST',
@@ -157,6 +174,7 @@ quickgen?.addEventListener('click', () => {
             'mode': mode,
             'prompt_id_array': prompt_id_array,
             'info_array': query_array,
+            'sysdict': JSON.stringify(sysdict)
         }),
         headers: {
             'Content-Type': 'application/json'
