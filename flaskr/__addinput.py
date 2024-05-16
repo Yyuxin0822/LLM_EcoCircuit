@@ -298,32 +298,29 @@ def genaddinput(output:list, sysdict:dict, randomNumber=3) -> list:
     Returns:
     [[i1,o1],[i2,o2],...] -- a list of list of input and output
     """
-    systring = ",".join(sysdict.keys()).lower()
+
     try:
         response = openai.ChatCompletion.create(
             model="gpt-4o",
             messages=[
                 {
                     "role": "system",
-                    "content": f"""
-                You are an environmental engineering and planning specialist; 
-                given the output, please come up with input resources from the following system: {systring}.\n 
-                These input-output pairs aim at resource co-optimization and net-zero environment.  
-                Please come up with two to three inputs for each output provided, and return in this format: 
-                [[input1, output1], [input2, output2],...]
-                """,
+                    "content": f"""You are an encyclopedia.Given the outputs, please come up with input resources from the systems I provided. \
+                        These input-output pairs aim at resource co-optimization, net-zero environment, circular economy, etc. \
+                        Please come up with three to five inputs for each output provided, and please make sure that you thought about every system. and return them in this format: [[input1, output1], [input2, output2],...]""",
                 },
-                {"role": "user", "content": '["irrigation water", "wind energy"]'},
+                {"role": "user", 
+                 "content": 'output: ["irrigation water", "wind"], system:["HYDRO", "ENERGY", "ECOSYSTEM"]'},
                 {
                     "role": "assistant",
                     "content": '[["rainwater harvesting", "irrigation water"],["reclaimed water", "irrigation water"],  ["river diversion and canal", "irrigation water"], ["solar-powered water pumps", "irrigation water"],  ["desalination plants powered by renewable energy", "irrigation water"], ["wastewater treatment and reuse", "irrigation water"],  ["smart irrigation systems", "irrigation water"], ["water storage", "irrigation water"], ["constructed Wetlands", "irrigation water"], ["agroforestry", "irrigation water"], ["wind turbine", "wind energy"], ["meteorological data",  "wind energy"], ["composting", "wind energy"]]',
                 },
-                {"role": "user", "content": '["biofuel", "wifi"]'},
+                {"role": "user", "content": 'output: ["biofuel", "wifi"], system:["ENERGY", "ECOSYSTEM", "TELECOMMUNICATION"]'},
                 {
                     "role": "assistant",
-                    "content": '[["organic waste", "biofuel"], ["algae biomass", "biofuel"], ["crop residues", "biofuel"], ["land dedicated to energy crops", "biofuel"], ["atmospheric CO2", "biofuel"], ["digesters", "biofuel"], ["fats, oils, and grease (FOG) from wastewater", "biofuel"], ["broadband infrastructure", "wifi"], ["fiber-optic networks", "wifi"], ["antenna", "wifi"], ["satellite", "wifi"], ["regulated radio waves", "wifi"], ["existing electrical grid", "wifi"]]',
+                    "content": '[["municipal solid waste", "biofuel"], ["algae biomass", "biofuel"], ["crop residues", "biofuel"], ["animal fat", "biofuel"], ["atmospheric CO2", "biofuel"], ["digesters", "biofuel"], ["broadband infrastructure", "wifi"], ["fiber-optic networks", "wifi"],["antenna", "wifi"], ["satellite", "wifi"], ["regulated radio waves", "wifi"], ["existing electrical grid", "wifi"]]',
                 },
-                {"role": "user", "content": f'[{systring}]'},
+                {"role": "user", "content": f'output: {output}, system:{list(sysdict.keys())}',},
             ],
             temperature=1,
             max_tokens=512,
@@ -356,9 +353,9 @@ def genaddoutput(input, sysdict:dict, randomNumber=3) -> list:
             messages=[
                 {
                     "role": "system",
-                    "content": f"""You are an encyclopedia. Given the input, please come up with output resources from the system I provided. \
-                                These input-output pairs aim at resource co-optimization, net-zero environment, circular economy, etc. \
-                                Please come up with two to three outputs for each input provided, and return them in this format: [[input1, output1], [input2, output2],...]""",
+                    "content": f"""You are an encyclopedia. Given the input, please come up with output resources from the systems I provided. \
+                                These input-output pairs aim at resource co-optimization, net-zero environment, circular economy, etc for greater sustainability. \
+                                Please come up with three to five outputs for each input provided, and make sure you thought about every system. and return them in this format: [[input1, output1], [input2, output2],...]""",
                 },
                 {
                     "role": "user",
@@ -377,7 +374,7 @@ def genaddoutput(input, sysdict:dict, randomNumber=3) -> list:
                 {"role": "user", "content": f'input: {input}, system:{list(sysdict.keys())}',}
             ],
             temperature=1,
-            max_tokens=512,
+            max_tokens=4096,
             top_p=1,
             frequency_penalty=0,
             presence_penalty=0,
@@ -509,8 +506,8 @@ def genaddcooptimization(input: list, randomNumber=3) -> list:
                 {
                     "role": "system",
                     "content": f"""
-                    You are to imagine environmental flows by co-optimizing input resources to achieve a sustainable net-zero environment and a circular economy.\n\nPlease try 
-                    various combinations to generate flow outcomes, and organize in nested list.""",
+                    You are to co-optimize input resources to achieve greater sustainability, such as sustainable net-zero environment, circular economy, sustainable growth of a community.
+                    Please try various combinations to generate flow outcomes, and organize in nested list.""",
                 },
                 {
                     "role": "user",
@@ -518,20 +515,15 @@ def genaddcooptimization(input: list, randomNumber=3) -> list:
                 },
                 {
                     "role": "assistant",
-                    "content": """Using Multiple Elements in One Flow:\n\n
+                    "content": """Using Multiple Elements in One Flow:
                     1. Village + Mountainous Terrain: The hamlet is situated within a mountainous terrain, 
-                    offering unique agricultural and tourism possibilities stemming from the topography.\n
-                    
-                    Flow Outcome: "Niche High-Altitude Agriculture", "Eco-Tourism"\n
-                    
+                    offering unique agricultural and tourism possibilities stemming from the topography.
+                    Flow Outcome: "Niche High-Altitude Agriculture", "Eco-Tourism"
                     2. Soil Fertility + Mountainous Terrain: The co-optimization offers the natural composting process of forest litter and other organic materials.\n
-                    
-                    Flow Outcome: "Forest litter and other organic materials"\n
-                    
-                    3. Village + Soil Fertility: The people in the village engage in cultivation, 
-                    taking advantage of the fertile soil to grow crops that feed the community.\n
-                    
+                    Flow Outcome: "Forest litter and other organic materials"
+                    3. Village + Soil Fertility: The people in the village engage in cultivation, taking advantage of the fertile soil to grow crops that feed the community.
                     Flow Outcome: "Local Self-Sustenance Farming"\n
+                    
                     Organized as:
                     [["VILLAGE", "NICHE HIGH-ALTITUDE AGRICULTURE"],\n
                     ["MOUNTAINOUS TERRAIN", "NICHE HIGH-ALTITUDE AGRICULTURE"],\n
@@ -548,20 +540,15 @@ def genaddcooptimization(input: list, randomNumber=3) -> list:
                 },
                 {
                     "role": "assistant",
-                    "content": """Using Multiple Elements in One Flow:\n\n
-                    
+                    "content": """Using Multiple Elements in One Flow:
                     1. Reservoir + Floodwater + Irrigation: Reservoirs collect excess floodwater and utilize it for controlled irrigation in dry seasons.\n
-                    Flow Outcome: "Flood Mitigation", "Drought-Resistant Agriculture"\n\n
-                    
+                    Flow Outcome: "Flood Mitigation", "Drought-Resistant Agriculture"
                     2. Wind Turbine + Reservoir: Wind turbines harness wind energy and power the pumping of water into reservoirs from various water sources.\n
-                    Flow Outcome: "Renewable Energy-Pumped Water Storage"\n\n
-                    
+                    Flow Outcome: "Renewable Energy-Pumped Water Storage"
                     3. Irrigation + Biomass: Biomass such as plant residues is utilized to retain soil moisture obtained from an irrigation system.\n
-                    Flow Outcome: "Sustainable Soil Moisture Regulation"\n\n
-                    
+                    Flow Outcome: "Sustainable Soil Moisture Regulation"
                     4. Floodwater + Biomass: Diverting floodwater to generate controlled floods on farms that can spread nutrients from biomass along the floodplain.\n
-                    Flow Outcome: "Natural Fertility Enhancement"\n\n
-                    
+                    Flow Outcome: "Natural Fertility Enhancement"
                     5. Biomass + Wind Turbine: Biomass waste from the local area is converted into gas, which turbines then burn to generate electricity.\n
                     Flow Outcome: "Biomass-Powered Energy Production"\n\n
                     
@@ -683,8 +670,8 @@ def return_addinput(output_resources: list, syscolor:dict,  max_tries=3):
 
 
 def return_addoutput(input_resources: list, sysdict:dict, max_tries=3):
-    for _ in range(max_tries):
-        randomNumber = random.randint(1, 5)
+    for i in range(max_tries):
+        randomNumber = i+1
         flow_list = genaddoutput(input_resources, sysdict, randomNumber=randomNumber)
         if checknestedlist(flow_list):
             return flow_list

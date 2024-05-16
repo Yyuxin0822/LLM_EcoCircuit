@@ -94,6 +94,10 @@ if (modalSystem) {
     resetBtn.onclick = (event) => resetToDefault(modalSystem.querySelector('#syslist'));
 }
 function setSystem() {
+    if (DefaultSystem.mySystems.length == 0) {
+        alert('Please add at least one system.');
+        return;
+    }
     DefaultSystem.returnSysArray();
     processProjectSystem(document.querySelector('.system-frame'));
     closeSystemModal();

@@ -279,7 +279,7 @@ export class DefaultSystem {
         },
         {
             "content": "TELECOMMUNICATION",
-            "color": "#95A",
+            "color": "#C5E",
             "iconUrl": "static/icon/Iconsystem-ict.png"
         },
         {

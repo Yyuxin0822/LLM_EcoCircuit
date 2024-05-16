@@ -93,7 +93,7 @@ a {
   --card-node-font-style: normal;
   --node: 0.5px 0.5px rgba(0, 0, 0, 0.1);
   --regular: 2px 2px 0.5px 0px rgba(109, 120, 148, 0.25);
-  --highlight: 0px 0px 12px 0px rgba(109, 120, 148, 0.25);
+  --highlight: 0px 0px 6px 0px rgba(109, 120, 148, 0.25);
   --HYDRO: #0BF;
   --ECOSYSTEM: #3C4;
   --ICT: #95A;

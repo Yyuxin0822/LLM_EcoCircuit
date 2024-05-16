@@ -128,6 +128,10 @@ if (modalSystem) {
 
 
 function setSystem() {
+    if (DefaultSystem.mySystems.length == 0) {
+        alert('Please add at least one system.');
+        return;
+    }
     //get all current DefaultSystem.myDefaultSystems to DefaultSystem.currentSystem
     DefaultSystem.returnSysArray();
 

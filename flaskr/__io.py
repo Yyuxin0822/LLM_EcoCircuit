@@ -172,7 +172,6 @@ def geninput(
     randomNumber=3,
 ):
     """return unique input from environment description"""
-    systring = ", ".join(list(sysdict.keys())).upper()
     try:
         response = openai.ChatCompletion.create(
             model="gpt-4o",
@@ -181,14 +180,14 @@ def geninput(
                     "role": "system",
                     "content": f"You will extract and imagine potential resources in the environment description of various systems as keywords. \
                             The resources include potential components, objects, materials, organisms, and even chemicals. \
-                            Please provide me with 40 resources in total and make sure at least three for each different system listed.",
+                            Please provide me with 40 resources in total and make sure at least three to five resources for each different system listed.",
                 },
                 {
                     "role": "user",
                     "content": f"environment: 'This scene depicts an agricultural village in the mountains. There are a couple flood valleys with turbulent water. \
                                                 To empower this village, there are some windfarms nearby. Cheetahs in the mountains need to be preserved. \
                                                 Food and potable water can be very valuable here.'\
-                                system: 'ecosystem, hydro, energy'",
+                                system: '[ecosystem, hydro, energy]'",
                 },
                 {
                     "role": "assistant",
@@ -199,7 +198,7 @@ def geninput(
                 {
                     "role": "user",
                     "content": f"environment: 'This is an urban plaza with tech events and livehouse.' \
-                                system: 'food, economy, mobility'",
+                                system: '[food, economy, mobility]'",
                 },
                 {
                     "role": "assistant",
@@ -210,7 +209,7 @@ def geninput(
                 {
                     "role": "user",
                     "content": f"environment:'{envir_description}',\
-                                system:'{systring}'",
+                                system:'{list(sysdict.keys())}'",
                 },
             ],
             temperature=1,
@@ -283,12 +282,12 @@ def geninput(
 #         return None
 
 
-def gensystem(node, sysinfodict, randomNumber=3):
+def gensystem(node:list, sysinfodict:dict, randomNumber=3):
     """return system classification of elements"""
     uniquesys = list(set(sysinfodict.keys()))
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4-turbo",
+            model="gpt-4o",
             messages=[
                 {
                     "role": "system",
