@@ -11,11 +11,13 @@
     <script src="{{ url_for('static', filename='node_modules/plain-draggable/plain-draggable.min.js') }}"
         defer></script>
     <script src="{{ url_for('static', filename='base.js') }}" defer></script>
-    <script src="{{ url_for('static', filename='customclass.js') }}" defer></script>
-    <script src="{{ url_for('static', filename='canvasdraw.js') }}" defer></script>
-    <script src="{{ url_for('static', filename='customselector.js') }}" defer></script>
-    <script src="{{ url_for('static', filename='CustomFuncBar.js') }}" defer></script>
-    <script src="{{ url_for('static', filename='generatecustom.js') }}" defer></script>
+    <script type="module" src="{{ url_for('static', filename='generatecustom/CustomNode.js') }}" defer></script>
+    <script type="module" src="{{ url_for('static', filename='generatecustom/CustomFlowline.js') }}" defer></script>
+    <script type="module" src="{{ url_for('static', filename='generatecustom/CustomIdentifier.js') }}" defer></script>
+    <script type="module" src="{{ url_for('static', filename='generatecustom/CanvasDraw.js') }}" defer></script>
+    <script type="module" src="{{ url_for('static', filename='generatecustom/MarqueeTool.js') }}" defer></script>
+    <script type="module" src="{{ url_for('static', filename='generatecustom/CustomFuncBar.js') }}" defer></script>
+    <script type="module" src="{{ url_for('static', filename='generatecustom/generatecustom.js') }}" defer></script>
 
 </head>
 

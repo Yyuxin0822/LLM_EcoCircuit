@@ -130,6 +130,7 @@ export class Prompt {
     set prompt(id) {
         this._prompt = document.getElementById("prompt" + id);
     }
+
     getSelectedIdentifiers() {
         let selectedIdentifiers = [];
         this.promptNodes.forEach(node => {
@@ -263,19 +264,10 @@ export class Prompt {
             Object.assign(nodematrix, node.toJSONObj());
         });
 
-        // Determine if the app is running locally or on a production server
-        var isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-        var url = isLocal ? 'http://localhost:8000' : 'https://www.ecocircuitai.com';
-
-        // Initialize the Socket.IO client
-        var socket = io(url, {
-            path: '/socket.io',
-            transports: ['websocket', 'polling']
-        });
-
-        socket.emit('save_prompt', { "prompt_id": prompt_id, "flow": flow, "node": nodematrix });
+        emitSocket('save_prompt', { "prompt_id": prompt_id, "flow": flow, "node": nodematrix });
         return { prompt_id, flow, nodematrix };
     }
+
 
     returnQuery(): { prompt_id: number, query: any[] } {
         this.returnInfo(); //always save current matrix and flow
@@ -312,7 +304,7 @@ export class Prompt {
 
             let nodeObjs = {};
             prompt.promptNodes.forEach(node => {
-                Object.assign(nodeObjs, node.toJSONobj());
+                Object.assign(nodeObjs, node.toJSONobj());   // This needs to be converted to the correct value 
             });
             nodematrix.push(nodeObjs);
         });
@@ -335,6 +327,38 @@ export class Prompt {
         });
         return { prompt_id_array, query_array };
     }
+
+
+    collectCustomInfo(mode: string) {
+        let flow = [];
+        let nodematrix = {};
+        if (mode === 'send-all') {
+            this.promptLines.forEach(line => {
+                flow.push(line.toJSONArray());
+            });
+            this.promptNodes.forEach(node => {
+                Object.assign(nodematrix, node.toJSONObj(true));
+            });
+        }
+
+        if (mode === 'send-selected') {
+            this.promptLines.forEach(line => {
+                if (line.selected)
+                    flow.push(line.toJSONArray());
+                //push the start and end node of the line
+                let startNodeItem = this.promptNodes.find(node => node.node === line.start);
+                let endNodeItem = this.promptNodes.find(node => node.node === line.end);
+                Object.assign(nodematrix, startNodeItem.toJSONObj(true));
+                Object.assign(nodematrix, endNodeItem.toJSONObj(true));
+            });
+            this.promptNodes.forEach(node => {
+                if (node.selected)
+                    Object.assign(nodematrix, node.toJSONObj(true));
+            });
+        }
+        return { flow, nodematrix };
+    }
+
 
     getLinesWhereNodeasInput(nodeItem: PromptNode): PromptFlowline[] {
         return this.promptLines.filter(line => line.start === nodeItem.node);

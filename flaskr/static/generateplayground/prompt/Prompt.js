@@ -184,13 +184,7 @@ export class Prompt {
         this.promptNodes.forEach(node => {
             Object.assign(nodematrix, node.toJSONObj());
         });
-        var isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-        var url = isLocal ? 'http://localhost:8000' : 'https://www.ecocircuitai.com';
-        var socket = io(url, {
-            path: '/socket.io',
-            transports: ['websocket', 'polling']
-        });
-        socket.emit('save_prompt', { "prompt_id": prompt_id, "flow": flow, "node": nodematrix });
+        emitSocket('save_prompt', { "prompt_id": prompt_id, "flow": flow, "node": nodematrix });
         return { prompt_id, flow, nodematrix };
     }
     returnQuery() {
@@ -241,6 +235,33 @@ export class Prompt {
             }
         });
         return { prompt_id_array, query_array };
+    }
+    collectCustomInfo(mode) {
+        let flow = [];
+        let nodematrix = {};
+        if (mode === 'send-all') {
+            this.promptLines.forEach(line => {
+                flow.push(line.toJSONArray());
+            });
+            this.promptNodes.forEach(node => {
+                Object.assign(nodematrix, node.toJSONObj(true));
+            });
+        }
+        if (mode === 'send-selected') {
+            this.promptLines.forEach(line => {
+                if (line.selected)
+                    flow.push(line.toJSONArray());
+                let startNodeItem = this.promptNodes.find(node => node.node === line.start);
+                let endNodeItem = this.promptNodes.find(node => node.node === line.end);
+                Object.assign(nodematrix, startNodeItem.toJSONObj(true));
+                Object.assign(nodematrix, endNodeItem.toJSONObj(true));
+            });
+            this.promptNodes.forEach(node => {
+                if (node.selected)
+                    Object.assign(nodematrix, node.toJSONObj(true));
+            });
+        }
+        return { flow, nodematrix };
     }
     getLinesWhereNodeasInput(nodeItem) {
         return this.promptLines.filter(line => line.start === nodeItem.node);

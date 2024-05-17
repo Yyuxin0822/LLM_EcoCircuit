@@ -26,8 +26,6 @@ from . import socketio
 
 bp = Blueprint("project", __name__)
 
-
-
 @bp.before_request
 def set_test_user():
     if current_app.config["TESTING"]:
@@ -37,7 +35,6 @@ def set_test_user():
 #################generate.html################
 ##############################################
 # (C)index  - prompting the user three ways of entering data
-
 @bp.route("/", methods=("GET", "POST"))
 @login_required
 def index():
@@ -233,29 +230,15 @@ def savetocustom(data):
     """
     data received includes prompy_id, query_array
     """
-    # print('Received data:', data)
+    print('Received data:', data)
 
     project_id = int(data["project_id"])
-    prompt_id_array = data["prompt_id_array"]
-    query_array = data["info_array"]
-    currentmatrix_array = data["currentmatrix_array"]
+    flow_array = data["flow_array"]
+    node_array = data["node_array"]
 
-    flowtoupdate = []
-    nodetoupdate = {}
-
-    for i in range(len(prompt_id_array)):
-        # prompt_id = int(prompt_id_array[i].replace("prompt", ""))
-        # update
-        for info in query_array[i]:
-            if isinstance(info, str):
-                nodetoupdate[info] = currentmatrix_array[i][info]
-            elif isinstance(info, list):
-                flowtoupdate.append(info)
-                nodetoupdate[info[0]] = currentmatrix_array[i][info[0]]
-                nodetoupdate[info[1]] = currentmatrix_array[i][info[1]]
-
-    processed_data = {"flow": flowtoupdate, "node": nodetoupdate}
-    emit("data_from_playground", processed_data, broadcast=True)
+    #pass the nodes and flows to the custom
+    emit("data_from_playground", {'project_id':project_id,"flow": flow_array, "node": node_array}, broadcast=True)
+    #code to make sure that the data is saved when received in the custom
 
 
 @bp.route("/delete/<int:id>", methods=("POST",))
@@ -483,7 +466,7 @@ def save_custom_view(data):
     Returns:
         _type_: _description_
     """
-    print("Saved data to custom: ", data)
+    # print("Saved data to custom: ", data)
     customprompt_id = int(data["prompt_id"])
     project_id = customprompt_id
 
@@ -572,10 +555,9 @@ def get_customproject(id, check_author=True):
         get_db()
         .execute(
             """
-                SELECT p.id, p.author_id, p.created, p.img_url, 
+                SELECT p.id, p.author_id, p.created, p.img_url, p.system, 
                 pr.flow AS flow, 
                 pr.node AS node, 
-                pr.system AS system, 
                 pr.id AS prompt_id
                 FROM project p
                 JOIN user u ON p.author_id = u.id
@@ -631,34 +613,34 @@ def get_prompt(prompt_id: int, check_project: bool = False):
     return prompt_dict
 
 
-def get_customprompt(prompt_id: int, check_project: bool = False):
-    """Get prompt from db by id
-    if check_project is True, check if the prompt belongs to the project
-    """
-    prompt = (
-        get_db()
-        .execute(
-            "SELECT * FROM customprompt WHERE id = ?",
-            (prompt_id,),
-        )
-        .fetchone()
-    )
+# def get_customprompt(prompt_id: int, check_project: bool = False):
+#     """Get prompt from db by id
+#     if check_project is True, check if the prompt belongs to the project
+#     """
+#     prompt = (
+#         get_db()
+#         .execute(
+#             "SELECT * FROM customprompt WHERE id = ?",
+#             (prompt_id,),
+#         )
+#         .fetchone()
+#     )
 
-    if prompt is None:
-        # abort(404, f"Generation error, please ask again.")
-        return None
+#     if prompt is None:
+#         # abort(404, f"Generation error, please ask again.")
+#         return None
 
-    # if check_project and prompt["project_id"] != g.project["id"]:
-    #     abort(403)
+#     # if check_project and prompt["project_id"] != g.project["id"]:
+#     #     abort(403)
 
-    prompt_dict = {
-        "id": prompt["id"],
-        "flow": json.loads(prompt["flow"]),
-        "node": json.loads(prompt["node"]),
-        "system": json.loads(prompt["system"]),
-        "project_id": prompt["project_id"],
-    }
-    return prompt_dict
+#     prompt_dict = {
+#         "id": prompt["id"],
+#         "flow": json.loads(prompt["flow"]),
+#         "node": json.loads(prompt["node"]),
+#         "system": json.loads(prompt["system"]),
+#         "project_id": prompt["project_id"],
+#     }
+#     return prompt_dict
 
 
 def save_sysinfo_to_db(sysdict):

@@ -1,17 +1,27 @@
+aiohttp==3.9.5
+aiosignal==1.3.1
 annotated-types==0.6.0
 anyio==4.3.0
+async-timeout==4.0.3
+attrs==23.2.0
 bidict==0.23.1
 blinker==1.8.2
 certifi==2024.2.2
 charset-normalizer==3.3.2
 click==8.1.7
 distro==1.9.0
+dnspython==2.6.1
 e==1.4.5
+eventlet==0.36.1
 exceptiongroup==1.2.1
 Flask==3.0.3
 Flask-Cors==4.0.1
+Flask-Gunicorn==0.1.1
 Flask-SocketIO==5.3.6
 flaskr @ file:///home/ubuntu/Sherbot/App_Development
+frozenlist==1.4.1
+greenlet==3.0.3
+gunicorn==19.9.0
 h11==0.14.0
 httpcore==1.0.5
 httpx==0.27.0
@@ -20,8 +30,9 @@ iniconfig==2.0.0
 itsdangerous==2.2.0
 Jinja2==3.1.4
 MarkupSafe==2.1.5
+multidict==6.0.5
 numpy==1.26.4
-openai==1.25.1
+openai==0.28.0
 packaging==24.0
 pillow==10.3.0
 pluggy==1.5.0
@@ -39,3 +50,4 @@ typing_extensions==4.11.0
 urllib3==2.2.1
 Werkzeug==3.0.3
 wsproto==1.2.0
+yarl==1.9.4

@@ -7,7 +7,7 @@ import { PromptFlowline } from './prompt/PromptFlowline.js';
 //@ts-ignore
 import { PromptNode } from './prompt/PromptNode.js';
 //@ts-ignore
-import {DefaultSystem, System, SystemFuncBar} from '../SystemBar.js';
+import { DefaultSystem, System, SystemFuncBar } from '../SystemBar.js';
 
 
 ///////////////Helper Func////////////////////
@@ -45,15 +45,34 @@ window.onload = function () {
 const playFuncBar = new PlaygroundFuncBar(document.querySelector('.function-frame'));
 
 // toggling views //temporarily deactivated 
-// function toggleViews() {
-//     document.getElementById('view-playground')?.classList.toggle('hidden');
-//     document.getElementById('view-custom')?.classList.toggle('hidden');
-//     contentFrame.classList.toggle('hidden');
-//     contentCustom.classList.toggle('hidden');
-// }
+const iframe = document.getElementById('custom-iframe');
+function loadplayground() {
+    document.getElementById('view-playground')?.classList.remove('hidden');
+    document.getElementById('view-custom')?.classList.toggle('hidden');
+    document.getElementById('content-frame')?.classList.remove('hidden');
+    document.getElementById('content-custom-frame').classList.add('hidden');
+    document.getElementById('func-wrapper-engbar')?.classList.remove('hidden');
+    document.getElementById('func-wrapper-edit')?.classList.remove('hidden');
+    document.querySelectorAll('.send-to-custom').forEach((button) => {
+        button.style.display = 'block';
+    });
+    setIframeMode(false);
+}
 
-// document.getElementById('toggle-playground')?.addEventListener('click', toggleViews);
-// document.getElementById('toggle-custom')?.addEventListener('click', toggleViews);
+function loadcustom() {
+    document.getElementById('view-playground')?.classList.add('hidden');
+    document.getElementById('view-custom')?.classList.remove('hidden');
+    document.getElementById('content-frame')?.classList.add('hidden');
+    document.getElementById('content-custom-frame')?.classList.remove('hidden');
+    document.getElementById('func-wrapper-engbar')?.classList.add('hidden');
+    document.getElementById('func-wrapper-edit')?.classList.add('hidden');
+    document.querySelectorAll('.send-to-custom').forEach((button) => {
+        button.style.display = 'none';
+    });
+    setIframeMode(true);
+}
+document.getElementById('toggle-playground')?.addEventListener('click', loadplayground);
+document.getElementById('toggle-custom')?.addEventListener('click', loadcustom);
 
 // toggling fold/unfold engineer bar
 function toggleEngineerBar() {
@@ -99,13 +118,13 @@ document.getElementById('unfold')?.addEventListener('click', toggleEngineerBar);
 ////////////// info-frame ////////////// 
 const systemBar = new SystemFuncBar(document.getElementById('system-bar'));
 var systemString = systemBar.container.querySelector('#project-system').innerText;
-console.log(systemString);
+// console.log(systemString);
 var systemArray = parseJson(systemString);
 console.log(systemArray);
 
 function processSystem(container: HTMLElement) {
     systemArray.forEach((system) => {
-        let systemIcon = new System(container, system[0], system[1],system[2]);
+        let systemIcon = new System(container, system[0], system[1], system[2]);
         DefaultSystem.currentSystems.push({
             "content": system[0],
             "color": system[1],
@@ -192,7 +211,7 @@ function processPrompt(prompt) {
                 nodeRGB = hexToRGBA(system[1], 0.75);
             }
         });
-        var promptNode = new PromptNode(nodeName, nodeX, nodeY, nodeTransform, nodeRGB, nodeSys, parentPrompt);
+        new PromptNode(nodeName, nodeX, nodeY, nodeTransform, nodeRGB, nodeSys, parentPrompt);
     });
 
     flowArray.forEach((flow) => {
@@ -202,14 +221,14 @@ function processPrompt(prompt) {
             // console.log(flow[i + 1]);
             var nodeStart = PromptNode.getNodeById('node' + validId(flow[i]), parentPrompt);
             var nodeEnd = PromptNode.getNodeById('node' + validId(flow[i + 1]), parentPrompt);
-   
+
             if (nodeStart == null || nodeEnd == null || nodeStart.node == nodeEnd.node) {
                 return;
             }
             if (PromptFlowline.isLineExists(nodeStart.node, nodeEnd.node)) {
                 continue;
             }
-            var line = new PromptFlowline(nodeStart.node, nodeEnd.node);
+            new PromptFlowline(nodeStart.node, nodeEnd.node);
         }
     });
 
@@ -233,8 +252,10 @@ function processPrompt(prompt) {
     }
 }
 
+
 var prompts = document.querySelectorAll('.prompt');
 prompts.forEach(processPrompt);
+document.querySelector('.prompt-user').classList.add('hidden');
 
 // AJAX prompt
 const addiotab = document.getElementById('add-io');
@@ -322,6 +343,90 @@ quickgen?.addEventListener('click', () => {
 });
 
 
+
+
+///////////////////////////content-custom-frame/////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////
+
+function setIframeMode(editable: boolean) {
+    if (editable) {
+        iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms');
+        //enable the funcbar
+        iframe.classList?.add('editable');
+        iframe.classList?.remove('readonly');
+    } else {
+        iframe.setAttribute('sandbox', 'allow-same-origin');
+        //disable the funcbar
+        iframe.classList?.remove('editable');
+        iframe.classList?.add('readonly');
+    }
+}
+
+window.addEventListener('message', (event) => {
+    if (event.data === 'clickinside') {
+        setIframeMode(true);
+    }
+});
+
+document.addEventListener('click', (e) => {
+    if (!iframe.contains(e.target as HTMLElement) && !e.target.closest('.func-wrapper-view')) {
+        iframe.contentWindow.postMessage('clickOutside', '*');
+        setIframeMode(false);
+    }
+});
+
+
+
+
+
+
+/////////////////////////////what send data to custom means here. When sending customers//////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+let sendAll = document.getElementById('send-all');
+let sendSelected = document.getElementById('send-selected');
+sendAll?.addEventListener('click', sendDataToCustom('send-all'));
+
+
+function sendDataToCustom(mode: string) {
+    let project_id = document.getElementById('project_id').innerText;
+    let flow_array = [];
+    let node_array = {};
+    Prompt.allPrompts.forEach(prompt => {
+        let { flow, nodematrix } = prompt.collectCustomInfo(mode);
+        if (flow.length > 0) {
+            flow_array = [...flow_array, ...flow];
+        }
+        if (Object.keys(nodematrix).length > 0) {
+            node_array = { ...node_array, ...nodematrix };
+        }
+    });
+
+    var isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+    var url = isLocal ? 'http://localhost:8000' : 'https://www.ecocircuitai.com';
+
+    // Initialize the Socket.IO client
+    var socket = io(url, {
+        path: '/socket.io',
+        transports: ['websocket', 'polling']
+    });
+    socket.emit('send_data_to_custom', {
+        'project_id': project_id,
+        'flow_array': flow_array,
+        'node_array': node_array,
+    });
+}
+
+
+
+function savePlayground() {
+    let project_id = document.getElementById('project_id').innerHTML;
+    let { prompt_id, flow, nodematrix } = Prompt.returnAllInfo();
+    emitSocket('save_prompt', { "prompt_id": prompt_id, "flow": flow, "node": nodematrix, "project_id": project_id });
+}
+
+
+
+
 // function returnInfo(absposition = false) {
 //     let info = [];
 //     let prompt_id = [];
@@ -384,49 +489,4 @@ function absPostionMatrix(prompt) {
     })
     return absMatrix;
 }
-
-function getnodePositionInDOM(node: HTMLElement) {
-    let x = 0;
-    let y = 0;
-    let nodeparent = node.closest('.prompt-frame');
-    while (node) {
-        x += node.offsetLeft;
-        y += node.offsetTop;
-        node = node.offsetParent as HTMLElement;
-        if (node === nodeparent) {
-            break;
-        }
-    }
-    return [x, y];
-}
-
-
-document.querySelector('.prompt-user').classList.add('hidden');
-
-
-///////////////////////////socket function/////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////
-// // Determine if the app is running locally or on a production server
-// var isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-// var url = isLocal ? 'http://localhost:5000' : 'https://www.ecocircuitai.com';
-
-// // Initialize the Socket.IO client
-// var socket = io(url, { path: '/socket.io' });
-// function sendDataToCustom() {
-//     let { prompt_id, info, currentmatrix } = returnInfo(true);
-//     let id = document.getElementById('project_id').innerHTML;
-//     socket.emit('send_data_to_custom', {
-//         'project_id': id,
-//         'prompt_id_array': prompt_id,
-//         'info_array': info,
-//         'currentmatrix_array': currentmatrix
-//     });
-// }
-
-// function savePlayground() {
-//     let project_id = document.getElementById('project_id').innerHTML;
-//     let { prompt_id, flow, nodematrix } = Prompt.returnAllInfo();
-//     socket.emit('save_prompt', { "prompt_id": prompt_id, "flow": flow, "node": nodematrix, "project_id": project_id });
-// }
-
 

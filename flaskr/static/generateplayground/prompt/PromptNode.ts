@@ -3,7 +3,7 @@ import { Prompt } from './Prompt.js';
 //@ts-ignore
 import { PromptFlowline } from './PromptFlowline.js';
 //@ts-ignore
-import { PromptIdentifier} from './PromptIdentifier.js';
+import { PromptIdentifier } from './PromptIdentifier.js';
 //@ts-ignore
 import { PromptNodeDrpDwn } from './PromptNodeDrpDwn.js';
 
@@ -13,20 +13,20 @@ export class PromptNode {
   static myNodes = [];
   static nodeSel = true;
 
-  private _container: HTMLElement;//prompt container
+  protected _container: HTMLElement;//prompt container
   PromptObj: Prompt;
-  private newNode: HTMLElement;
-  private _nodeWrapper: HTMLElement;
-  private _inputIdentifier: PromptIdentifier;
-  private _outputIdentifier: PromptIdentifier;
-  private _dropdown: PromptNodeDrpDwn;
+  protected newNode: HTMLElement;
+  protected _nodeWrapper: HTMLElement;
+  protected _inputIdentifier: PromptIdentifier;
+  protected _outputIdentifier: PromptIdentifier;
+  protected _dropdown: PromptNodeDrpDwn;
 
-  private _nodeX: number;
-  private _nodeY: number;
-  private _nodeTransform: string;
-  private _nodeContent: any;
-  private _nodeRGB: any;
-  private _nodeSys: string;
+  protected _nodeX: number;
+  protected _nodeY: number;
+  protected _nodeTransform: string;
+  protected _nodeContent: any;
+  protected _nodeRGB: any;
+  protected _nodeSys: string;
 
   selected: boolean;
 
@@ -41,7 +41,7 @@ export class PromptNode {
     this._inputIdentifier = null;
     this._outputIdentifier = null;
     this.PromptObj = Prompt.getPromptItembyPrompt(this._container);
-    this.PromptObj.promptNodes.push(this);
+    if (this.PromptObj) { this.PromptObj.promptNodes.push(this); } //for customnode, this.PromptObj is undefined
     PromptNode.myNodes.push(this);
 
     // Attributes
@@ -75,58 +75,61 @@ export class PromptNode {
     this.newNode.appendChild(this._nodeWrapper);
     this.adjustFontSize(this.newNode);
 
-    let col = this._container.querySelector('#col' + validId(this._nodeX.toString())) as HTMLElement;
-    if (!col) {
-      col = document.createElement('div');
-      col.classList.add('col');
-      col.id = 'col' + validId(this._nodeX.toString());
-      let PromptObj = Prompt.getPromptItembyPrompt(this._container);
-      col.style.left = PromptObj.convertNodeXtoAbs(this._nodeX) + 'rem';
-      this._container.appendChild(col);
-    }
-    col.appendChild(this.newNode);
+     //for customnode, this.PromptObj is undefined
+    if (this.PromptObj) {
+      let col = this._container.querySelector('#col' + validId(this._nodeX.toString())) as HTMLElement;
+      if (!col) {
+        col = document.createElement('div');
+        col.classList.add('col');
+        col.id = 'col' + validId(this._nodeX.toString());
+        let PromptObj = Prompt.getPromptItembyPrompt(this._container);
+        col.style.left = PromptObj.convertNodeXtoAbs(this._nodeX) + 'rem';
+        this._container.appendChild(col);
+      }
+      col.appendChild(this.newNode);
 
-    //if nodeX is float
-    if (this._nodeX % 1 !== 0) {
-      col.style.width = '15rem';
+      //if nodeX is float
+      if (this._nodeX % 1 !== 0) {
+        col.style.width = '15rem';
+      }
     }
   }
 
   adjustFontSize(node: HTMLElement) {
     let nodeWrapper = node.querySelector('.node-wrapper') as HTMLElement;
-  
+
     // Function to update font size
     function updateFontSize(fontSize: number) {
       nodeWrapper.style.fontSize = `${fontSize}px`;
     }
-  
+
     // Check if the text is overflowing
     function isOverflowing() {
       // console.log('scrollWidth', nodeWrapper.scrollWidth);
       // console.log('clientWidth', nodeWrapper.clientWidth);
       return nodeWrapper.scrollWidth > nodeWrapper.clientWidth;
     }
-  
+
     // Adjust font size to prevent overflow or reduce to minimum size
     function adjust() {
       let fontSize = 14; // Start from initial font size
       updateFontSize(fontSize);
-  
+
       while (isOverflowing() && fontSize > 12) {
         fontSize--; // Decrease font size
         updateFontSize(fontSize);
       }
-  
+
       if (fontSize === 12 && isOverflowing()) {
         nodeWrapper.style.whiteSpace = 'normal';
         nodeWrapper.style.lineHeight = '1.0';
         // node.style.height = '1.5rem'; // Allow node height to adjust to content
         node.style.alignItems = 'flex-start';
         node.style.overflow = 'hidden';
-        nodeWrapper.title = nodeWrapper.textContent;  
+        nodeWrapper.title = nodeWrapper.textContent;
       }
     }
-  
+
     if (document.readyState === 'complete') {
       adjust(); // Adjust immediately if document is already loaded
     } else {
@@ -141,16 +144,20 @@ export class PromptNode {
     document.addEventListener('disableNodeTabClick', event => { this.nodeWrapper.style.cursor = 'default'; });
     document.addEventListener('flowlineTabClick', event => {
       if (this.inputIdentifier) {
-        this.inputIdentifier.identifier.style.cursor = 'pointer';}
+        this.inputIdentifier.identifier.style.cursor = 'pointer';
+      }
       if (this.outputIdentifier) {
-        this.outputIdentifier.identifier.style.cursor = 'pointer';}
+        this.outputIdentifier.identifier.style.cursor = 'pointer';
+      }
     });
     document.addEventListener('disableFlowlineTabClick', event => {
       if (this.inputIdentifier) {
-        this.inputIdentifier.identifier.style.cursor = 'default';}
+        this.inputIdentifier.identifier.style.cursor = 'default';
+      }
       if (this.outputIdentifier) {
-        this.outputIdentifier.identifier.style.cursor = 'default';}
-        
+        this.outputIdentifier.identifier.style.cursor = 'default';
+      }
+
     });
   }
 
@@ -328,7 +335,6 @@ export class PromptNode {
   }
 
   delete() {
-
     //clean related flowline
     let startLines = this.PromptObj.getLinesWhereNodeasInput(this);
     let endLines = this.PromptObj.getLinesWhereNodeasOutput(this);
@@ -359,9 +365,14 @@ export class PromptNode {
     this.PromptObj.returnInfo(); // save immediately after deleting a node
   }
 
-  toJSONObj() {
+  toJSONObj(abs = false) {
     // Return a JSON object representing the node "NON-POTABLE WATER": [[0, 0], "HYDRO"], for example
-    return { [this.nodeContent]: [[this.nodeX, this.nodeY], this.nodeSys, this.nodeTransform] };
+    if (!abs) {
+      return { [this.nodeContent]: [[this.nodeX, this.nodeY], this.nodeSys, this.nodeTransform] };
+    } else {
+      let [posX, posY] = PromptNode.getnodePositionInDOM(this.newNode);
+      return { [this.nodeContent]: [[posX, posY], this.nodeSys, this.nodeTransform] };
+    }
   }
 
 
@@ -396,15 +407,28 @@ export class PromptNode {
     return PromptNode.myNodes;
   }
 
+  static getnodePositionInDOM(node: HTMLElement) {
+    let x = 0;
+    let y = 0;
+    let nodeparent = node.closest('.prompt-frame');
+    while (node) {
+      x += node.offsetLeft;
+      y += node.offsetTop;
+      node = node.offsetParent as HTMLElement;
+      if (node === nodeparent) {
+        break;
+      }
+    }
+    return [x, y];
+  }
 }
-
 
 export class PromptCustomNode extends PromptNode {
   constructor(absNodeX: number, absNodeY: number, container: HTMLElement) {
     let PromptObj = Prompt.getPromptItembyPrompt(container);
-    let nodeX=PromptObj.convertAbstoNodeX(absNodeX);
+    let nodeX = PromptObj.convertAbstoNodeX(absNodeX);
 
-    let nodeY=PromptObj.convertAbstoNodeY(absNodeY);
+    let nodeY = PromptObj.convertAbstoNodeY(absNodeY);
     super("", nodeX, nodeY, 'translate(0%, 0%)', hexToRGBA("#888", 0.75), "UNKNOWN", container);
   }
 }

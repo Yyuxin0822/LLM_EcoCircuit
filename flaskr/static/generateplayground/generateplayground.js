@@ -21,6 +21,33 @@ window.onload = function () {
     finishload();
 };
 const playFuncBar = new PlaygroundFuncBar(document.querySelector('.function-frame'));
+const iframe = document.getElementById('custom-iframe');
+function loadplayground() {
+    document.getElementById('view-playground')?.classList.remove('hidden');
+    document.getElementById('view-custom')?.classList.toggle('hidden');
+    document.getElementById('content-frame')?.classList.remove('hidden');
+    document.getElementById('content-custom-frame').classList.add('hidden');
+    document.getElementById('func-wrapper-engbar')?.classList.remove('hidden');
+    document.getElementById('func-wrapper-edit')?.classList.remove('hidden');
+    document.querySelectorAll('.send-to-custom').forEach((button) => {
+        button.style.display = 'block';
+    });
+    setIframeMode(false);
+}
+function loadcustom() {
+    document.getElementById('view-playground')?.classList.add('hidden');
+    document.getElementById('view-custom')?.classList.remove('hidden');
+    document.getElementById('content-frame')?.classList.add('hidden');
+    document.getElementById('content-custom-frame')?.classList.remove('hidden');
+    document.getElementById('func-wrapper-engbar')?.classList.add('hidden');
+    document.getElementById('func-wrapper-edit')?.classList.add('hidden');
+    document.querySelectorAll('.send-to-custom').forEach((button) => {
+        button.style.display = 'none';
+    });
+    setIframeMode(true);
+}
+document.getElementById('toggle-playground')?.addEventListener('click', loadplayground);
+document.getElementById('toggle-custom')?.addEventListener('click', loadcustom);
 function toggleEngineerBar() {
     document.getElementById('engineer-bar-unfolded')?.classList.toggle('hidden');
     document.getElementById('engineer-bar-folded')?.classList.toggle('hidden');
@@ -29,7 +56,6 @@ document.getElementById('fold')?.addEventListener('click', toggleEngineerBar);
 document.getElementById('unfold')?.addEventListener('click', toggleEngineerBar);
 const systemBar = new SystemFuncBar(document.getElementById('system-bar'));
 var systemString = systemBar.container.querySelector('#project-system').innerText;
-console.log(systemString);
 var systemArray = parseJson(systemString);
 console.log(systemArray);
 function processSystem(container) {
@@ -98,7 +124,7 @@ function processPrompt(prompt) {
                 nodeRGB = hexToRGBA(system[1], 0.75);
             }
         });
-        var promptNode = new PromptNode(nodeName, nodeX, nodeY, nodeTransform, nodeRGB, nodeSys, parentPrompt);
+        new PromptNode(nodeName, nodeX, nodeY, nodeTransform, nodeRGB, nodeSys, parentPrompt);
     });
     flowArray.forEach((flow) => {
         for (var i = 1; i < flow.length - 1; i++) {
@@ -110,7 +136,7 @@ function processPrompt(prompt) {
             if (PromptFlowline.isLineExists(nodeStart.node, nodeEnd.node)) {
                 continue;
             }
-            var line = new PromptFlowline(nodeStart.node, nodeEnd.node);
+            new PromptFlowline(nodeStart.node, nodeEnd.node);
         }
     });
     if (nodeArray.length == 0) {
@@ -131,6 +157,7 @@ function processPrompt(prompt) {
 }
 var prompts = document.querySelectorAll('.prompt');
 prompts.forEach(processPrompt);
+document.querySelector('.prompt-user').classList.add('hidden');
 const addiotab = document.getElementById('add-io');
 addiotab?.addEventListener('click', addio);
 function addio() {
@@ -189,6 +216,62 @@ quickgen?.addEventListener('click', () => {
         console.log('finish load');
     });
 });
+function setIframeMode(editable) {
+    if (editable) {
+        iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms');
+        iframe.classList?.add('editable');
+        iframe.classList?.remove('readonly');
+    }
+    else {
+        iframe.setAttribute('sandbox', 'allow-same-origin');
+        iframe.classList?.remove('editable');
+        iframe.classList?.add('readonly');
+    }
+}
+window.addEventListener('message', (event) => {
+    if (event.data === 'clickinside') {
+        setIframeMode(true);
+    }
+});
+document.addEventListener('click', (e) => {
+    if (!iframe.contains(e.target) && !e.target.closest('.func-wrapper-view')) {
+        iframe.contentWindow.postMessage('clickOutside', '*');
+        setIframeMode(false);
+    }
+});
+let sendAll = document.getElementById('send-all');
+let sendSelected = document.getElementById('send-selected');
+sendAll?.addEventListener('click', sendDataToCustom('send-all'));
+function sendDataToCustom(mode) {
+    let project_id = document.getElementById('project_id').innerText;
+    let flow_array = [];
+    let node_array = {};
+    Prompt.allPrompts.forEach(prompt => {
+        let { flow, nodematrix } = prompt.collectCustomInfo(mode);
+        if (flow.length > 0) {
+            flow_array = [...flow_array, ...flow];
+        }
+        if (Object.keys(nodematrix).length > 0) {
+            node_array = { ...node_array, ...nodematrix };
+        }
+    });
+    var isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+    var url = isLocal ? 'http://localhost:8000' : 'https://www.ecocircuitai.com';
+    var socket = io(url, {
+        path: '/socket.io',
+        transports: ['websocket', 'polling']
+    });
+    socket.emit('send_data_to_custom', {
+        'project_id': project_id,
+        'flow_array': flow_array,
+        'node_array': node_array,
+    });
+}
+function savePlayground() {
+    let project_id = document.getElementById('project_id').innerHTML;
+    let { prompt_id, flow, nodematrix } = Prompt.returnAllInfo();
+    emitSocket('save_prompt', { "prompt_id": prompt_id, "flow": flow, "node": nodematrix, "project_id": project_id });
+}
 function absPostionMatrix(prompt) {
     let absMatrix = {};
     var nodewrapper = prompt.querySelectorAll('.node-wrapper');
@@ -199,18 +282,3 @@ function absPostionMatrix(prompt) {
     });
     return absMatrix;
 }
-function getnodePositionInDOM(node) {
-    let x = 0;
-    let y = 0;
-    let nodeparent = node.closest('.prompt-frame');
-    while (node) {
-        x += node.offsetLeft;
-        y += node.offsetTop;
-        node = node.offsetParent;
-        if (node === nodeparent) {
-            break;
-        }
-    }
-    return [x, y];
-}
-document.querySelector('.prompt-user').classList.add('hidden');

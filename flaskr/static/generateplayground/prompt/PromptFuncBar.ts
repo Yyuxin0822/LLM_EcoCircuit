@@ -89,7 +89,7 @@ export class PromptFuncBar extends FuncBar {
     handleNodeClick = (e: Event) => {
         // console.log(e.target)
         if (e.target.closest('.node')) return;
-
+        if (e.target.closest('.prompt-funcbar')) return;
         let customNode = PromptNode.addCustomNode(e);
         customNode.nodeWrapper.addEventListener('blur', (e) => {
 

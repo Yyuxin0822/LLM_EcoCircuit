@@ -8,8 +8,16 @@
   gap: 2.5rem;
 }
 
-.function-frame>#view-playground>.wrapper,
-.function-frame>#view-custom>.wrapper {
+.function-frame>.func-wrapper-view {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
+  cursor: default;
+}
+
+.func-wrapper-view>#view-playground>.wrapper,
+.func-wrapper-view>#view-custom>.wrapper {
   /* layout */
   display: inline-flex;
   justify-content: center;
@@ -43,14 +51,47 @@
   gap: 0.75rem;
 }
 
-.function-frame>#engineer-bar-folded>.wrapper {
+#toggle-custom,
+#toggle-playground {
+  cursor: pointer;
+}
+
+.wrapper:has(#toggle-custom:hover, #toggle-playground:hover) {
+  /* styles for the parent when the child is hovered */
+  background-color: var(--variable-collection-themedarkpurple);
+}
+
+.func-wrapper-view>.sub-wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.func-wrapper-view>.sub-wrapper>.sub-sub-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.sub-wrapper .card-14{
+  text-align: left;
+}
+
+.send-to-custom:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.func-wrapper-engbar>#engineer-bar-folded>.wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 1rem;
 }
 
-.function-frame>#engineer-bar-unfolded>.wrapper {
+.func-wrapper-engbar>#engineer-bar-unfolded>.wrapper {
   display: flex;
   width: 80rem;
   flex-direction: column;
@@ -119,7 +160,7 @@
   gap: 0.75rem;
 }
 
-.sub-wrapper>.sub-sub-wrapper {
+#engineer-bar-unfolded .sub-wrapper>.sub-sub-wrapper {
   /* layout */
   display: flex;
   padding: 2.0625rem 5rem;
@@ -231,9 +272,10 @@
   cursor: pointer;
 }
 
-.pickerfunc:hover{
+.pickerfunc:hover {
   text-decoration: underline;
 }
+
 /* content-frame */
 
 #content-frame>.wrapper {
@@ -245,21 +287,6 @@
   align-items: flex-start;
   position: relative;
 
-}
-
-#content-custom-frame>.wrapper {
-  display: flex;
-  padding: 0rem 5rem;
-  flex-direction: column;
-  align-items: left;
-  align-self: stretch;
-}
-
-#content-custom-frame>.wrapper iframe {
-  align-self: stretch;
-  height: 90rem;
-  border: 1px solid #000;
-  border-radius: 0.5rem;
 }
 
 #content-frame .canvas {
@@ -437,6 +464,32 @@ svg.leader-line {
 }
 
 
+
+
+/* content-custom-frame */
+#content-custom-frame>.wrapper {
+  display: flex;
+  padding: 0rem 5rem;
+  flex-direction: column;
+  align-items: left;
+  align-self: stretch;
+}
+
+#content-custom-frame>.wrapper iframe {
+  align-self: stretch;
+  height: 90rem;
+  border-radius: 0.5rem;
+  box-sizing: border-box;
+}
+
+iframe.readonly {
+  border: none;
+}
+
+iframe.editable {
+  pointer-events: auto;
+  border: 2px solid var(--variable-collection-themedarkpurple);
+}
 
 /* iconbutton-frame */
 .iconbutton-frame {

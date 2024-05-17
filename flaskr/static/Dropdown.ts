@@ -1,8 +1,3 @@
-//@ts-ignore
-import { Prompt } from "./generateplayground/prompt/Prompt";
-//@ts-ignore
-import { PromptNode } from "./generateplayground/prompt/PromptNode";
-
 export class Dropdown {
     static activeDropdown: Dropdown | null = null;  // Static property to track the active dropdown
     

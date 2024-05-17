@@ -10,7 +10,9 @@ export class PromptNode {
         this._inputIdentifier = null;
         this._outputIdentifier = null;
         this.PromptObj = Prompt.getPromptItembyPrompt(this._container);
-        this.PromptObj.promptNodes.push(this);
+        if (this.PromptObj) {
+            this.PromptObj.promptNodes.push(this);
+        }
         PromptNode.myNodes.push(this);
         this._nodeContent = nodeContent;
         this._nodeX = nodeX;
@@ -34,18 +36,20 @@ export class PromptNode {
         this._nodeWrapper.innerHTML = this._nodeContent;
         this.newNode.appendChild(this._nodeWrapper);
         this.adjustFontSize(this.newNode);
-        let col = this._container.querySelector('#col' + validId(this._nodeX.toString()));
-        if (!col) {
-            col = document.createElement('div');
-            col.classList.add('col');
-            col.id = 'col' + validId(this._nodeX.toString());
-            let PromptObj = Prompt.getPromptItembyPrompt(this._container);
-            col.style.left = PromptObj.convertNodeXtoAbs(this._nodeX) + 'rem';
-            this._container.appendChild(col);
-        }
-        col.appendChild(this.newNode);
-        if (this._nodeX % 1 !== 0) {
-            col.style.width = '15rem';
+        if (this.PromptObj) {
+            let col = this._container.querySelector('#col' + validId(this._nodeX.toString()));
+            if (!col) {
+                col = document.createElement('div');
+                col.classList.add('col');
+                col.id = 'col' + validId(this._nodeX.toString());
+                let PromptObj = Prompt.getPromptItembyPrompt(this._container);
+                col.style.left = PromptObj.convertNodeXtoAbs(this._nodeX) + 'rem';
+                this._container.appendChild(col);
+            }
+            col.appendChild(this.newNode);
+            if (this._nodeX % 1 !== 0) {
+                col.style.width = '15rem';
+            }
         }
     }
     adjustFontSize(node) {
@@ -272,8 +276,14 @@ export class PromptNode {
         }
         this.PromptObj.returnInfo();
     }
-    toJSONObj() {
-        return { [this.nodeContent]: [[this.nodeX, this.nodeY], this.nodeSys, this.nodeTransform] };
+    toJSONObj(abs = false) {
+        if (!abs) {
+            return { [this.nodeContent]: [[this.nodeX, this.nodeY], this.nodeSys, this.nodeTransform] };
+        }
+        else {
+            let [posX, posY] = PromptNode.getnodePositionInDOM(this.newNode);
+            return { [this.nodeContent]: [[posX, posY], this.nodeSys, this.nodeTransform] };
+        }
     }
     static addCustomNode(event) {
         console.log(event.target);
@@ -299,6 +309,20 @@ export class PromptNode {
     }
     static getAllNodes() {
         return PromptNode.myNodes;
+    }
+    static getnodePositionInDOM(node) {
+        let x = 0;
+        let y = 0;
+        let nodeparent = node.closest('.prompt-frame');
+        while (node) {
+            x += node.offsetLeft;
+            y += node.offsetTop;
+            node = node.offsetParent;
+            if (node === nodeparent) {
+                break;
+            }
+        }
+        return [x, y];
     }
 }
 PromptNode.myNodes = [];

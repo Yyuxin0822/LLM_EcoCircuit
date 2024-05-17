@@ -23,121 +23,136 @@
 
 <div class="function-frame">
     <!-- view bar - temporarily archived at core -->
-    <!-- <div id="view-playground">
-        <div class="wrapper">
-            <div class="sub-wrapper">
-                <span class="icon-common icon-view"></span>
-                <div class="emphasis">Playground</div>
+    <div class="func-wrapper-view">
+        <div id="view-playground">
+            <div class="wrapper">
+                <div class="sub-wrapper">
+                    <span class="icon-common icon-view"></span>
+                    <div class="emphasis">Playground</div>
+                </div>
+                <div class="text-wrapper" id="toggle-custom">
+                    <p>Custom</p>
+                </div>
             </div>
-            <div class="text-wrapper" id="toggle-custom">
-                <p>Custom</p>
+        </div>
+        <div id="view-custom" class="hidden">
+            <div class="wrapper">
+                <div class="text-wrapper" id="toggle-playground">
+                    <p>Playground</p>
+                </div>
+                <div class="sub-wrapper">
+                    <span class="icon-common icon-view"></span>
+                    <div class="emphasis">Custom</div>
+                </div>
+            </div>
+        </div>
+        <div class="sub-wrapper">
+            <div class="card-14 send-to-custom" id="send-all">Send All Nodes And Flows To Custom</div>
+            <div class="card-14 send-to-custom" id="start-select-for-sending">Click To Select Nodes And Flows To Send To
+                Custom</div>
+            <div class=" hidden">
+                <div class="sub-sub-wrapper">
+                    <div class="card-14 send-to-custom" id="send-selected">Confirm Select and Send To Custom</div>
+                    <div class="card-14 send-to-custom" id="cancel-selected">Cancel Select</div>
+                </div>
             </div>
         </div>
     </div>
-    <div id="view-custom" class="hidden">
-        <div class="wrapper">
-            <div class="text-wrapper" id="toggle-playground">
-                <p>Playground</p>
-            </div>
-            <div class="sub-wrapper">
-                <span class="icon-common icon-view"></span>
-                <div class="emphasis">Custom</div>
-            </div>
-        </div>
-    </div> -->
-
     <!-- engineer bar -->
-    <div id="engineer-bar-folded" class="hidden">
-        <div class="wrapper">
-            <div class="component-bar-2" id="unfold" style="cursor: pointer;">
-                <span class="icon-common icon-unfold"></span>
-            </div>
-            <div class="component-bar-2" id="add-io" style="cursor: pointer;">
-                <span class="icon-common icon-add"></span>
-                <p>Add <span class=emphasis>Input </span><svg xmlns="http://www.w3.org/2000/svg" width="25" height="8"
-                        viewBox="0 0 25 8" fill="none">
-                        <path
-                            d="M24.3536 4.35355C24.5488 4.15829 24.5488 3.84171 24.3536 3.64645L21.1716 0.464466C20.9763 0.269204 20.6597 0.269204 20.4645 0.464466C20.2692 0.659728 20.2692 0.976311 20.4645 1.17157L23.2929 4L20.4645 6.82843C20.2692 7.02369 20.2692 7.34027 20.4645 7.53553C20.6597 7.7308 20.9763 7.7308 21.1716 7.53553L24.3536 4.35355ZM0 4.5H24V3.5H0V4.5Z"
-                            fill="black" />
-                    </svg><span class=emphasis> Output</span> with AI</p>
-            </div>
-        </div>
-    </div>
-    <div id="engineer-bar-unfolded">
-        <div class="wrapper">
-            <div class="sub-wapper-1">
-                <div class="component-bar-2" id="fold" style="cursor: pointer;">
-                    <span class="icon-common icon-fold"></span>
+    <div class="func-wrapper-engbar" id="func-wrapper-engbar">
+        <div id="engineer-bar-folded" class="hidden">
+            <div class="wrapper">
+                <div class="component-bar-2" id="unfold" style="cursor: pointer;">
+                    <span class="icon-common icon-unfold"></span>
                 </div>
-                <div class="component-bar-2" id="quickgen" style="cursor: pointer;">
+                <div class="component-bar-2" id="add-io" style="cursor: pointer;">
                     <span class="icon-common icon-add"></span>
-                    <p class="emphasis">Quick Generate</p>
+                    <p>Add <span class=emphasis>Input </span><svg xmlns="http://www.w3.org/2000/svg" width="25"
+                            height="8" viewBox="0 0 25 8" fill="none">
+                            <path
+                                d="M24.3536 4.35355C24.5488 4.15829 24.5488 3.84171 24.3536 3.64645L21.1716 0.464466C20.9763 0.269204 20.6597 0.269204 20.4645 0.464466C20.2692 0.659728 20.2692 0.976311 20.4645 1.17157L23.2929 4L20.4645 6.82843C20.2692 7.02369 20.2692 7.34027 20.4645 7.53553C20.6597 7.7308 20.9763 7.7308 21.1716 7.53553L24.3536 4.35355ZM0 4.5H24V3.5H0V4.5Z"
+                                fill="black" />
+                        </svg><span class=emphasis> Output</span> with AI</p>
                 </div>
             </div>
-            <div class="sub-wapper-2" id="engplaytab">
-                <div class="wrapper" style="position:relative">
-                    <div class="sub-wrapper">
-                        <div class="component-eng-tab inactive toggle" id="add-input">
-                            <span class="icon-common icon-input"></span>
-                            <p>Add More <span class=emphasis>Input</span> with AI</p>
-                        </div>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="52" height="16" viewBox="0 0 52 16" fill="none">
-                            <path
-                                d="M51.2071 8.70711C51.5976 8.31659 51.5976 7.68342 51.2071 7.2929L44.8431 0.928936C44.4526 0.538412 43.8195 0.538412 43.4289 0.928936C43.0384 1.31946 43.0384 1.95263 43.4289 2.34315L49.0858 8L43.4289 13.6569C43.0384 14.0474 43.0384 14.6805 43.4289 15.0711C43.8195 15.4616 44.4526 15.4616 44.8431 15.0711L51.2071 8.70711ZM0.5 9L50.5 9L50.5 7L0.5 7L0.5 9Z"
-                                fill="black" />
-                        </svg>
-                        <div class="sub-sub-wrapper">
-                            <div class="component-eng-tab inactive toggle" id="add-process">
-                                <span class="icon-common icon-process"></span>
-                                <p>Add <span class=emphasis>Process</span> with AI</p>
+        </div>
+        <div id="engineer-bar-unfolded">
+            <div class="wrapper">
+                <div class="sub-wapper-1">
+                    <div class="component-bar-2" id="fold" style="cursor: pointer;">
+                        <span class="icon-common icon-fold"></span>
+                    </div>
+                    <div class="component-bar-2" id="quickgen" style="cursor: pointer;">
+                        <span class="icon-common icon-add"></span>
+                        <p class="emphasis">Quick Generate</p>
+                    </div>
+                </div>
+                <div class="sub-wapper-2" id="engplaytab">
+                    <div class="wrapper" style="position:relative">
+                        <div class="sub-wrapper">
+                            <div class="component-eng-tab inactive toggle" id="add-input">
+                                <span class="icon-common icon-input"></span>
+                                <p>Add More <span class=emphasis>Input</span> with AI</p>
                             </div>
-                            <div class="component-eng-tab inactive toggle" id="add-cooptimization">
-                                <span class="icon-common icon-cooptimization"></span>
-                                <p>Add <span class=emphasis>Co-optimization</span> with AI</p>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="52" height="16" viewBox="0 0 52 16"
+                                fill="none">
+                                <path
+                                    d="M51.2071 8.70711C51.5976 8.31659 51.5976 7.68342 51.2071 7.2929L44.8431 0.928936C44.4526 0.538412 43.8195 0.538412 43.4289 0.928936C43.0384 1.31946 43.0384 1.95263 43.4289 2.34315L49.0858 8L43.4289 13.6569C43.0384 14.0474 43.0384 14.6805 43.4289 15.0711C43.8195 15.4616 44.4526 15.4616 44.8431 15.0711L51.2071 8.70711ZM0.5 9L50.5 9L50.5 7L0.5 7L0.5 9Z"
+                                    fill="black" />
+                            </svg>
+                            <div class="sub-sub-wrapper">
+                                <div class="component-eng-tab inactive toggle" id="add-process">
+                                    <span class="icon-common icon-process"></span>
+                                    <p>Add <span class=emphasis>Process</span> with AI</p>
+                                </div>
+                                <div class="component-eng-tab inactive toggle" id="add-cooptimization">
+                                    <span class="icon-common icon-cooptimization"></span>
+                                    <p>Add <span class=emphasis>Co-optimization</span> with AI</p>
+                                </div>
                             </div>
-                        </div>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="52" height="16" viewBox="0 0 52 16" fill="none">
-                            <path
-                                d="M51.2071 8.70711C51.5976 8.31658 51.5976 7.68342 51.2071 7.29289L44.8431 0.928932C44.4526 0.538408 43.8195 0.538408 43.4289 0.928932C43.0384 1.31946 43.0384 1.95262 43.4289 2.34315L49.0858 8L43.4289 13.6569C43.0384 14.0474 43.0384 14.6805 43.4289 15.0711C43.8195 15.4616 44.4526 15.4616 44.8431 15.0711L51.2071 8.70711ZM0.5 9H50.5V7H0.5V9Z"
-                                fill="black" />
-                        </svg>
-                        <div class="component-eng-tab inactive toggle" id="add-output">
-                            <span class="icon-common icon-output"></span>
-                            <p>Add More <span class=emphasis>Output</span> with AI</p>
-                        </div>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="52" height="16" viewBox="0 0 52 16"
+                                fill="none">
+                                <path
+                                    d="M51.2071 8.70711C51.5976 8.31658 51.5976 7.68342 51.2071 7.29289L44.8431 0.928932C44.4526 0.538408 43.8195 0.538408 43.4289 0.928932C43.0384 1.31946 43.0384 1.95262 43.4289 2.34315L49.0858 8L43.4289 13.6569C43.0384 14.0474 43.0384 14.6805 43.4289 15.0711C43.8195 15.4616 44.4526 15.4616 44.8431 15.0711L51.2071 8.70711ZM0.5 9H50.5V7H0.5V9Z"
+                                    fill="black" />
+                            </svg>
+                            <div class="component-eng-tab inactive toggle" id="add-output">
+                                <span class="icon-common icon-output"></span>
+                                <p>Add More <span class=emphasis>Output</span> with AI</p>
+                            </div>
 
+                        </div>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="42" height="47" viewBox="0 0 42 47" fill="none">
+                            <path
+                                d="M8.70711 0.292893C8.31658 -0.097631 7.68342 -0.0976309 7.29289 0.292893L0.928931 6.65685C0.538407 7.04738 0.538407 7.68054 0.928931 8.07107C1.31946 8.46159 1.95262 8.46159 2.34314 8.07107L8 2.41421L13.6569 8.07107C14.0474 8.46159 14.6805 8.46159 15.0711 8.07107C15.4616 7.68054 15.4616 7.04738 15.0711 6.65685L8.70711 0.292893ZM9 46L9 1L7 1L7 46L9 46Z"
+                                fill="black" />
+                            <path
+                                d="M33.2929 46.7071C33.6834 47.0976 34.3166 47.0976 34.7071 46.7071L41.0711 40.3431C41.4616 39.9526 41.4616 39.3195 41.0711 38.9289C40.6805 38.5384 40.0474 38.5384 39.6569 38.9289L34 44.5858L28.3431 38.9289C27.9526 38.5384 27.3195 38.5384 26.9289 38.9289C26.5384 39.3195 26.5384 39.9526 26.9289 40.3431L33.2929 46.7071ZM33 1L33 46L35 46L35 1L33 1Z"
+                                fill="black" />
+                        </svg>
+                        <div class="component-eng-tab inactive toggle" id="add-feedback">
+                            <span class="icon-common icon-feedback"></span>
+                            <p>Add <span class=emphasis>Regeneration / Feedback</span> with AI</p>
+                        </div>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="228" height="169" viewBox="0 0 228 169"
+                            fill="none" style="position:absolute; left:7.25rem; bottom:1.3125rem;">
+                            <path
+                                d="M8.2071 0.292884C7.81657 -0.0976407 7.18341 -0.0976407 6.79288 0.292884L0.428922 6.65684C0.0383976 7.04737 0.0383976 7.68053 0.428922 8.07106C0.819446 8.46158 1.45261 8.46158 1.84314 8.07106L7.49999 2.4142L13.1568 8.07106C13.5474 8.46158 14.1805 8.46158 14.5711 8.07106C14.9616 7.68053 14.9616 7.04737 14.5711 6.65684L8.2071 0.292884ZM227.5 167L15.5 167L15.5 169L227.5 169L227.5 167ZM8.49998 160L8.49999 0.99999L6.49999 0.99999L6.49998 160L8.49998 160ZM15.5 167C11.634 167 8.49998 163.866 8.49998 160L6.49998 160C6.49998 164.971 10.5294 169 15.5 169L15.5 167Z"
+                                fill="black" />
+                        </svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="228" height="169" viewBox="0 0 223 175"
+                            fill="none" style="position:absolute; right: 8.6875rem; bottom:1.3125rem;">
+                            <path
+                                d="M0.792893 166.293C0.402369 166.683 0.402369 167.317 0.792893 167.707L7.15685 174.071C7.54738 174.462 8.18054 174.462 8.57107 174.071C8.96159 173.681 8.96159 173.047 8.57107 172.657L2.91421 167L8.57107 161.343C8.96159 160.953 8.96159 160.319 8.57107 159.929C8.18054 159.538 7.54738 159.538 7.15685 159.929L0.792893 166.293ZM220.5 0V159H222.5V0H220.5ZM213.5 166H1.5V168H213.5V166ZM220.5 159C220.5 162.866 217.366 166 213.5 166V168C218.471 168 222.5 163.971 222.5 159H220.5Z"
+                                fill="black" />
+                        </svg>
                     </div>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="42" height="47" viewBox="0 0 42 47" fill="none">
-                        <path
-                            d="M8.70711 0.292893C8.31658 -0.097631 7.68342 -0.0976309 7.29289 0.292893L0.928931 6.65685C0.538407 7.04738 0.538407 7.68054 0.928931 8.07107C1.31946 8.46159 1.95262 8.46159 2.34314 8.07107L8 2.41421L13.6569 8.07107C14.0474 8.46159 14.6805 8.46159 15.0711 8.07107C15.4616 7.68054 15.4616 7.04738 15.0711 6.65685L8.70711 0.292893ZM9 46L9 1L7 1L7 46L9 46Z"
-                            fill="black" />
-                        <path
-                            d="M33.2929 46.7071C33.6834 47.0976 34.3166 47.0976 34.7071 46.7071L41.0711 40.3431C41.4616 39.9526 41.4616 39.3195 41.0711 38.9289C40.6805 38.5384 40.0474 38.5384 39.6569 38.9289L34 44.5858L28.3431 38.9289C27.9526 38.5384 27.3195 38.5384 26.9289 38.9289C26.5384 39.3195 26.5384 39.9526 26.9289 40.3431L33.2929 46.7071ZM33 1L33 46L35 46L35 1L33 1Z"
-                            fill="black" />
-                    </svg>
-                    <div class="component-eng-tab inactive toggle" id="add-feedback">
-                        <span class="icon-common icon-feedback"></span>
-                        <p>Add <span class=emphasis>Regeneration / Feedback</span> with AI</p>
-                    </div>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="228" height="169" viewBox="0 0 228 169" fill="none"
-                        style="position:absolute; left:7.25rem; bottom:1.3125rem;">
-                        <path
-                            d="M8.2071 0.292884C7.81657 -0.0976407 7.18341 -0.0976407 6.79288 0.292884L0.428922 6.65684C0.0383976 7.04737 0.0383976 7.68053 0.428922 8.07106C0.819446 8.46158 1.45261 8.46158 1.84314 8.07106L7.49999 2.4142L13.1568 8.07106C13.5474 8.46158 14.1805 8.46158 14.5711 8.07106C14.9616 7.68053 14.9616 7.04737 14.5711 6.65684L8.2071 0.292884ZM227.5 167L15.5 167L15.5 169L227.5 169L227.5 167ZM8.49998 160L8.49999 0.99999L6.49999 0.99999L6.49998 160L8.49998 160ZM15.5 167C11.634 167 8.49998 163.866 8.49998 160L6.49998 160C6.49998 164.971 10.5294 169 15.5 169L15.5 167Z"
-                            fill="black" />
-                    </svg>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="228" height="169" viewBox="0 0 223 175" fill="none"
-                        style="position:absolute; right: 8.6875rem; bottom:1.3125rem;">
-                        <path
-                            d="M0.792893 166.293C0.402369 166.683 0.402369 167.317 0.792893 167.707L7.15685 174.071C7.54738 174.462 8.18054 174.462 8.57107 174.071C8.96159 173.681 8.96159 173.047 8.57107 172.657L2.91421 167L8.57107 161.343C8.96159 160.953 8.96159 160.319 8.57107 159.929C8.18054 159.538 7.54738 159.538 7.15685 159.929L0.792893 166.293ZM220.5 0V159H222.5V0H220.5ZM213.5 166H1.5V168H213.5V166ZM220.5 159C220.5 162.866 217.366 166 213.5 166V168C218.471 168 222.5 163.971 222.5 159H220.5Z"
-                            fill="black" />
-                    </svg>
                 </div>
             </div>
         </div>
     </div>
-
     <!-- function bar  - temporarily archived at core -->
-    <div class="function-bar" id="function-bar">
+    <div class="func-wrapper-edit" id="func-wrapper-edit">
         <div id="enable-edit" class="component-eng-tab active toggle">
             <div class="wrapper-1">
                 <p>Edit Mode</p>
@@ -231,6 +246,10 @@
                             <button id="nodemode" class="toggle active icon-common icon-nodeM"></button>
                             <span class="normal"> | </span>
                             <button id="flowmode" class="toggle inactive icon-common icon-flowM"></button>
+                            <span class="normal" style="visibility: hidden;"> | </span>
+                            <div class="card-14 send-to-custom" id="send-to-custom{{promptIds[i]}}"
+                                style="width: 12rem; white-space: normal; text-align: left;">Send All Nodes and Flows In
+                                This Prompt To Custom</div>
                         </div>
                     </div>
                 </div>
@@ -238,11 +257,12 @@
             </div>
         </div>
     </div>
-    <!-- <div id="content-custom-frame" class="hidden">
+    <div id="content-custom-frame" class="hidden">
         <div class="wrapper">
-            <iframe src="{{ url_for('project.custom', id=project['id']) }}" tabindex="0" id="custom-iframe" sandbox="allow-scripts allow-same-origin"></iframe>
+            <iframe src="{{ url_for('project.custom', id=project['id']) }}" id="custom-iframe" class="editable"
+                sandbox="allow-same-origin allow-scripts"></iframe>
         </div>
-    </div> -->
+    </div>
 </div>
 
 <div class="iconbutton-frame">
