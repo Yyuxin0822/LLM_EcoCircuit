@@ -9,6 +9,7 @@ from flask import (
     jsonify,
     current_app,
 )
+
 from werkzeug.exceptions import abort
 from werkzeug.utils import secure_filename
 from flaskr.auth import login_required
@@ -34,12 +35,20 @@ def set_test_user():
 
 #################generate.html################
 ##############################################
-# (C)index  - prompting the user three ways of entering data
-@bp.route("/", methods=("GET", "POST"))
-@login_required
+@bp.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
+        if g.user is None:
+            return redirect(url_for('auth.signin'))
+        else:
+            return redirect(url_for('project.prompt'))
+    return render_template("index.html")
 
+# (C)index  - prompting the user three ways of entering data
+@bp.route("/prompt", methods=("GET", "POST"))
+@login_required
+def prompt():
+    if request.method == "POST":
         filepath = os.path.join(current_app.instance_path, "images/envir.jpg")
         max_project_id = get_max_project_id()
         max_prompt_id = get_max_prompt_id()
@@ -83,7 +92,7 @@ def index():
         if imgurl is None or info is None:
             error = "Generation error, please try again."
             flash(error)
-            return render_template("project/index.html"), 400
+            return render_template("project/prompt.html"), 400
         else:
             if isinstance(info, list):
                 info = ", ".join(info)  # info as list is used for label
@@ -102,11 +111,11 @@ def index():
             # print("Project ID: ", project_id)
             return redirect(url_for("project.generate", id=project_id))
 
-    return render_template("project/index.html")
+    return render_template("project/prompt.html")
 
 
 # (R)
-@bp.route("/<int:id>", methods=("GET", "POST"))
+@bp.route("/<int:id>", methods=["GET", "POST"])
 @login_required
 def generate(id):
     project = get_project(id)
@@ -137,7 +146,6 @@ def addio():
         }
     )
 
-
 # (U)
 @bp.route("/quickgen", methods=["POST"])
 @login_required
@@ -163,7 +171,20 @@ def quickgen():
     else:
         return jsonify({"status": "success"})
 
+# (U)
+@bp.route("/regen-image", methods=["POST"])
+@login_required
+def regen_image():  
+    data = request.get_json()
+    filepath = os.path.join(current_app.instance_path, "images/envir.jpg")
+    imgurl,tempurl=update_img(data["project_id"], filepath, data["info"])
+    if imgurl is None:
+        error = "Gereration error, please ask again."
+        flash(error)
+        return 400
+    return jsonify({"status": "success", "imgurl": tempurl})
 
+    
 # (UD)
 @socketio.on("save_prompt")
 def save_prompt(data):
@@ -195,7 +216,7 @@ def save_prompt(data):
 # (UD)
 @socketio.on("save_system")
 def save_system_to_project(data):
-    print("Saved data to project: ", data)
+    # print("Saved data to project: ", data)
     db = get_db()
     cursor = db.cursor()
     cursor.execute(
@@ -213,7 +234,26 @@ def save_system_to_project(data):
     db.commit()
     return data["project_id"]
 
+# (U)
+@socketio.on("save_info")
+def save_info_to_project(data):
+    # print("Saved data to project: ", data)
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute(
+        """
+        UPDATE project
+        SET info = ?
+        WHERE id = ?
+        """,
+        (
+            data["info"],  # Serialize the node data to a JSON string
+            data["project_id"],  # The ID for the record to update
+        ),
+    )
 
+    db.commit()
+    return data["project_id"]
 #################custom.html###################
 ###############################################
 @bp.route("/custom/<int:id>", methods=("GET", "POST"))
@@ -298,16 +338,17 @@ class IndexHelper:
         # print("Generating IO from description - " + env)
         # gen input
         if isinstance(env, str):
-            input = return_input(env, syscolor)
+            input,input_sys = return_input(env, syscolor)
         elif isinstance(env, list):
             input = env
 
         io = return_addoutput(input, syscolor)
+        logging.debug(f"IO: {io}")
         # io = return_io(input)
         if io is None:
             return None
         
-        iosys = return_system(io, syscolor)
+        iosys = return_system(io, syscolor,max_tries=3,known_nodesys=input_sys)
         logging.debug(f"IO System: {iosys}")
         if iosys is None:
             return None
@@ -453,6 +494,23 @@ def update(
 
     return new_prompt_id
 
+def update_img(id:int,filepath:str,info:str):
+    imgurl = ""
+    tempurl = getcanvas(info)
+    urllib.request.urlretrieve(tempurl, filepath)
+    imgurl = genurl(id, local_path=filepath)
+    print("Image URL: ", imgurl)
+    db= get_db()
+    cursor = db.cursor()
+    cursor.execute(
+        "UPDATE project SET img_url = ? WHERE id = ?",
+        (
+            imgurl,
+            id,
+        ),
+    )
+    return imgurl,tempurl
+    
 
 @socketio.on("save_custom")
 def save_custom_view(data):
@@ -572,7 +630,7 @@ def get_customproject(id, check_author=True):
         )
         .fetchone()
     )
-    print("Project: ", project)
+    # print("Project: ", project)
     if project is None:
         abort(404, f"Project id {id} doesn't exist.")
 

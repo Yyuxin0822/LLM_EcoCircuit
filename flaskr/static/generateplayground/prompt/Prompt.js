@@ -144,6 +144,12 @@ export class Prompt {
         if (nodeXs.length === 2) {
             return { [nodeXs[0]]: 0, [nodeXs[1]]: 67.5 };
         }
+        nodeXs.push(0);
+        nodeXs.push(0.1);
+        nodeXs.push(0.2);
+        nodeXs.push(0.3);
+        nodeXs.push(1);
+        nodeXs = Array.from(new Set(nodeXs)).sort((a, b) => a - b);
         const integerWidth = 22.5;
         const floatWidth = 15;
         const gapBetweenIntegers = 67.5;
@@ -238,19 +244,25 @@ export class Prompt {
     }
     collectCustomInfo(mode) {
         let flow = [];
+        let flownode = [];
         let nodematrix = {};
         if (mode === 'send-all') {
             this.promptLines.forEach(line => {
-                flow.push(line.toJSONArray());
+                let tempflowinfo = line.toJSONArray();
+                flownode.push(tempflowinfo[0]);
+                flownode.push(tempflowinfo[1]);
+                flow.push(line.toJSONArray(true));
             });
             this.promptNodes.forEach(node => {
-                Object.assign(nodematrix, node.toJSONObj(true));
+                if (!flownode.includes(node.nodeContent)) {
+                    Object.assign(nodematrix, node.toJSONObj(true));
+                }
             });
         }
         if (mode === 'send-selected') {
             this.promptLines.forEach(line => {
                 if (line.selected)
-                    flow.push(line.toJSONArray());
+                    flow.push(line.toJSONArray(true));
                 let startNodeItem = this.promptNodes.find(node => node.node === line.start);
                 let endNodeItem = this.promptNodes.find(node => node.node === line.end);
                 Object.assign(nodematrix, startNodeItem.toJSONObj(true));

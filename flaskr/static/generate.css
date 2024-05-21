@@ -1,8 +1,14 @@
 /* generate.html */
+.title-bar {
+  background: linear-gradient(to bottom, #ffffff 50%, rgba(255, 255, 255, 0.5) 75%, rgba(255, 255, 255, 0) 100%);
+  z-index: 5;
+}
+
 .function-frame {
   display: flex;
+
   width: 90rem;
-  padding: 2.25rem 5rem 3rem 5rem;
+  padding: 5rem 5rem 3rem 5rem;
   flex-direction: column;
   align-items: flex-start;
   gap: 2.5rem;
@@ -117,7 +123,7 @@
   gap: 0.75rem;
   /*style*/
   border-radius: 0.5rem;
-  border: 2px solid var(--variable-collection-themedarkpurple);
+  /* border: 2px solid var(--variable-collection-themedarkpurple); */
 }
 
 .component-eng-tab {
@@ -236,6 +242,13 @@
   gap: 1.5rem;
 }
 
+.info-frame>#info[contenteditable]:focus {
+  outline: 2px solid var(--variable-collection-themedarkpurple);
+  border-radius: 0.25rem;
+  outline-offset:0.5rem; /* Adjust this value as needed */
+  border: none;
+}
+
 #system-bar .toggle {
   padding: 0.25rem;
   border-radius: 0.5rem;
@@ -277,7 +290,6 @@
 }
 
 /* content-frame */
-
 #content-frame>.wrapper {
   display: flex;
   height: 115.5rem;
@@ -319,8 +331,6 @@
 
 }
 
-
-
 .prompt-frame>.prompt {
   display: inline-flex;
   width: 90rem;
@@ -335,6 +345,22 @@
   /* overflow-x: scroll;  */
   white-space: nowrap;
   /* Ensures no text wrapping occurs */
+}
+
+.prompt #canvasboard {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.prompt #canvasDraw {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  z-index: 5;
 }
 
 .prompt-frame>.prompt.focused {
@@ -367,18 +393,16 @@
   position: absolute;
   border-radius: 0.3125rem;
   box-shadow: var(--node);
-  z-index: 0;
+  z-index: 1;
   pointer-events: auto;
 }
 
 .node>.node-wrapper {
-  overflow: hidden;
+  /* overflow: none; */
+  /* white-space: normal; */
   flex: 1 0 0;
   /* user-select: none; */
 }
-
-
-
 
 .prompt-funcbar>.wrapper {
   /* layout */
@@ -464,12 +488,10 @@ svg.leader-line {
 }
 
 
-
-
 /* content-custom-frame */
 #content-custom-frame>.wrapper {
   display: flex;
-  padding: 0rem 5rem;
+  padding: 1rem 5rem;
   flex-direction: column;
   align-items: left;
   align-self: stretch;
@@ -477,6 +499,7 @@ svg.leader-line {
 
 #content-custom-frame>.wrapper iframe {
   align-self: stretch;
+  width: 90rem;
   height: 90rem;
   border-radius: 0.5rem;
   box-sizing: border-box;
@@ -490,7 +513,9 @@ iframe.editable {
   pointer-events: auto;
   border: 2px solid var(--variable-collection-themedarkpurple);
 }
-
+.zoomable {
+  transform-origin: 0 0;
+}
 /* iconbutton-frame */
 .iconbutton-frame {
   display: flex;
@@ -503,3 +528,4 @@ iframe.editable {
   bottom: 0rem;
   pointer-events: none;
 }
+

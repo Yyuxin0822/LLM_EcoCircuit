@@ -199,9 +199,20 @@ export class Prompt {
     }
 
     static processNodeX(nodeXs: number[]): { [key: number]: number } {
+        //add 0,0.1,0.2,0.3,1 to nodeXs if they are not in the array
+
+        
+        //sort nodeXs
+
         if (nodeXs.length === 2) {
             return { [nodeXs[0]]: 0, [nodeXs[1]]: 67.5 };
         }
+        nodeXs.push(0);
+        nodeXs.push(0.1);
+        nodeXs.push(0.2);
+        nodeXs.push(0.3);
+        nodeXs.push(1);
+        nodeXs = Array.from(new Set(nodeXs)).sort((a, b) => a - b);
         //this function is to position nodeX according to its value
         //ie. let's say that we have a series of nodes whose nodeXs are [0, 1, 1.1, 1.2, 1.3, 2]
         //An integer is a div with a width of 22.5rem, a float is a div with a width of 15rem
@@ -331,20 +342,26 @@ export class Prompt {
 
     collectCustomInfo(mode: string) {
         let flow = [];
+        let flownode=[];
         let nodematrix = {};
         if (mode === 'send-all') {
             this.promptLines.forEach(line => {
-                flow.push(line.toJSONArray());
+                let tempflowinfo = line.toJSONArray();
+                flownode.push(tempflowinfo[0]);
+                flownode.push(tempflowinfo[1]);
+                flow.push(line.toJSONArray(true));
             });
             this.promptNodes.forEach(node => {
-                Object.assign(nodematrix, node.toJSONObj(true));
+                //if node.nodeContent is not in flownode, then push the node to nodematrix
+                if (!flownode.includes(node.nodeContent)){
+                Object.assign(nodematrix, node.toJSONObj(true));}
             });
         }
 
         if (mode === 'send-selected') {
             this.promptLines.forEach(line => {
                 if (line.selected)
-                    flow.push(line.toJSONArray());
+                    flow.push(line.toJSONArray(true));
                 //push the start and end node of the line
                 let startNodeItem = this.promptNodes.find(node => node.node === line.start);
                 let endNodeItem = this.promptNodes.find(node => node.node === line.end);

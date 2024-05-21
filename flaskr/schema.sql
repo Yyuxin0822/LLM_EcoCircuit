@@ -39,7 +39,7 @@ CREATE TABLE customprompt (
   id INTEGER PRIMARY KEY AUTOINCREMENT, 
   flow TEXT,
   node TEXT,
-  img_url TEXT,
+  img TEXT,
   canvas TEXT,
   project_id INTEGER UNIQUE,
   FOREIGN KEY (project_id) REFERENCES project (id)

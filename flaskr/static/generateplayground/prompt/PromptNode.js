@@ -35,7 +35,7 @@ export class PromptNode {
         this._nodeWrapper.classList.add('node-wrapper', 'card-node');
         this._nodeWrapper.innerHTML = this._nodeContent;
         this.newNode.appendChild(this._nodeWrapper);
-        this.adjustFontSize(this.newNode);
+        this.adjustFontSize();
         if (this.PromptObj) {
             let col = this._container.querySelector('#col' + validId(this._nodeX.toString()));
             if (!col) {
@@ -44,6 +44,7 @@ export class PromptNode {
                 col.id = 'col' + validId(this._nodeX.toString());
                 let PromptObj = Prompt.getPromptItembyPrompt(this._container);
                 col.style.left = PromptObj.convertNodeXtoAbs(this._nodeX) + 'rem';
+                console.log(col.style.left);
                 this._container.appendChild(col);
             }
             col.appendChild(this.newNode);
@@ -52,34 +53,37 @@ export class PromptNode {
             }
         }
     }
-    adjustFontSize(node) {
-        let nodeWrapper = node.querySelector('.node-wrapper');
-        function updateFontSize(fontSize) {
+    adjustFontSize() {
+        let nodeWrapper = this._nodeWrapper;
+        let node = this.newNode;
+        function updateFontSize(nodeWrapper, fontSize) {
             nodeWrapper.style.fontSize = `${fontSize}px`;
         }
-        function isOverflowing() {
-            return nodeWrapper.scrollWidth > nodeWrapper.clientWidth;
+        function isOverflowingX(nodeWrapper) {
+            return parseFloat(window.getComputedStyle(nodeWrapper).width) > (parseFloat(window.getComputedStyle(node).width) - parseFloat(window.getComputedStyle(node).paddingLeft) - parseFloat(window.getComputedStyle(node).paddingRight));
         }
-        function adjust() {
+        function isOverflowingY(nodeWrapper) {
+            return parseFloat(window.getComputedStyle(nodeWrapper).height) > (parseFloat(window.getComputedStyle(node).width) + 4);
+        }
+        function adjust(node) {
             let fontSize = 14;
-            updateFontSize(fontSize);
-            while (isOverflowing() && fontSize > 12) {
+            updateFontSize(nodeWrapper, fontSize);
+            while (isOverflowingX(nodeWrapper) && fontSize > 12) {
                 fontSize--;
-                updateFontSize(fontSize);
+                updateFontSize(nodeWrapper, fontSize);
             }
-            if (fontSize === 12 && isOverflowing()) {
+            if (fontSize === 12 && isOverflowingX(nodeWrapper)) {
                 nodeWrapper.style.whiteSpace = 'normal';
                 nodeWrapper.style.lineHeight = '1.0';
                 node.style.alignItems = 'flex-start';
                 node.style.overflow = 'hidden';
-                nodeWrapper.title = nodeWrapper.textContent;
             }
         }
         if (document.readyState === 'complete') {
-            adjust();
+            adjust(node);
         }
         else {
-            window.addEventListener('load', adjust);
+            document.addEventListener('DOMContentLoaded', () => { adjust(node); });
         }
     }
     attachEventListeners() {
@@ -286,7 +290,6 @@ export class PromptNode {
         }
     }
     static addCustomNode(event) {
-        console.log(event.target);
         let newNode = new PromptCustomNode(event.offsetX, event.offsetY, event.target.closest('.prompt'));
         newNode.node.id = 'nodecustom';
         newNode.nodeWrapper.contentEditable = true;
@@ -332,6 +335,13 @@ export class PromptCustomNode extends PromptNode {
         let PromptObj = Prompt.getPromptItembyPrompt(container);
         let nodeX = PromptObj.convertAbstoNodeX(absNodeX);
         let nodeY = PromptObj.convertAbstoNodeY(absNodeY);
-        super("", nodeX, nodeY, 'translate(0%, 0%)', hexToRGBA("#888", 0.75), "UNKNOWN", container);
+        console.log(nodeX, nodeY);
+        let node = PromptNode.myNodes.find(node => node.nodeX === nodeX && node.nodeY === nodeY && node.container === container);
+        if (!node) {
+            super("", nodeX, nodeY, 'translate(0%, 0%)', hexToRGBA("#888", 0.75), "UNKNOWN", container);
+        }
+        else {
+            return;
+        }
     }
 }

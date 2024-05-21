@@ -1,19 +1,12 @@
 import { CustomNode } from "./CustomNode.js";
 import { CustomFlowline } from "./CustomFlowline.js";
-document.addEventListener('click', (e) => {
-    if (e.target !== document.documentElement) {
-        console.log("triggered");
-        window.parent.postMessage('clickinside', '*');
-    }
+const eventTypes = ['click', 'keydown', 'keyup', 'scroll', 'load'];
+eventTypes.forEach(type => {
+    const target = type === 'load' ? window : document;
+    target.addEventListener(type, (event) => {
+        CustomFlowline.fixLine();
+    }, false);
 });
-window.addEventListener('message', (event) => {
-    if (event.data === 'clickOutside') {
-        handleOutsideClick();
-    }
-});
-function handleOutsideClick() {
-    console.log('Clicked outside the iframe');
-}
 const customprompt = document.getElementById('customprompt');
 const computedStyle = window.getComputedStyle(customprompt);
 const customPromptWrapper = document.querySelector('.customprompt-wrapper');
@@ -60,43 +53,61 @@ function validId(nodeName) {
         .replace(/[^\w-]+/g, '');
 }
 function processPrompt(nodeArray, flowArray) {
-    if (nodeArray.length != 0) {
-        nodeArray.forEach((node, nIndex) => {
-            var nodeName = node[0];
-            var nodeX = node[1][0];
-            var nodeY = node[1][1];
-            var nodeSystem = node[2];
-            var nodeTransform = "translate(0,0)";
-            if (node[3]) {
-                nodeTransform = node[3];
+    function processCustomNode(node, systemArray) {
+        var nodeName = node[0];
+        var nodeX = node[1][0];
+        var nodeY = node[1][1];
+        var nodeSystem = node[2];
+        var nodeTransform = "translate(0,0)";
+        if (node[3]) {
+            nodeTransform = node[3];
+        }
+        let defaultRGB = systemArray.find((system) => { system[0] === "UNKNOWN"; });
+        let nodeRGB = defaultRGB ? hexToRGBA(defaultRGB[1], 0.75) : hexToRGBA("#888", 0.75);
+        let nodeSys = "UNKNOWN";
+        systemArray.forEach((system) => {
+            if (system[0] === nodeSystem) {
+                nodeSys = system[0];
+                nodeRGB = hexToRGBA(system[1], 0.75);
             }
-            var systemString = document.getElementById('customPromptSystem').innerHTML;
-            var systemArray = parseJson(systemString);
-            let defaultRGB = systemArray.find((system) => { system[0] === "UNKNOWN"; });
-            let nodeRGB = defaultRGB ? hexToRGBA(defaultRGB[1], 0.75) : hexToRGBA("#888", 0.75);
-            let nodeSys = "UNKNOWN";
-            systemArray.forEach((system) => {
-                if (system[0] === nodeSystem) {
-                    nodeSys = system[0];
-                    nodeRGB = hexToRGBA(system[1], 0.75);
-                }
-            });
-            new CustomNode(nodeName, nodeX, nodeY, nodeTransform, nodeRGB, nodeSys, customPromptWrapper);
         });
+        let nodeItem = CustomNode.getNodebyInfo(nodeName, nodeX, nodeY, nodeSys, nodeTransform);
+        if (nodeItem === undefined || nodeItem === null) {
+            return new CustomNode(nodeName, nodeX, nodeY, nodeTransform, nodeRGB, nodeSys, customPromptWrapper);
+        }
+        else {
+            return nodeItem;
+        }
+    }
+    var systemString = document.getElementById('customPromptSystem').innerHTML;
+    var systemArray = parseJson(systemString);
+    if (nodeArray.length != 0) {
+        nodeArray.forEach((node) => processCustomNode(node, systemArray));
     }
     if (flowArray.length != 0) {
         flowArray.forEach((flow) => {
             for (var i = 1; i < flow.length - 1; i++) {
-                var nodeStart = CustomNode.getNodeById('node' + validId(flow[i]));
-                var nodeEnd = CustomNode.getNodeById('node' + validId(flow[i + 1]));
-                nodeStart.setIdentifier('input-identifier');
-                nodeEnd.setIdentifier('output-identifier');
+                let nodeStartArray = parseJson(flow[i])[0];
+                let nodeEndArray = parseJson(flow[i + 1])[0];
+                var nodeStart = processCustomNode(nodeStartArray, systemArray);
+                var nodeEnd = processCustomNode(nodeEndArray, systemArray);
                 if (CustomFlowline.isLineExists(nodeStart.node, nodeEnd.node)) {
                     continue;
                 }
                 new CustomFlowline(nodeStart.node, nodeEnd.node);
             }
         });
+    }
+}
+function setDOMeditable(editable) {
+    let content = document.getElementById('custom-body-wrapper');
+    if (editable) {
+        content.classList?.remove('readonly');
+        content.classList?.add('editable');
+    }
+    else {
+        content.classList?.remove('editable');
+        content.classList?.add('readonly');
     }
 }
 let flowString = customprompt.querySelector('#customPromptFlow').innerText;
@@ -108,11 +119,14 @@ var isLocal = window.location.hostname === "localhost" || window.location.hostna
 var url = isLocal ? 'http://localhost:8000' : 'https://www.ecocircuitai.com';
 var socket = io.connect(url);
 socket.on('data_from_playground', function (data) {
+    setDOMeditable(false);
+    startload();
     var nodeArray = parseJson(data["node"]);
     var flowArray = parseJson(data["flow"]);
-    console.log(nodeArray, flowArray);
     processPrompt(nodeArray, flowArray);
-    saveCustom();
+    CustomFlowline.fixLine();
+    setDOMeditable(true);
+    finishload();
 });
 function saveCustom() {
     let prompt_id = document.getElementById('custom-id').innerHTML;

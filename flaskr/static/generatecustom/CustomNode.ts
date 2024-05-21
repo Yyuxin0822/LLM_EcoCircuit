@@ -66,6 +66,10 @@ export class CustomNode extends PromptNode {
 
 
   //getter
+  get nodeY() {
+    return this._nodeY;
+  }
+
   //@override
   set nodeY(number) {
     this._nodeY = number;
@@ -117,10 +121,26 @@ export class CustomNode extends PromptNode {
   }
 
 
-  //a function that return nodeItem by ID
-  static getNodeById(id) {
-    return CustomNode.myCustomNodes.find(node => node.newNode.id === id);
+  //static methods
+  static isNodeExists(nodeContent:string, x:number, y:number, system:string, transform:string) {
+    let node=CustomNode.getNodebyInfo(nodeContent, x, y, system, transform);
+    if (node!=null && node!=undefined) {
+      return true;
+    }
+    return false;
   }
+  static getNodebyInfo(nodeContent:string, x:number, y:number, system:string, transform:string){
+    let node=CustomNode.myCustomNodes.find(node => node.nodeContent === nodeContent);
+    if (node!=null && node!=undefined) {
+      // console.log(node.nodeContent, node.nodeX, node.nodeY, node.nodeSys, node.nodeTransform);
+    }
+    return CustomNode.myCustomNodes.find(node => node.nodeContent === nodeContent && node.nodeX === x && node.nodeY === y && node.nodeSys === system && node.nodeTransform === transform);
+  }
+  //@override
+  static getNodeById(id) {
+    //Do nothing in the child class
+  }
+
 
   static getNodeObjbyNode(node) {
     return CustomNode.myCustomNodes.find(nodeItem => nodeItem.newNode === node);
@@ -215,7 +235,7 @@ export class CustomNode extends PromptNode {
     document.addEventListener('mouseup', (e) => {
       if (e.target !== this.nodeWrapper && moved) {
         document.removeEventListener('mousemove', mouseMoveHandler);
-        console.log('Drag Event ended outside');
+        // console.log('Drag Event ended outside');
         this.nodeDragState = true;
         moved = false;  // Reset moved state
       }

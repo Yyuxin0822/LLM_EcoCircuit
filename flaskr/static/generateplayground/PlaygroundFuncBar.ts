@@ -14,11 +14,11 @@ export class PlaygroundFuncBar extends FuncBar {
     disableEditButton: HTMLElement | null;
     container: HTMLElement;
     activeToggle: HTMLElement | null;
-
+    addInputButton: HTMLElement | null;
     constructor(container: HTMLElement) {
         super(container);
         this.enableEditButton = this.container.querySelector("#enable-edit");
-        this.disableEditButton = this.container.querySelector("#disable-edit");
+        this.addInputButton= this.container.querySelector("#add-input");
     }
 
     activateFunction(id: string) {
@@ -70,8 +70,6 @@ export class PlaygroundFuncBar extends FuncBar {
         }
     }
 
-
-
     handleNodeTabClick() {
         PromptNode.nodeSel = true;
         let event = new CustomEvent('nodeTabClick');
@@ -113,6 +111,8 @@ export class PlaygroundFuncBar extends FuncBar {
         //get the first prompt
         let firstPrompt = Prompt.allPrompts[Prompt.allPrompts.length - 1];
         firstPrompt.promptFocus();
+
+        this.activateInfoEdit();
     }
 
     unsetEditMode() {
@@ -122,6 +122,8 @@ export class PlaygroundFuncBar extends FuncBar {
         });
 
         PromptNodeDrpDwn.globalEnabled = false;
+
+        this.deactivateInfoEdit();
     }
 
     returnMode() {
@@ -131,6 +133,42 @@ export class PlaygroundFuncBar extends FuncBar {
             return this.activeToggle.id;
         }
     }
+
+
+    activateInfoEdit() {
+        let info= document.getElementById("info");
+        let infoPrev=document.getElementById("info-previous");
+        info.contentEditable = true;
+        info?.addEventListener('blur',function(){
+            if(!info.textContent){
+                info.textContent=infoPrev.textContent;
+                return;
+            } else{
+                //save the current info to db
+                let project_id = document.getElementById('project_id').innerText;
+                let data = { project_id: project_id, info: info.textContent };
+                return emitSocket("save_info",data).then(()=>{
+                    infoPrev.textContent=info.textContent;
+                }).catch(error => {
+                    console.error("Failed to emit socket:", error);
+                });
+                
+            }
+        })
+    }
+
+    deactivateInfoEdit() {
+        let info= document.getElementById("info");
+        info.contentEditable = false;
+    }
+
+    disable(){
+        this.addInputButton.click();
+    }
+
+    enable(){
+        this.enableEditButton.click();
+    };
 }
 
 

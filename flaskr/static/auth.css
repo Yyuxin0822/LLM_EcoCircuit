@@ -1,113 +1,171 @@
 /* signin.html */
 /* register.html */
+.divide-line {
+  display: flex;
+  width: 20.625rem;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.horizontal-line {
+  border-top: 0.5px solid var(--variable-collection-themedarkpurple);
+  width: 100px;
+  /* Adjust the width as needed */
+}
+.divide-line .heading-2{
+  white-space: nowrap;
+  color:var(--variable-collection-themedarkpurple);
+}
+
+.overlay {
+  background-color: rgba(161, 173, 204, 0.25);
+  z-index: 4;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  display: block;
+  position: fixed;
+  pointer-events: none;
+  cursor:default;
+}
+
 .auth-popup {
-    display: flex;
-    flex-direction: column;
-    width: 960px;
-    height: 540px;
-    align-items: flex-end;
-    justify-content: center;
-    gap: 16px;
-    padding: 16px 30px;
-    position: fixed;
-    /* or 'fixed' if you want to position relative to the viewport */
-    top: 50%;
-    left: 50%;
-    background-color: #ffffff;
-    transform: translate(-50%, -50%);
-    /* Centers the element */
-  }
-  
-  .component-icon {
-    display: flex;
-    width: 30px;
-    height: 30px;
-    align-items: flex-start;
-    gap: 10px;
-    position: relative;
-    border-radius: 57px;
-    box-shadow: var(--regular);
-  }
-  
-  .auth-popup .frame {
-    display: flex;
-    flex-direction: column;
-    width: 900px;
-    height: 462px;
-    align-items: center;
-    justify-content: center;
-    gap: 18px;
-    position: relative;
-  }
-  
-  .auth-popup .frame .signin-frame {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
-    gap: 12px;
-    position: relative;
-    flex: 0 0 auto;
-  }
-  
-  .auth-popup .frame .signin-frame .div {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
-    gap: 8px;
-    position: relative;
-    flex: 0 0 auto;
-  }
-  
-  .text-wrapper {
-    position: relative;
-    width: fit-content;
-    margin-top: -1px;
-    font-family: var(--normal-20-font-family);
-    font-weight: var(--normal-20-font-weight);
-    color: #000000;
-    font-size: var(--normal-20-font-size);
-    text-align: center;
-    letter-spacing: var(--normal-20-letter-spacing);
-    line-height: var(--normal-20-line-height);
-    white-space: nowrap;
-    font-style: var(--normal-20-font-style);
-  }
-  
-  .text-area {
-    position: relative;
-    width: 332px;
-    height: 42px;
-    margin-bottom: -1px;
-    margin-left: -1px;
-    margin-right: -1px;
-    border-radius: 8px;
-    border: 1px solid;
-    border-color: #8894b3;
-    background-color: white;
-  }
-  
-  .frame .sign-in {
-    position: relative;
-    flex: 1;
-    margin-top: -1px;
-    font-family: var(--emphasis-font-family);
-    font-weight: var(--emphasis-font-weight);
-    font-style: var(--emphasis-font-style);
-    color: #3d4043;
-    font-size: var(--emphasis-font-size);
-    text-align: center;
-    letter-spacing: var(--emphasis-letter-spacing);
-    line-height: var(--emphasis-line-height);
-  }
-  
-  .frame .new-account-frame {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    position: relative;
-    flex: 0 0 auto;
-  }
+  border-radius: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  width: 960px;
+  height: 540px;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 16px;
+  padding: 16px 30px;
+  position: fixed;
+  /* or 'fixed' if you want to position relative to the viewport */
+  top: 50%;
+  left: 50%;
+  background-color: #ffffff;
+  transform: translate(-50%, -50%);
+  /* Centers the element */
+  z-index: 5;
+}
+
+
+/* component with "fill container" width */
+.component-bar-1 {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 330px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  gap: 10px;
+  position: relative;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--variable-collection-themedarkpurple);
+  box-shadow: var(--regular);
+  cursor: pointer;
+}
+
+.auth-popup .component-text:hover{
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.component-icon {
+  display: flex;
+  width: 30px;
+  height: 30px;
+  align-items: flex-start;
+  gap: 10px;
+  position: relative;
+  border-radius: 57px;
+  box-shadow: var(--regular);
+}
+
+.auth-popup .frame {
+  display: flex;
+  flex-direction: column;
+  width: 900px;
+  height: 462px;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  position: relative;
+}
+
+.auth-popup .frame .signin-frame {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 12px;
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.auth-popup .frame .signin-frame .div {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+  flex: 0 0 auto;
+}
+
+
+.text-wrapper {
+  position: relative;
+  width: fit-content;
+  margin-top: -1px;
+  font-family: var(--normal-20-font-family);
+  font-weight: var(--normal-20-font-weight);
+  color: #000000;
+  font-size: var(--normal-20-font-size);
+  text-align: center;
+  letter-spacing: var(--normal-20-letter-spacing);
+  line-height: var(--normal-20-line-height);
+  white-space: nowrap;
+  font-style: var(--normal-20-font-style);
+}
+
+.text-area {
+  position: relative;
+  width: 332px;
+  height: 42px;
+  margin-bottom: -1px;
+  margin-left: -1px;
+  margin-right: -1px;
+  border-radius: 8px;
+  border: 1px solid;
+  border-color: #8894b3;
+  background-color: white;
+}
+
+.frame .sign-in {
+  position: relative;
+  flex: 1;
+  margin-top: -1px;
+  font-family: var(--emphasis-font-family);
+  font-weight: var(--emphasis-font-weight);
+  font-style: var(--emphasis-font-style);
+  color: #3d4043;
+  font-size: var(--emphasis-font-size);
+  text-align: center;
+  letter-spacing: var(--emphasis-letter-spacing);
+  line-height: var(--emphasis-line-height);
+}
+
+.frame .new-account-frame {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  position: relative;
+  flex: 0 0 auto;
+}

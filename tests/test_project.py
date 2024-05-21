@@ -29,7 +29,7 @@ class TestIndex:
         """Test posting a description type."""
         with app.app_context():
             response = client.post(
-                "/",
+                "/prompt",
                 data={
                     "requesttype": "description",
                     "description": "This is a coastal island.",
@@ -61,7 +61,7 @@ class TestIndex:
                 }
                 with client:
                     response = client.post(
-                        "/",
+                        "/prompt",
                         data=data,
                         content_type="multipart/form-data",
                         follow_redirects=True,
@@ -77,7 +77,7 @@ class TestIndex:
         """Test posting a label type."""
         with app.app_context():
             response = client.post(
-                "/",
+                "/prompt",
                 data={
                     "requesttype": "label",
                     "label": "SEA BREEZE, NATURAL COOLING",
@@ -97,7 +97,7 @@ class TestIndex:
         """Test posting a label type."""
         with app.app_context():
             response = client.post(
-                "/",
+                "/prompt",
                 data={
                     "requesttype": "label",
                     "label": "SUCCULENTS, WETLAND, NON-POTABLE WATER, WETLAND",

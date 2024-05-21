@@ -72,13 +72,15 @@ export class PromptFlowline extends LeaderLine {
     let startRect = this.start.getBoundingClientRect();
     let endRect = this.end.getBoundingClientRect();
     //if startRect is within 100px to the left of endRect, then set gravity differently
-    if ((endRect.left - startRect.left) <= 225) {
+    if ((endRect.left - startRect.left) <= 360 && (endRect.left - startRect.left) > 0){
+      // console.log(this.start, this.end, startRect.left, endRect.left, "within 360px")
       this.setOptions({
         startSocket: 'Right', endSocket: 'Left',
-        startSocketGravity: [150, 0], endSocketGravity: [-150, 0],
+        startSocketGravity: [25, 0], endSocketGravity: [-25, 0],
         // dash: false
       });
     } else {
+      // console.log(this.start, this.end,  startRect.left, endRect.left,"not within 360px")
       this.setOptions({
         startSocket: 'Right', endSocket: 'Left',
         startSocketGravity: [150, 0], endSocketGravity: [-150, 0],
@@ -142,7 +144,6 @@ export class PromptFlowline extends LeaderLine {
   }
 
   setFeedbackStyle() {
-
     this.updateOptions({
       dash: { animation: true, len: 9, gap: 3, duration: 500 },
       dropShadow: {
@@ -202,10 +203,19 @@ export class PromptFlowline extends LeaderLine {
   //   return this.start === otherLine.start && this.end === otherLine.end;
   // }
 
-  toJSONArray() {
-    let startText = this.start.querySelector('.node-wrapper').innerHTML;
-    let endText = this.end.querySelector('.node-wrapper').innerHTML;
-    return [startText, endText];
+  toJSONArray(abs = false) {
+    if (!abs) {
+      let startText = this.start.querySelector('.node-wrapper').innerHTML;
+      let endText = this.end.querySelector('.node-wrapper').innerHTML;
+      return [startText, endText];
+    }
+    if (abs) {
+      let startNode = PromptNode.getNodeObjbyNode(this.start, this.prompt);
+      let endNode = PromptNode.getNodeObjbyNode(this.end, this.prompt);
+      return [startNode.toJSONObj(true), endNode.toJSONObj(true)];
+    }
+
+
   }
 
   select() {
@@ -228,7 +238,14 @@ export class PromptFlowline extends LeaderLine {
 
   unselect() {
     //unselect the line
-    if (!this.selected) return;
+
+    if (!this.selected) {
+      this.setOptions({
+        outline: false,
+        endPlugOutline: false
+      });
+    }
+
     this.setOptions({
       startPlugColor: this.start.style.backgroundColor,
       endPlugColor: this.end.style.backgroundColor,
@@ -240,6 +257,37 @@ export class PromptFlowline extends LeaderLine {
     // this.startNodeItem.inputIdentifier.unselect();
     // this.endNodeItem.outputIdentifier.unselect();
   }
+
+  toselect() {
+    if (this.selected) return;
+    this.setOptions({
+      outline: true,
+      outlineColor: 'black',
+      endPlugOutline: true,
+      outlineSize: 4
+    });
+
+    // //select the identifiers
+    // this.startNodeItem.inputIdentifier.toselect();
+    // this.endNodeItem.outputIdentifier.toselect();
+
+  }
+
+
+  // resettoselect() {
+  //   if (this.selected) return;
+  //   this.setOptions({
+  //     // startPlugColor: this.start.style.backgroundColor,
+  //     // endPlugColor: this.end.style.backgroundColor,
+  //     outline: false,
+  //     endPlugOutline: false
+  //   });
+  //   //resettoselect the identifiers
+  //   this.startNodeItem.inputIdentifier.resettoselect();
+  //   this.endNodeItem.outputIdentifier.resettoselect();
+
+
+  // }
 
 
   remove() {
@@ -271,7 +319,6 @@ export class PromptFlowline extends LeaderLine {
 
     promptItem.returnInfo(); // save the info immediately after removing the line
   }
-
 
   static rmAllSelFlow() {
     PromptFlowline.myLines.forEach(line => line.unselect());
@@ -324,6 +371,5 @@ export class PromptFlowline extends LeaderLine {
       return line.startNodeItem.nodeContent === startText && line.endNodeItem.nodeContent === endText;
     });
   }
-
 
 }

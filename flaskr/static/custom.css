@@ -1,3 +1,23 @@
+
+.readonly {
+  pointer-events: none;
+  user-select: none;
+}
+
+.readonly #customfunc-bar{
+  visibility: hidden;
+}
+
+.editable {
+  pointer-events: auto;
+  user-select: auto;
+}
+
+.editable #customfunc-bar{
+  visibility: visible;
+}
+
+
 #customfunc-bar>.wrapper {
   /* layout */
   display: flex;
@@ -6,8 +26,8 @@
   align-items: center;
   gap: 1.5rem;
   /* position */
-  position: absolute;
-  left: 1rem;
+  position: fixed;
+  left: 4rem;
   top: 1rem;
   border-radius: 0.5rem;
 
@@ -17,7 +37,7 @@
 }
 
 
-.wrapper {
+#content-frame .wrapper {
   position: relative;
 }
 
@@ -63,12 +83,12 @@
   position: absolute;
   border-radius: 0.3125rem;
   box-shadow: var(--node);
-  z-index: 0;
+  z-index: 1;
   pointer-events: auto;
 }
 
 .node>.node-wrapper {
-  overflow: hidden;
+  /* overflow: hidden; */
   flex: 1 0 0;
   /* user-select: none; */
 }

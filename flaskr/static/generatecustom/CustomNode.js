@@ -33,6 +33,9 @@ export class CustomNode extends PromptNode {
     }
     handleContextMenuClick(e) {
     }
+    get nodeY() {
+        return this._nodeY;
+    }
     set nodeY(number) {
         this._nodeY = number;
         if (this.newNode) {
@@ -58,8 +61,20 @@ export class CustomNode extends PromptNode {
     get associatedLinesNodeasOutput() {
         return CustomFlowline.myCustomLines.filter(line => line.end === this.newNode);
     }
+    static isNodeExists(nodeContent, x, y, system, transform) {
+        let node = CustomNode.getNodebyInfo(nodeContent, x, y, system, transform);
+        if (node != null && node != undefined) {
+            return true;
+        }
+        return false;
+    }
+    static getNodebyInfo(nodeContent, x, y, system, transform) {
+        let node = CustomNode.myCustomNodes.find(node => node.nodeContent === nodeContent);
+        if (node != null && node != undefined) {
+        }
+        return CustomNode.myCustomNodes.find(node => node.nodeContent === nodeContent && node.nodeX === x && node.nodeY === y && node.nodeSys === system && node.nodeTransform === transform);
+    }
     static getNodeById(id) {
-        return CustomNode.myCustomNodes.find(node => node.newNode.id === id);
     }
     static getNodeObjbyNode(node) {
         return CustomNode.myCustomNodes.find(nodeItem => nodeItem.newNode === node);
@@ -133,7 +148,6 @@ export class CustomNode extends PromptNode {
         document.addEventListener('mouseup', (e) => {
             if (e.target !== this.nodeWrapper && moved) {
                 document.removeEventListener('mousemove', mouseMoveHandler);
-                console.log('Drag Event ended outside');
                 this.nodeDragState = true;
                 moved = false;
             }

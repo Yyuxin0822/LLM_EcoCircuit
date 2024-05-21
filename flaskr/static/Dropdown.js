@@ -37,7 +37,7 @@ export class Dropdown {
     }
     remove() {
         if (this.dropdown) {
-            this.container.style.zIndex = "0";
+            this.container.style.removeProperty('z-index');
             this.dropdown.remove();
             this.dropdown = null;
             if (Dropdown.activeDropdown === this) {

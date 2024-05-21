@@ -1,5 +1,5 @@
 import { MarqueeTool } from "./MarqueeTool.js";
-import { CanvasDraw } from "./CanvasDraw.js";
+import { CanvasDraw } from "../CanvasDraw.js";
 import { CustomNode } from "./CustomNode.js";
 import { CustomFlowline } from "./CustomFlowline.js";
 const customprompt = document.getElementById("customprompt");

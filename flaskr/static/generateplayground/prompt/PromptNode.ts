@@ -57,6 +57,7 @@ export class PromptNode {
 
     this.init();
     this.attachEventListeners();
+
   }
 
   init() {
@@ -73,9 +74,9 @@ export class PromptNode {
     this._nodeWrapper.classList.add('node-wrapper', 'card-node');
     this._nodeWrapper.innerHTML = this._nodeContent;
     this.newNode.appendChild(this._nodeWrapper);
-    this.adjustFontSize(this.newNode);
+    this.adjustFontSize();
 
-     //for customnode, this.PromptObj is undefined
+    //for customnode, this.PromptObj is undefined
     if (this.PromptObj) {
       let col = this._container.querySelector('#col' + validId(this._nodeX.toString())) as HTMLElement;
       if (!col) {
@@ -84,6 +85,7 @@ export class PromptNode {
         col.id = 'col' + validId(this._nodeX.toString());
         let PromptObj = Prompt.getPromptItembyPrompt(this._container);
         col.style.left = PromptObj.convertNodeXtoAbs(this._nodeX) + 'rem';
+        console.log(col.style.left);
         this._container.appendChild(col);
       }
       col.appendChild(this.newNode);
@@ -95,45 +97,54 @@ export class PromptNode {
     }
   }
 
-  adjustFontSize(node: HTMLElement) {
-    let nodeWrapper = node.querySelector('.node-wrapper') as HTMLElement;
-
+  adjustFontSize() {
+    let nodeWrapper = this._nodeWrapper;
+    let node = this.newNode;
     // Function to update font size
-    function updateFontSize(fontSize: number) {
+    function updateFontSize(nodeWrapper: HTMLElement, fontSize: number) {
       nodeWrapper.style.fontSize = `${fontSize}px`;
     }
 
     // Check if the text is overflowing
-    function isOverflowing() {
-      // console.log('scrollWidth', nodeWrapper.scrollWidth);
-      // console.log('clientWidth', nodeWrapper.clientWidth);
-      return nodeWrapper.scrollWidth > nodeWrapper.clientWidth;
+    function isOverflowingX(nodeWrapper: HTMLElement) {
+      // console.log('actual width', parseFloat(window.getComputedStyle(nodeWrapper).width));
+      // console.log('frame width', parseFloat(window.getComputedStyle(node).width));
+      return parseFloat(window.getComputedStyle(nodeWrapper).width) > (parseFloat(window.getComputedStyle(node).width) - parseFloat(window.getComputedStyle(node).paddingLeft) - parseFloat(window.getComputedStyle(node).paddingRight));
     }
-
+    function isOverflowingY(nodeWrapper: HTMLElement) {
+      // console.log('actual height', parseFloat(window.getComputedStyle(nodeWrapper).height));
+      // console.log('frame height', parseFloat(window.getComputedStyle(node).width)+4);
+      return parseFloat(window.getComputedStyle(nodeWrapper).height) > (parseFloat(window.getComputedStyle(node).width) + 4);
+    }
     // Adjust font size to prevent overflow or reduce to minimum size
-    function adjust() {
-      let fontSize = 14; // Start from initial font size
-      updateFontSize(fontSize);
+    function adjust(node: HTMLElement) {
 
-      while (isOverflowing() && fontSize > 12) {
+      let fontSize = 14; // Start from initial font size
+      updateFontSize(nodeWrapper, fontSize);
+
+      while (isOverflowingX(nodeWrapper) && fontSize > 12) {
         fontSize--; // Decrease font size
-        updateFontSize(fontSize);
+        updateFontSize(nodeWrapper, fontSize);
       }
 
-      if (fontSize === 12 && isOverflowing()) {
+      if (fontSize === 12 && isOverflowingX(nodeWrapper)) {
+        // console.log(nodeWrapper.textContent);
         nodeWrapper.style.whiteSpace = 'normal';
         nodeWrapper.style.lineHeight = '1.0';
         // node.style.height = '1.5rem'; // Allow node height to adjust to content
         node.style.alignItems = 'flex-start';
-        node.style.overflow = 'hidden';
-        nodeWrapper.title = nodeWrapper.textContent;
+        node.style.overflow = 'hidden'
+        // if (isOverflowingY(nodeWrapper)) {
+        //   nodeWrapper.title = nodeWrapper.textContent;
+        // }
+
       }
     }
 
     if (document.readyState === 'complete') {
-      adjust(); // Adjust immediately if document is already loaded
+      adjust(node); // Adjust immediately if document is already loaded
     } else {
-      window.addEventListener('load', adjust); // Adjust when document loads
+      document.addEventListener('DOMContentLoaded', () => { adjust(node); }); // Adjust when document is loaded
     }
   }
 
@@ -378,7 +389,8 @@ export class PromptNode {
 
 
   static addCustomNode(event) {
-    console.log(event.target)
+    // console.log(event.target)
+    // console.log(event)
     let newNode = new PromptCustomNode(event.offsetX, event.offsetY, event.target.closest('.prompt'));
     newNode.node.id = 'nodecustom';
     newNode.nodeWrapper.contentEditable = true;
@@ -427,9 +439,16 @@ export class PromptCustomNode extends PromptNode {
   constructor(absNodeX: number, absNodeY: number, container: HTMLElement) {
     let PromptObj = Prompt.getPromptItembyPrompt(container);
     let nodeX = PromptObj.convertAbstoNodeX(absNodeX);
-
     let nodeY = PromptObj.convertAbstoNodeY(absNodeY);
-    super("", nodeX, nodeY, 'translate(0%, 0%)', hexToRGBA("#888", 0.75), "UNKNOWN", container);
+    console.log(nodeX, nodeY);
+    //check in PromptNode.myNodes if there is already a node at the same position
+    let node = PromptNode.myNodes.find(node => node.nodeX === nodeX && node.nodeY === nodeY && node.container === container);
+    if (!node) {
+      super("", nodeX, nodeY, 'translate(0%, 0%)', hexToRGBA("#888", 0.75), "UNKNOWN", container);
+    } else {
+      return
+    }
+
   }
 }
 

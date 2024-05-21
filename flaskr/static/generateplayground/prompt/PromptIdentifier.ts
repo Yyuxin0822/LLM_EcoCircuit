@@ -9,6 +9,7 @@ import { PromptFlowline } from './PromptFlowline.js';
 
 export class PromptIdentifier {
   static allIdentifiers = [];
+  static inSelect = null;
   node: HTMLElement;
   prompt: HTMLElement;
   nodeItem: PromptNode;
@@ -52,28 +53,59 @@ export class PromptIdentifier {
   }
 
   handleIdentifierSelect(event: CustomEvent) {
-    if (event.detail === this) {
-      this.associateLines.forEach(line => {
-        if (line.startNodeItem.inputIdentifier.selected && line.endNodeItem.outputIdentifier.selected) {
-          line.select();
-        }
-      });
-    }
+    if (event.detail != this) return;
+    //1. If the selected identifier is not the first one in the line to be selected, then select the line
+    let activateToSelect = true;
+    this.associateLines.forEach(line => {
+      if (line.startNodeItem.inputIdentifier.selected && line.endNodeItem.outputIdentifier.selected) {
+        line.select();
+        activateToSelect = false;
+      }
+    });
+
+    // //then reset all other lines and identifiers
+    // PromptIdentifier.inSelect = this;
+    // //I need to find an efficient way to unselect the isolated identifier that is selected. 
+    // //Firstly, clean the prompt loop through all lines in the Prompt, if line.selected=true, skip, else updateColorOptions
+    // this.promptItem.promptLines.forEach(line => {
+    //   //if the line is not selected and the line start or end doesn't contain this
+    //   if (!line.selected && (line.startNodeItem.inputIdentifier !== this && line.endNodeItem.outputIdentifier !== this)) {
+    //     line.resettoselect();
+    //   }
+    // });
+
+    //2. If the selected identifier is the first one in the line to be selected, then activate toselect mode.
+    if (!activateToSelect) return;
+    this.associateLines.forEach(line => {
+      if (line.startNodeItem.inputIdentifier === this || line.endNodeItem.outputIdentifier === this) {
+        line.toselect();
+      }
+    });
+
+
   }
 
   handleIdentifierUnselect(event: CustomEvent) {
-    if (event.detail === this) {
-      this.associateLines.forEach(line => {
-        line.unselect();
-      });
-    }
+    if (event.detail != this) return;
+    this.associateLines.forEach(line => {
+      line.unselect();
+      //check the other identifier in the line, if it is selected,enable its associateLines toselect
+      let otherIdentifier = line.startNodeItem.inputIdentifier === this ? line.endNodeItem.outputIdentifier : line.startNodeItem.inputIdentifier;
+      if (otherIdentifier.selected) {
+        otherIdentifier.associateLines.forEach(line => {
+          line.toselect();
+        });
+      }
+    });
+
+
   }
 
   select() {
     // console.log('Selected');
     if (this.selected) return;
     this.identifier.querySelector('.identifier-dot').classList?.add('identifier-selected');
-    this.identifier.querySelector('.identifier-dot').classList?.remove('identifier-toselect');
+    // this.identifier.querySelector('.identifier-dot').classList?.remove('identifier-toselect');
     this.identifier.querySelector('.identifier-dot').classList?.remove('identifier-unselected');
     this.selected = true;
     if (PromptFlowline.lineSel) {
@@ -86,8 +118,9 @@ export class PromptIdentifier {
     // console.log(this.identifierClass)
     // console.log('Unselected');
     if (!this.selected) return;
+
     this.identifier.querySelector('.identifier-dot').classList?.remove('identifier-selected');
-    this.identifier.querySelector('.identifier-dot').classList?.remove('identifier-toselect');
+    // this.identifier.querySelector('.identifier-dot').classList?.remove('identifier-toselect');
     this.identifier.querySelector('.identifier-dot').classList?.add('identifier-unselected');
     this.selected = false;
     if (PromptFlowline.lineSel) {
@@ -96,6 +129,33 @@ export class PromptIdentifier {
     }
 
   }
+
+  // toselect() {
+  //   if (this.selected) return;
+  //   this.identifier.querySelector('.identifier-dot').classList?.add('identifier-toselect');
+  //   this.identifier.querySelector('.identifier-dot').classList?.remove('identifier-unselected');
+  // }
+
+  // resettoselect() {
+  //   if (PromptIdentifier.inSelect === this) return;
+  //   this.identifier.querySelector('.identifier-dot').classList?.remove('identifier-toselect');
+
+  //   if (this.selected) {
+  //     // Check if any of its associate lines are selected
+  //     let anySelected = this.associateLines.some(line => line.selected);
+
+  //     // If no associated lines are selected, unselect this item
+  //     if (!anySelected) {
+  //       this.identifier.querySelector('.identifier-dot').classList?.remove('identifier-selected');
+  //       this.selected = false;
+  //     } else {
+  //       return; // Stop resettoselect
+  //     }
+  //   }
+
+  //   this.identifier.querySelector('.identifier-dot').classList?.add('identifier-unselected');
+  // }
+
 
   remove() {
     this.identifier.removeEventListener('identifier-select', this.handleIdentifierSelect.bind(this));

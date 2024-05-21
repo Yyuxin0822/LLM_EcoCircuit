@@ -3,13 +3,14 @@ import json
 import re
 import random
 import urllib
-import openai 
+from openai import OpenAI
+from instance.config import OPENAI_API_KEY, GITHUB_TOKEN
+client = OpenAI(api_key=OPENAI_API_KEY)
 import requests
 import base64
-from instance.config import OPENAI_API_KEY, GITHUB_TOKEN
+
 from PIL import Image
 
-openai.api_key = OPENAI_API_KEY
 token=GITHUB_TOKEN
 
 ######################################################
@@ -17,7 +18,7 @@ token=GITHUB_TOKEN
 #Task 1 - Generate Environment Image
 def genexpand(prompt):
     try:
-        response = openai.ChatCompletion.create(
+        response =  client.chat.completions.create(
         model="gpt-4-turbo",
         messages=[
             {
@@ -35,7 +36,7 @@ def genexpand(prompt):
         frequency_penalty=0,
         presence_penalty=0
         )
-        expanded_description = response['choices'][0]['message']['content']
+        expanded_description = response.choices[0].message.content
         return expanded_description
     except Exception as e:
         print(f"An error occurred: {e}")
@@ -44,13 +45,13 @@ def genexpand(prompt):
 def getcanvas(envir_description, max_tries=3):
     for _ in range(max_tries):
         try:
-            response = openai.Image.create(
+            response = client.images.generate(
                 model="dall-e-3",
                 prompt=f"{envir_description}, photorealistic",
                 n=1,
                 size="1024x1024"
             )
-            image_url = response['data'][0]['url']
+            image_url = response.data[0].url
             # logging.debug(f"Image URL: {image_url}")
             return image_url
         except Exception as e:
@@ -64,7 +65,7 @@ def encode_image(image_path='../instance/images/envir.jpg'):
 def getdescription(base64_image, max_tries=3):  
     for i in range(max_tries):
         try:
-            response = openai.ChatCompletion.create(
+            response =  client.chat.completions.create(
                 model="gpt-4-vision-preview",
                 messages=[{
                 "role": "user",
@@ -81,7 +82,7 @@ def getdescription(base64_image, max_tries=3):
             n=i+1,
             max_tokens=300,
             )
-            description = response.choices[0]['message']['content']
+            description = response.choices[0].message.content
             # if description starts with "Sorry"
             if description.startswith("Sorry"):
                 raise Exception(description)
@@ -151,6 +152,7 @@ def genurl(id, local_path='../instance/images/envir.jpg', repo='images', owner='
     # Try to fetch the existing file to get its SHA (if it exists)
     sha = None
     response = requests.get(url, headers=headers)
+    print(response)
     if response.status_code == 200:
         sha = response.json().get('sha')
 

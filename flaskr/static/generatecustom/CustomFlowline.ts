@@ -9,7 +9,7 @@ export class CustomFlowline extends LeaderLine {
   end: HTMLElement;
   commonOptions: {}; //common options for all lines
 
-  constructor(start, end) {
+  constructor(start:HTMLElement, end:HTMLElement) {
     if (CustomFlowline.isLineExists(start, end)) {
       return;
     }
@@ -122,7 +122,7 @@ export class CustomFlowline extends LeaderLine {
 
 
 
-  static isLineExists(start, end) {
+  static isLineExists(start:HTMLElement, end:HTMLElement) {
     return CustomFlowline.myCustomLines.some(line =>
       (line.start === start && line.end === end) || (line.start === end && line.end === start));
   }

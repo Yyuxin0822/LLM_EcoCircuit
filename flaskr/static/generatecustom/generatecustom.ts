@@ -1,32 +1,23 @@
 import { CustomNode } from "./CustomNode.js";
 import { CustomFlowline } from "./CustomFlowline.js";
 
+const eventTypes = ['click', 'keydown', 'keyup', 'scroll', 'load'];
 
-document.addEventListener('click', (e) => {
-    // Prevent the message from being sent if the click happens inside an element within the iframe
-    if (e.target !== document.documentElement) {
-        console.log("triggered")
-        window.parent.postMessage('clickinside', '*');
-    }
+eventTypes.forEach(type => {
+    // Determine the correct target for each event type
+    const target = type === 'load' ? window : document;
+
+    // Use the capture phase for all events to ensure they are intercepted early
+    target.addEventListener(type, (event) => {
+        // console.log(`Event type: ${type}`);
+        // console.log('Event target:', event.target);
+        CustomFlowline.fixLine();
+    }, false); // Set useCapture to true to handle the event in the capturing phase
 });
-
-window.addEventListener('message', (event) => {
-    if (event.data === 'clickOutside') {
-        // Handle the event, e.g., trigger a specific function
-        handleOutsideClick();
-    }
-});
-
-function handleOutsideClick() {
-    // Define what should happen when the click outside event is detected
-    console.log('Clicked outside the iframe');
-    // Add your specific event handling code here
-}
-
 
 //fetch current offset 
 
-//////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////customproject level function///////////////////////////////////////
 
 
 const customprompt = document.getElementById('customprompt');
@@ -80,40 +71,55 @@ function validId(nodeName) {
 }
 
 function processPrompt(nodeArray, flowArray) {
-    if (nodeArray.length != 0) {
-        nodeArray.forEach((node, nIndex) => {
-            var nodeName = node[0];
-            var nodeX = node[1][0];
-            var nodeY = node[1][1];
-            var nodeSystem = node[2];
-            var nodeTransform = "translate(0,0)";
-            if (node[3]) { nodeTransform = node[3]; }
-            
-            var systemString = document.getElementById('customPromptSystem').innerHTML;
-            var systemArray = parseJson(systemString);
-            
-            let defaultRGB = systemArray.find((system) => { system[0] === "UNKNOWN" });
-            let nodeRGB = defaultRGB ? hexToRGBA(defaultRGB[1], 0.75) : hexToRGBA("#888", 0.75);
-            let nodeSys = "UNKNOWN";
-    
-            systemArray.forEach((system) => {
-                if (system[0] === nodeSystem) {
-                    nodeSys = system[0];
-                    nodeRGB = hexToRGBA(system[1], 0.75);
-                }
-            });
-            new CustomNode(nodeName, nodeX, nodeY, nodeTransform, nodeRGB, nodeSys, customPromptWrapper);
+    function processCustomNode(node, systemArray) {
+        var nodeName = node[0];
+        var nodeX = node[1][0];
+        var nodeY = node[1][1];
+        var nodeSystem = node[2];
+        var nodeTransform = "translate(0,0)";
+        if (node[3]) { nodeTransform = node[3]; }
+
+        let defaultRGB = systemArray.find((system) => { system[0] === "UNKNOWN" });
+        let nodeRGB = defaultRGB ? hexToRGBA(defaultRGB[1], 0.75) : hexToRGBA("#888", 0.75);
+        let nodeSys = "UNKNOWN";
+
+        systemArray.forEach((system) => {
+            if (system[0] === nodeSystem) {
+                nodeSys = system[0];
+                nodeRGB = hexToRGBA(system[1], 0.75);
+            }
         });
+        //check if the node already exists
+        let nodeItem=CustomNode.getNodebyInfo(nodeName, nodeX, nodeY, nodeSys, nodeTransform);
+        if (nodeItem === undefined || nodeItem === null) {
+            return new CustomNode(nodeName, nodeX, nodeY, nodeTransform, nodeRGB, nodeSys, customPromptWrapper);
+        }else{
+            // console.log("Node already exists"+nodeItem.nodeContent);
+            return nodeItem;
+        }
+    }
+
+    var systemString = document.getElementById('customPromptSystem').innerHTML;
+    var systemArray = parseJson(systemString);
+
+
+    if (nodeArray.length != 0) {
+
+        nodeArray.forEach((node) => processCustomNode(node, systemArray));
     }
 
     if (flowArray.length != 0) {
         flowArray.forEach((flow) => {
             for (var i = 1; i < flow.length - 1; i++) {
-                var nodeStart = CustomNode.getNodeById('node' + validId(flow[i]));
-                var nodeEnd = CustomNode.getNodeById('node' + validId(flow[i + 1]));
-                nodeStart.setIdentifier('input-identifier');
-                nodeEnd.setIdentifier('output-identifier');
-                //check if there is a line between the two nodes
+                let nodeStartArray = parseJson(flow[i])[0];
+                let nodeEndArray = parseJson(flow[i + 1])[0];
+                // console.log(nodeStartArray, nodeEndArray);
+                var nodeStart = processCustomNode(nodeStartArray, systemArray)
+                var nodeEnd = processCustomNode(nodeEndArray, systemArray)
+                // nodeStart.setIdentifier('input-identifier');
+                // nodeEnd.setIdentifier('output-identifier');
+                // //check if there is a line between the two nodes
+                // console.log(nodeStart.node, nodeEnd.node);
                 if (CustomFlowline.isLineExists(nodeStart.node, nodeEnd.node)) {
                     continue;
                 }
@@ -124,7 +130,18 @@ function processPrompt(nodeArray, flowArray) {
 
 }
 
-
+function setDOMeditable(editable:boolean) {
+    let content = document.getElementById('custom-body-wrapper');
+    if (editable) {
+        //set the control in custom.html
+        content.classList?.remove('readonly');
+        content.classList?.add('editable');
+    } else {
+        //set the control in custom.html
+        content.classList?.remove('editable');
+        content.classList?.add('readonly');
+    }
+}
 
 //Exectution
 
@@ -141,11 +158,17 @@ var isLocal = window.location.hostname === "localhost" || window.location.hostna
 var url = isLocal ? 'http://localhost:8000' : 'https://www.ecocircuitai.com';
 var socket = io.connect(url);
 socket.on('data_from_playground', function (data) {
+    setDOMeditable(false);
+    startload();
     var nodeArray = parseJson(data["node"]);
     var flowArray = parseJson(data["flow"]);
-    console.log(nodeArray, flowArray);
+    // console.log(nodeArray, flowArray);
     processPrompt(nodeArray, flowArray);
-    saveCustom();
+    CustomFlowline.fixLine();
+    // saveCustom();
+    
+    setDOMeditable(true);
+    finishload();
 });
 
 
@@ -178,28 +201,9 @@ function returnInfo() {
         flow.push(line.toJSONArray());
     })
     CustomNode.myCustomNodes.forEach((node) => {
-        nodematrix ={...nodematrix, ...node.toJSONObj()};
+        nodematrix = { ...nodematrix, ...node.toJSONObj() };
     })
     return { flow, nodematrix };
 }
 
-
-// function absPostionMatrix(prompt) {
-//     //this function is to transform the relative position matrix to absolute position matrix
-//     //the relative position matrix is the matrix that is stored in the database
-//     //the absolute position matrix is the matrix that is displayed in the playground
-
-//     //the absolute position matrix is a 2D array with the following structure
-//     // {nodeName:[[absX, absY], nodeSystem]}
-
-//     let absMatrix = {};
-
-//     var nodewrapper = prompt.querySelectorAll('.node-wrapper')
-//     nodewrapper.forEach((nodewrapper) => {
-//         let node = nodewrapper.closest('.node');
-//         let absPosition = [parseFloat(node.style.left), parseFloat(node.style.top)]
-//         absMatrix[nodewrapper.innerHTML] = [absPosition, node.style.transform, node.style.backgroundColor];
-//     })
-//     return absMatrix;
-// }
 

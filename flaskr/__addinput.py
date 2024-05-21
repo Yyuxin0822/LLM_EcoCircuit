@@ -3,10 +3,12 @@ import json
 import re
 import random
 import urllib
-import openai
+from openai import OpenAI
+from instance.config import OPENAI_API_KEY
+client = OpenAI(api_key=OPENAI_API_KEY)
 import numpy as np
 from collections import defaultdict
-from instance.config import OPENAI_API_KEY
+
 from flaskr.project import *
 from flaskr.__io import *
 import math
@@ -18,7 +20,6 @@ logging.basicConfig(
     filemode="a",
     format="%(asctime)s - %(levelname)s - %(message)s",
 )
-openai.api_key = OPENAI_API_KEY
 
 
 ######################################################
@@ -73,7 +74,7 @@ def cleangencoop(string: str, query: list)->(str, list):
         except:
             print(f"{temp} cannot be converted")
             continue
-    
+
     # info_string = string[:first_index]
     know_string = string[:first_index]
     cleaned_string=''
@@ -300,37 +301,34 @@ def genaddinput(output:list, sysdict:dict, randomNumber=3) -> list:
     """
 
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4o",
-            messages=[
-                {
-                    "role": "system",
-                    "content": f"""You are an encyclopedia.Given the outputs, please come up with input resources from the systems I provided. \
+        response = client.chat.completions.create(model="gpt-4o",
+        messages=[
+            {
+                "role": "system",
+                "content": f"""You are an encyclopedia.Given the outputs, please come up with input resources from the systems I provided. \
                         These input-output pairs aim at resource co-optimization, net-zero environment, circular economy, etc. \
-                        Please come up with three to five inputs for each output provided, and please make sure that you thought about every system. and return them in this format: [[input1, output1], [input2, output2],...]""",
-                },
-                {"role": "user", 
-                 "content": 'output: ["irrigation water", "wind"], system:["HYDRO", "ENERGY", "ECOSYSTEM"]'},
-                {
-                    "role": "assistant",
-                    "content": '[["rainwater harvesting", "irrigation water"],["reclaimed water", "irrigation water"],  ["river diversion and canal", "irrigation water"], ["solar-powered water pumps", "irrigation water"],  ["desalination plants powered by renewable energy", "irrigation water"], ["wastewater treatment and reuse", "irrigation water"],  ["smart irrigation systems", "irrigation water"], ["water storage", "irrigation water"], ["constructed Wetlands", "irrigation water"], ["agroforestry", "irrigation water"], ["wind turbine", "wind energy"], ["meteorological data",  "wind energy"], ["composting", "wind energy"]]',
-                },
-                {"role": "user", "content": 'output: ["biofuel", "wifi"], system:["ENERGY", "ECOSYSTEM", "TELECOMMUNICATION"]'},
-                {
-                    "role": "assistant",
-                    "content": '[["municipal solid waste", "biofuel"], ["algae biomass", "biofuel"], ["crop residues", "biofuel"], ["animal fat", "biofuel"], ["atmospheric CO2", "biofuel"], ["digesters", "biofuel"], ["broadband infrastructure", "wifi"], ["fiber-optic networks", "wifi"],["antenna", "wifi"], ["satellite", "wifi"], ["regulated radio waves", "wifi"], ["existing electrical grid", "wifi"]]',
-                },
-                {"role": "user", "content": f'output: {output}, system:{list(sysdict.keys())}',},
-            ],
-            temperature=1,
-            max_tokens=512,
-            top_p=1,
-            frequency_penalty=0,
-            presence_penalty=0,
-            n=randomNumber,
-
-        )
-        output_string = response["choices"][0]["message"]["content"]
+                        Please come up with three to five inputs for each output provided, and please make sure that you thought about every system and don't be generic. and return them in this format: [[input1, output1], [input2, output2],...]""",
+            },
+            {"role": "user", 
+             "content": 'output: ["irrigation water", "wind"], system:["HYDRO", "ENERGY", "ECOSYSTEM"]'},
+            {
+                "role": "assistant",
+                "content": '[["rainwater harvesting", "irrigation water"],["reclaimed water", "irrigation water"],  ["river diversion and canal", "irrigation water"], ["solar-powered water pumps", "irrigation water"],  ["desalination plants powered by renewable energy", "irrigation water"], ["wastewater treatment and reuse", "irrigation water"],  ["smart irrigation systems", "irrigation water"], ["water storage", "irrigation water"], ["constructed Wetlands", "irrigation water"], ["agroforestry", "irrigation water"], ["wind turbine", "wind energy"], ["meteorological data",  "wind energy"], ["composting", "wind energy"]]',
+            },
+            {"role": "user", "content": 'output: ["biofuel", "wifi"], system:["ENERGY", "ECOSYSTEM", "TELECOMMUNICATION"]'},
+            {
+                "role": "assistant",
+                "content": '[["municipal solid waste", "biofuel"], ["algae biomass", "biofuel"], ["crop residues", "biofuel"], ["animal fat", "biofuel"], ["atmospheric CO2", "biofuel"], ["digesters", "biofuel"], ["broadband infrastructure", "wifi"], ["fiber-optic networks", "wifi"],["antenna", "wifi"], ["satellite", "wifi"], ["regulated radio waves", "wifi"], ["existing electrical grid", "wifi"]]',
+            },
+            {"role": "user", "content": f'output: {output}, system:{list(sysdict.keys())}',},
+        ],
+        temperature=1,
+        max_tokens=512,
+        top_p=1,
+        frequency_penalty=0,
+        presence_penalty=0,
+        n=randomNumber)
+        output_string = response.choices[0].message.content
         return cleangenio(output_string, output, querytype="output")
     except Exception as e:  # This catches all exceptions
         print(f"An error occurred: {e}")
@@ -348,40 +346,89 @@ def genaddoutput(input, sysdict:dict, randomNumber=3) -> list:
     [[i1,o1],[i2,o2],...] -- a list of list of input and output
     """
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4o",
-            messages=[
+        response = client.chat.completions.create(model="gpt-4o",
+        messages=[
+            {
+            "role": "system",
+            "content": [
                 {
-                    "role": "system",
-                    "content": f"""You are an encyclopedia. Given the input, please come up with output resources from the systems I provided. \
-                                These input-output pairs aim at resource co-optimization, net-zero environment, circular economy, etc for greater sustainability. \
-                                Please come up with three to five outputs for each input provided, and make sure you thought about every system. and return them in this format: [[input1, output1], [input2, output2],...]""",
-                },
+                "type": "text",
+                "text": "You are an encyclopedia. Given the input list, please come up with output resources from the systems I provided. These input-output pairs aim at resource co-optimization and achieve enhanced sustainability goals. Input and output resources are components of the systems I provided. Please come up with two to five outputs for each input provided. If there are over 15 inputs, generate two to three for each. If not that many, generate three to five for each. Please generate around 45 input-output pairs in total. Please make sure you thought about every input and every system. \
+                Please avoid generic sustainability goals and similar meaning outputs. Check all outputs, and if you come up with \"crop yield protection\", \"crop yield improvement\", as the output of  \"waste water\" and \"crop yield optimization\" as the output of \"organic waste\". \"crop yield protection\", \"crop yield improvement\", and \"crop yield optimization\" are similar meaning and you should only have one of them as the common output of \"organic waste\" and \"wast water\". \nPlease return them in this format: [[\"input1\", \"output1\"], [\"input2\", \"output2\"],...]"
+                }
+            ]
+            },
+            {
+            "role": "user",
+            "content": [
                 {
-                    "role": "user",
-                    "content": 'input: ["waste water", "organic waste", "wind"], \
-                                system:["HYDRO", "ENERGY", "ECOSYSTEM"]',
-                },
+                "type": "text",
+                "text": "input: [\"waste water\", \"organic waste\", \"wind\"], system:[\"HYDRO\", \"ENERGY\", \"ECOSYSTEM\"]"
+                }
+            ]
+            },
+            {
+            "role": "assistant",
+            "content": [
                 {
-                    "role": "assistant",
-                    "content": '[["waste water", "agricultural irrigation"], ["waste water", "safe drinkning water"], ["waste water", "biosolids"],["waste water", "biofuel"], ["organic waste", "soil health in urban garden"], ["organic waste", "biogas"], ["wind","hydrogen"], ["wind","stored in batteries"], ["wind", "humidity"]]',
-                },
-                {"role": "user", "content": 'input: ["biofuel", "wifi"], system:["ENERGY", "ECOSYSTEM", "TELECOMMUNICATION"]'},
+                "type": "text",
+                "text": "[[\"WASTE WATER\", \"RENEWABLE ENERGY PRODUCTION\"],\n[\"WASTE WATER\", \"MICROBIAL FUEL CELLS\"],\n[\"WASTE WATER\", \"NUTRIENT EXTRACTION FOR AGRICULTURE\"],\n[\"WASTE WATER\", \"SAFE DRINKING WATER\"],\n[\"WASTE WATER\", \"INDUSTRIAL COOLING PROCESSES\"],\n[\"WASTE WATER\", \"BIOGAS GENERATION\"],\n[\"ORGANIC WASTE\", \"NUTRIENT EXTRACTION FOR AGRICULTURE\"],\n[\"ORGANIC WASTE\", \"METHANE CAPTURE AND UTILIZATION\"],\n[\"ORGANIC WASTE\", \"ORGANIC FERTILIZER\"],\n[ORGANIC WASTE, ANAEROBIC DIGESTION],\n[\"ORGANIC WASTE\", \"BIOGAS GENERATION\"],\n[\"WIND\",\"HYDROGEN\"],\n[\"WIND\",\"STORED IN BATTERIES\"],\n[\"WIND\", \"SUSTAINABLE HYDROPOWER INTEGRATION\"],\n[\"WIND\", \"HUMIDITY\"],\n[\"WIND\", \"RENEWABLE ENERGY PRODUCTION\"]]"
+                }
+            ]
+            },
+            {
+            "role": "user",
+            "content": [
                 {
-                    "role": "assistant",
-                    "content": '[["biofuel", "greenhouse gas reduction"], ["biofuel", "soil improvement"],["biofuel", "heat for industrial process"],\n["wifi", "telemedicine access"], ["wifi", "smart city integration"], ["wifi", "IoT devices for energy management"]]',
-                },
-                {"role": "user", "content": f'input: {input}, system:{list(sysdict.keys())}',}
-            ],
-            temperature=1,
-            max_tokens=4096,
-            top_p=1,
-            frequency_penalty=0,
-            presence_penalty=0,
-            n=randomNumber,
-
-        )
-        output_string = response["choices"][0]["message"]["content"]
+                "type": "text",
+                "text": "input: [\"biofuel\", \"wifi\"], system:[\"ENERGY\", \"ECOSYSTEM\", \"TELECOMMUNICATION\"]"
+                }
+            ]
+            },
+            {
+            "role": "assistant",
+            "content": [
+                {
+                "type": "text",
+                "text": "[[\"BIOFUEL\", \"REDUCTION OF GREENHOUSE GASES\"], [\"BIOFUEL\", \"BIODEGRADABLE BYPRODUCTS\"], [\"BIOFUEL\", \"SUPPORT FOR RURAL ECONOMIES\"], [\"BIOFUEL\", \"GENERATION OF INDUSTRIAL HEAT\"], [\"WIFI\", \"SMART GRID MANAGEMENT\"], [\"WIFI\", \"REMOTE AGRICULTURAL MONITORING\"], [\"WIFI\", \"WILDLIFE TRACKING\"], [\"WIFI\", \"ENHANCED TELECOMMUNICATION INFRASTRUCTURE\"], [\"WIFI\", \"REMOTE ENVIRONMENTAL SENSING\"]]"
+                }
+            ]
+            },
+            {
+            "role": "user",
+            "content": [
+                {
+                "type": "text",
+                "text": "input: [\"CONTROLLED DRAINAGE SYSTEMS\", \"POTABLE WATER\", \"RECLAIMED WATER SYSTEMS\", \n\"STORMWATER MANAGEMENT SYSTEMS\", \"WATER TANKS\", \"HERB GARDENS\", \"ROOFTOP GARDENS\", \"SHRUBS\", \"URBAN WILDLIFE\",\"VERTICAL GARDENS\",\"AIR QUALITY SENSORS\",\"METAL FRAMES\", \"SENSORS\", \"TECHNICAL MONITORING SYSTEMS\",\"BIO-WASTE DIGESTERS\",\"COMPOST BINS\", \"FIBER OPTIC CABLES\",\"SIGNAL BOOSTERS\",  \"ELECTRIC VEHICLE CHARGING STATIONS\", \n\"PEDESTRIAN PATHWAYS\", \"PUBLIC TRANSPORT ACCESS\", \"BUILDING INSULATION\", \"PHOTOVOLTAIC GLASS\", \"SOLAR PANELS\"], system: [\"HYDRO\", \"ENERGY\", \"BIOSYSTEM\", \"TELECOMMUNICATION\", \"UNKNOWN\", \"MOBILITY\", \"SOLID WASTE\"]"
+                }
+            ]
+            },
+            {
+            "role": "assistant",
+            "content": [
+                {
+                "type": "text",
+                "text": "[[\"CONTROLLED DRAINAGE SYSTEMS\", \"ENHANCED CROP YIELD THROUGH OPTIMAL SOIL MOISTURE CONTROL\"], [\"CONTROLLED DRAINAGE SYSTEMS\", \"MINIMIZED EUTROPHICATION\"], [\"CONTROLLED DRAINAGE SYSTEMS\", \"ADAPTIVE FLOOD MITIGATION\"], [\"CONTROLLED DRAINAGE SYSTEMS\", \"AQUIFER RECHARGE\"],\n[\"POTABLE WATER\", \"SAFE DRINKING WATER THROUGH FILTRATION\"], [\"POTABLE WATER\", \"INDUSTRIAL PROCESS WATER\"], [\"POTABLE WATER\", \"EMERGENCY RESERVES\"], [\"POTABLE WATER\", \"MEDICAL USAGE\"],\n[\"RECLAIMED WATER SYSTEMS\", \"AGRICULTURAL IRRIGATION WATER\"], [\"RECLAIMED WATER SYSTEMS\", \"COST-EFFECTIVE WATER REUSE FOR COOLING\"], [\"RECLAIMED WATER SYSTEMS\", \"WETLAND RESTORATION\"],\n[\"STORMWATER MANAGEMENT SYSTEMS\", \"ADAPTIVE FLOOD MITIGATION\"], [\"STORMWATER MANAGEMENT SYSTEMS\", \"AQUIFER RECHARGE\"], [\"STORMWATER MANAGEMENT SYSTEMS\", \"NON-POTABLE APPLICATIONS\"],\n[\"WATER TANKS\", \"EMERGENCY WATER SUPPLY STORAGE\"], [\"WATER TANKS\", \"RAINWATER HARVESTING\"], [\"WATER TANKS\", \"FIRE SUPPRESSION RESERVES\"], [\"WATER TANKS\", \"AGRICULTURAL IRRIGATION\"],\n[\"HERB GARDENS\", \"URBAN GREENING\"], [\"HERB GARDENS\", \"COMMUNITY HEALTH\"], [\"HERB GARDENS\", \"LOCAL FOOD PRODUCTION\"], [\"HERB GARDENS\", \"IMPROVED BIODIVERSITY\"],\n[\"ROOFTOP GARDENS\", \"URBAN HEAT ISLAND EFFECT REDUCTION\"], [\"ROOFTOP GARDENS\", \"INSULATION FOR BUILDINGS\"], [\"ROOFTOP GARDENS\", \"IMPROVED BIODIVERSITY\"], [\"ROOFTOP GARDENS\", \"LOCAL FOOD PRODUCTION\"],\n[\"SHRUBS\", \"EROSION CONTROL\"], [\"SHRUBS\", \"SHELTER AND FOOD FOR LOCAL WILDLIFE\"], [\"SHRUBS\", \"CARBON SEQUESTRATION\"], [\"SHRUBS\", \"AESTHETIC IMPROVEMENT\"], [\"URBAN WILDLIFE\", \"IMPROVED BIODIVERSITY\"], [\"URBAN WILDLIFE\", \"MAINTAINING PREDATOR-PREY DYNAMICS\"], [\"URBAN WILDLIFE\", \"LIVING LABORATORIES\"], [\"URBAN WILDLIFE\", \"RECREATION AND TOURISM\"],\n[\"VERTICAL GARDENS\", \"URBAN HEAT ISLAND EFFECT REDUCTION\"], [\"VERTICAL GARDENS\", \"IMPROVED AIR QUALITY\"], [\"VERTICAL GARDENS\", \"BUILDING INSULATION\"], [\"VERTICAL GARDENS\", \"LOCAL FOOD PRODUCTION\"], [\"AIR QUALITY SENSORS\", \"REAL-TIME AIR POLLUTION MONITORING\"],\n[\"AIR QUALITY SENSORS\", \"PUBLIC HEALTH DATA\"], [\"AIR QUALITY SENSORS\", \"ENVIRONMENTAL POLICY ENFORCEMENT\"], [\"AIR QUALITY SENSORS\", \"INDOOR AIR QUALITY MONITORING\"],\n[\"METAL FRAMES\", \"DURABLE FRAMES FOR GREEN BUILDING\"], [\"METAL FRAMES\", \"SOLAR PANELS\"], [\"METAL FRAMES\", \"STRONG AND DURABLE CONSTRUCTION MATERIALS\"],\n[\"SENSORS\", \"SMART IRRIGATION SYSTEMS\"], [\"SENSORS\", \"INFRASTRUCTURE HEALTH MONITORING\"], [\"SENSORS\", \"WILDLIFE TRACKING\"], [\"SENSORS\", \"REAL-TIME DATA COLLECTION FOR URBAN PLANNING\"],\n[\"TECHNICAL MONITORING SYSTEMS\", \"INFRASTRUCTURE HEALTH MONITORING\"], [\"TECHNICAL MONITORING SYSTEMS\", \"ENERGY USAGE OPTIMIZATION\"], [\"TECHNICAL MONITORING SYSTEMS\", \"RESOURCE MANAGEMENT\"],\n[\"BIO-WASTE DIGESTERS\", \"BIOGAS GENERATION\"], [\"BIO-WASTE DIGESTERS\", \"ORGANIC FERTILIZER PRODUCTION\"], [\"BIO-WASTE DIGESTERS\", \"WASTE VOLUME REDUCTION\"], [\"BIO-WASTE DIGESTERS\", \"REDUCED LANDFILL WASTE\"],\n[\"COMPOST BINS\", \"SOIL ENRICHMENT\"], [\"COMPOST BINS\", \"DIVERTING ORGANIC WASTE FROM LANDFILLS\"], [\"COMPOST BINS\", \"ORGANIC FERTILIZER PRODUCTION\"], [\"COMPOST BINS\", \"SUPPORTING LOCAL GARDEN\"], [\"FIBER OPTIC CABLES\", \"HIGH-SPEED INTERNET CONNECTIVITY\"], [\"FIBER OPTIC CABLES\", \"RELIABLE DATA TRANSMISSION\"], [\"FIBER OPTIC CABLES\", \"ENHANCED TELECOMMUNICATION INFRASTRUCTURE\"], [\"FIBER OPTIC CABLES\", \"SUPPORT FOR SMART CITY APPLICATIONS\"],\n[\"SIGNAL BOOSTERS\", \"IMPROVED CELLULAR CONNECTIVITY\"], [\"SIGNAL BOOSTERS\", \"ELIMINATING DEAD ZONES\"], [\"SIGNAL BOOSTERS\", \"REDUCED DROPPED CALLS\"], [\"SIGNAL BOOSTERS\", \"SUPPORT FOR REMOTE WORK AND TELECOMMUTING\"], [\"ELECTRIC VEHICLE CHARGING STATIONS\", \"SUPPORT FOR ELECTRIC VEHICLE ADOPTION\"], [\"ELECTRIC VEHICLE CHARGING STATIONS\", \"REDUCED GREENHOUSE GAS EMISSIONS\"], [\"ELECTRIC VEHICLE CHARGING STATIONS\", \"PROMOTE SUSTAINABLE TRANSPORTATION\"], [\"ELECTRIC VEHICLE CHARGING STATIONS\", \"REDUCED RELIANCE ON FOSSIL FUELS\"], [\"PEDESTRIAN PATHWAYS\", \"ENHANCED URBAN MOBILITY\"], [\"PEDESTRIAN PATHWAYS\", \"REDUCED TRAFFIC CONGESTION\"], [\"PEDESTRIAN PATHWAYS\", \"IMPROVED PUBLIC HEALTH\"], [\"PEDESTRIAN PATHWAYS\", \"INCREASED WALKABILITY\"], [\"PUBLIC TRANSPORT ACCESS\", \"REDUCED TRAFFIC CONGESTION\"], [\"PUBLIC TRANSPORT ACCESS\", \"LOWER CARBON FOOTPRINT\"], [\"PUBLIC TRANSPORT ACCESS\", \"ACCESSIBLE TRANSIT FOR ALL CITIZENS\"], [\"PUBLIC TRANSPORT ACCESS\", \"IMPROVED PUBLIC HEALTH\"],\n[\"BUILDING INSULATION\", \"ENERGY CONSERVATION\"], [\"BUILDING INSULATION\", \"REDUCED HEATING AND COOLING COSTS\"], [\"BUILDING INSULATION\", \"IMPROVED INDOOR COMFORT\"], [\"BUILDING INSULATION\", \"REDUCED GREENHOUSE GAS EMISSIONS\"], [\"PHOTOVOLTAIC GLASS\", \"SOLAR ENERGY GENERATION\"], [\"PHOTOVOLTAIC GLASS\", \"BUILDING ENERGY EFFICIENCY\"], [\"PHOTOVOLTAIC GLASS\", \"REDUCED CARBON FOOTPRINT\"], [\"PHOTOVOLTAIC GLASS\", \"AESTHETIC ARCHITECTURAL DESIGN\"], [\"SOLAR PANELS\", \"DISTRIBUTED ENERGY\"], [\"SOLAR PANELS\", \"ENERGY COST SAVINGS\"], [\"SOLAR PANELS\", \"REDUCED GREENHOUSE GAS EMISSIONS\"], [\"SOLAR PANELS\", \"DECENTRALIZED POWER\"]]\n "
+                }
+            ]
+            },
+            {
+            "role": "user",
+            "content": [
+                {
+                "type": "text",
+                "text":  f'input:{input}, system:{list(sysdict.keys())}'
+                }
+            ]
+            },
+        ],
+        temperature=1,
+        max_tokens=2048,
+        top_p=1,
+        frequency_penalty=0,
+        presence_penalty=0,
+        n=randomNumber)
+        output_string = response.choices[0].message.content
         return cleangenio(output_string, input, querytype="input")
     except Exception as e:  # This catches all exceptions
         print(f"An error occurred: {e}")
@@ -391,12 +438,11 @@ def genaddoutput(input, sysdict:dict, randomNumber=3) -> list:
 ## gen "add-process"
 def genknowledge(io, randomNumber=4):
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4o",
-            messages=[
-                {
-                    "role": "system",
-                    "content": """You are an encyclopedia. You are to provide knowledge for the generating input from output. 
+        response = client.chat.completions.create(model="gpt-4o",
+        messages=[
+            {
+                "role": "system",
+                "content": """You are an encyclopedia. You are to provide knowledge for the generating input from output. 
             Flow is a list of two elements. The first element is the input and the second element is the output.
             Knowledge consists of four to five methods of generating the flow. Each method could be processes, resources, and technologies to transform input to output.
             Please don't make up the knowledge if you don't know it. 
@@ -415,14 +461,12 @@ def genknowledge(io, randomNumber=4):
                         ["As moss releases moisture through evaporation, it helps cool the surrounding air. This cooling can also lead to condensation, further becoming local humidifier."], \
                         ["Moss can absorb water up to 20 times dry weight. Due to their cellular structure and the lack of a traditional root system, moss absorb moisture directly through their leaves and becomes humidifier"]]
             """,
-                },
-                {"role": "user", "content": str(io)},
-            ],
-            temperature=1,
-            n=randomNumber,
-
-        )
-        knowledge = response["choices"][0]["message"]["content"]
+            },
+            {"role": "user", "content": str(io)},
+        ],
+        temperature=1,
+        n=randomNumber)
+        knowledge = response.choices[0].message.content
         return cleangenknowledge(knowledge)
     except Exception as e:  # This catches all exceptions
         print(f"An error occurred: {e}")
@@ -433,54 +477,51 @@ def genprocess(io, knowledge=None, randomNumber=4) -> list:
     if knowledge == None:
         knowledge = genknowledge(io)
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4o",
-            messages=[
-                {
-                    "role": "system",
-                    "content": """You are to convert transformation knowledge into stepped list.\n
-                    Each list has three to six sequenced nodes interpreting knowledge.\n""",
-                },
-                {
-                    "role": "user",
-                    "content": 'To transform "BRINE" to "BASO4", we know: [["Brine can transform to Baso4 through reproduction process."],["Brine can transform to Baso4 and Nacl through salt evaporation pond."], ["Brine can transform to Baso4 through inverse osmosis."]]',
-                },
-                {
-                    "role": "assistant",
-                    "content": '[["BRINE", "REPRODUCTION PROCESS", "BASO4"],["BRINE", "SALT EVAPORATION POND", "BASO4"],["BRINE", "INVERSE OSMOSIS", "BASO4"]] ',
-                },
-                {
-                    "role": "user",
-                    "content": 'To transform "WASTEWATER" to "AGRICULTURE", we know: [["Wastewater is processed in Wastewater Treatment Plant to output treated water. Treated water can be used for agriculture."],["Wastewater can cut the need for fertilisers, and improve soil quality, and be useful to agriculture."]]',
-                },
-                {
-                    "role": "assistant",
-                    "content": '[["WASTEWATER", "WASTEWATER TREATMENT PLANT", "TREATED WATER", "AGRICULTURE"],["WASTEWATER", "FERTILISER","SOIL QUALITY","AGRICULTURE"]]',
-                },
-                {
-                    "role": "user",
-                    "content": 'To transform "MOSS" to "HUMIDIFIER", we know: [["Moss has a large surface area relative to their volume. This extensive surface area allows them to capture more moisture from the air, which they then retain in their structure. This is how they become humidifier"],\
+        response = client.chat.completions.create(model="gpt-4o",
+        messages=[
+            {
+                "role": "system",
+                "content": """You are to convert transformation knowledge into stepped list.
+                    Each list has three to six sequenced nodes interpreting knowledge.""",
+            },
+            {
+                "role": "user",
+                "content": 'To transform "BRINE" to "BASO4", we know: [["Brine can transform to Baso4 through reproduction process."],["Brine can transform to Baso4 and Nacl through salt evaporation pond."], ["Brine can transform to Baso4 through inverse osmosis."]]',
+            },
+            {
+                "role": "assistant",
+                "content": '[["BRINE", "REPRODUCTION PROCESS", "BASO4"],["BRINE", "SALT EVAPORATION POND", "BASO4"],["BRINE", "INVERSE OSMOSIS", "BASO4"]] ',
+            },
+            {
+                "role": "user",
+                "content": 'To transform "WASTEWATER" to "AGRICULTURE", we know: [["Wastewater is processed in Wastewater Treatment Plant to output treated water. Treated water can be used for agriculture."],["Wastewater can cut the need for fertilisers, and improve soil quality, and be useful to agriculture."]]',
+            },
+            {
+                "role": "assistant",
+                "content": '[["WASTEWATER", "WASTEWATER TREATMENT PLANT", "TREATED WATER", "AGRICULTURE"],["WASTEWATER", "FERTILISER","SOIL QUALITY","AGRICULTURE"]]',
+            },
+            {
+                "role": "user",
+                "content": 'To transform "MOSS" to "HUMIDIFIER", we know: [["Moss has a large surface area relative to their volume. This extensive surface area allows them to capture more moisture from the air, which they then retain in their structure. This is how they become humidifier"],\
                         ["As moss releases moisture through evaporation, it helps cool the surrounding air. This cooling can also lead to condensation, further becoming local humidifier."], \
                         ["Moss can absorb water up to 20 times dry weight. Due to their cellular structure and the lack of a traditional root system, moss absorb moisture directly through their leaves and becomes humidifier"]]',
-                },
-                {
-                    "role": "assistant",
-                    "content": '[["MOSS", "LARGE SURFACE AREA", "CAPTURE MOISTURE","HUMIDIFIER"],\
+            },
+            {
+                "role": "assistant",
+                "content": '[["MOSS", "LARGE SURFACE AREA", "CAPTURE MOISTURE","HUMIDIFIER"],\
                         ["MOSS", "RELEASE MOISTURE THROUGH EVAPORATION","COOL THE SURROUNDING AIR","CONDENSATION","HUMIDIFIER"],\
                             ["MOSS", "CELLULAR STRUCTURE", "LACK OF A TRADITIONAL ROOT SYSTEM", "ABSORB WATER UP TO 20 TIMES DRY WEIGHT", "HUMIDIFIER"]]',
-                },
-                {
-                    "role": "user",
-                    "content": f" To transform {io[0]} to {io[1]}, we know: {knowledge}",
-                },
-            ],
-            temperature=0.5,
-            max_tokens=1200,
-            top_p=0.75,
-            n=randomNumber,
-    
-        )
-        processs_string = response["choices"][0]["message"]["content"]
+            },
+            {
+                "role": "user",
+                "content": f" To transform {io[0]} to {io[1]}, we know: {knowledge}",
+            },
+        ],
+        temperature=0.5,
+        max_tokens=1200,
+        top_p=0.75,
+        n=randomNumber)
+        processs_string = response.choices[0].message.content
         process=cleangenprocess(processs_string)
         return (knowledge, process)
     except Exception as e:  # This catches all exceptions
@@ -500,22 +541,21 @@ def genaddcooptimization(input: list, randomNumber=3) -> list:
      [i1,o2],[i2,o2],[i3,o2],...] -- a list of list of input and output
     """
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4o",
-            messages=[
-                {
-                    "role": "system",
-                    "content": f"""
+        response = client.chat.completions.create(model="gpt-4o",
+        messages=[
+            {
+                "role": "system",
+                "content": f"""
                     You are to co-optimize input resources to achieve greater sustainability, such as sustainable net-zero environment, circular economy, sustainable growth of a community.
                     Please try various combinations to generate flow outcomes, and organize in nested list.""",
-                },
-                {
-                    "role": "user",
-                    "content": "['VILLAGE','SOIL FERTILITY','MOUNTAINOUS TERRAIN']",
-                },
-                {
-                    "role": "assistant",
-                    "content": """Using Multiple Elements in One Flow:
+            },
+            {
+                "role": "user",
+                "content": "['VILLAGE','SOIL FERTILITY','MOUNTAINOUS TERRAIN']",
+            },
+            {
+                "role": "assistant",
+                "content": """Using Multiple Elements in One Flow:
                     1. Village + Mountainous Terrain: The hamlet is situated within a mountainous terrain, 
                     offering unique agricultural and tourism possibilities stemming from the topography.
                     Flow Outcome: "Niche High-Altitude Agriculture", "Eco-Tourism"
@@ -533,14 +573,14 @@ def genaddcooptimization(input: list, randomNumber=3) -> list:
                     ["MOUNTAINOUS TERRAIN ", "FOREST LITTER AND OTHER ORGANIC MATERIALS”], \n
                     ["VILLAGE", "LOCAL SELF-SUSTENANCE FARMING"],\n
                     ["SOIL FERTILITY", "LOCAL SELF-SUSTENANCE FARMING"]]""",
-                },
-                {
-                    "role": "user",
-                    "content": "['RESERVOIR', 'FLOODWATER', 'BIOMASS', 'IRRIGATION', 'WATER', 'WIND TURBINE']",
-                },
-                {
-                    "role": "assistant",
-                    "content": """Using Multiple Elements in One Flow:
+            },
+            {
+                "role": "user",
+                "content": "['RESERVOIR', 'FLOODWATER', 'BIOMASS', 'IRRIGATION', 'WATER', 'WIND TURBINE']",
+            },
+            {
+                "role": "assistant",
+                "content": """Using Multiple Elements in One Flow:
                     1. Reservoir + Floodwater + Irrigation: Reservoirs collect excess floodwater and utilize it for controlled irrigation in dry seasons.\n
                     Flow Outcome: "Flood Mitigation", "Drought-Resistant Agriculture"
                     2. Wind Turbine + Reservoir: Wind turbines harness wind energy and power the pumping of water into reservoirs from various water sources.\n
@@ -569,18 +609,16 @@ def genaddcooptimization(input: list, randomNumber=3) -> list:
                     ["BIOMASS"," BIOMASS-POWERED ENERGY PRODUCTION"],
                     ["WIND TURBINE"," BIOMASS-POWERED ENERGY PRODUCTION"]
                     ]""",
-                },
-                {"role": "user", "content": str(input)},
-            ],
-            temperature=1,
-            max_tokens=4096,
-            top_p=1,
-            frequency_penalty=0.2,
-            presence_penalty=0,
-            n=randomNumber,
-            # stream=True,
-        )
-        output_string = response["choices"][0]["message"]["content"]
+            },
+            {"role": "user", "content": str(input)},
+        ],
+        temperature=1,
+        max_tokens=4096,
+        top_p=1,
+        frequency_penalty=0.2,
+        presence_penalty=0,
+        n=randomNumber)
+        output_string = response.choices[0].message.content
         logging.debug(f"genaddcooptimization: {output_string}")
         return cleangencoop(output_string, input)
     except Exception as e:  # This catches all exceptions
@@ -608,20 +646,19 @@ def genaddfeedback(tosearchnode: list, usefulnode: list, randomNumber=3):
         usefulnode = unielement(usefulnode)
 
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4o",
-            messages=[
-                {
-                    "role": "system",
-                    "content": 'You are an environmental engineering specialist for regenerative environments. Here are two lists of nodes. \
+        response = client.chat.completions.create(model="gpt-4o",
+        messages=[
+            {
+                "role": "system",
+                "content": 'You are an environmental engineering specialist for regenerative environments. Here are two lists of nodes. \
                     One list includes useful resources to achieve a net-zero environment, and the other list includes resources that are extra and abundant. \n\
                     For each node in the second list, please search in the first list to suggest potential regeneration.\n\
                     Please answer in this format: \n[["to_search_node1":["useful_node1","useful_node2","useful_node3"]],\n\
                     ["to_search_node2": ["useful_node1","useful_node2","useful_node3"]],\n     ...]',
-                },
-                {
-                    "role": "user",
-                    "content": "useful_node: ['RAINWATER', 'ORGANIC EDIBLES', 'ORGANIC MATTER', 'HABITAT PROTECTION', 'SOIL NUTRIENTS', \
+            },
+            {
+                "role": "user",
+                "content": "useful_node: ['RAINWATER', 'ORGANIC EDIBLES', 'ORGANIC MATTER', 'HABITAT PROTECTION', 'SOIL NUTRIENTS', \
                     'WIND ENERGY', 'CARBON SEQUESTRATION', 'ANIMAL FEED', 'WAVES', 'SAND', 'PLANT BIODIVERSITY', 'SEA BREEZES', 'SEA LIFE', \
                     'DISPOSER', 'TOURIST ATTRACTION', 'ROCKS', 'CONSTRUCTION MATERIAL', 'SHELLS', 'EROSION CONTROL', 'SOLAR ENERGY', 'TOPOGRAPHY', \
                     'INDIGENOUS PLANTS', 'IMPROVED HUMAN HEALTH', 'RAINWATER COLLECTING SYSTEMS', 'COASTAL PROTECTION', 'GROUND COVER', 'PHOTOVOLTAIC PANELS', \
@@ -631,24 +668,23 @@ def genaddfeedback(tosearchnode: list, usefulnode: list, randomNumber=3):
                     'SEDIMENT', 'AESTHETIC PLEASURE', 'BIRD SPECIES', 'PLANT SPECIES', 'THERMAL HEATING', 'SOIL', 'ECO-FRIENDLY MATERIALS', 'GARDENS', 'SEAGRASS', \
                     'SUN ENERGY', 'DURABLE GRASS', 'TOURISM', 'SEDUM', 'OCEAN', 'SEAWEED', 'COASTAL ISLAND']\n\n\
                         to_search_node: [\"SHELLS\", \"ANIMAL FEED\"]",
-                },
-                {
-                    "role": "assistant",
-                    "content": '[["SHELLS": ["CONSTRUCTION MATERIAL", "TOURIST ATTRACTION", "COASTAL PROTECTION"]],\n ["ANIMAL FEED": ["ORGANIC MATTER", "COMPOST", "AGRICULTURE"]]]',
-                },
-                {
-                    "role": "user",
-                    "content": f"useful_node: {usefulnode}\nto_search_node: {tosearchnode}",
-                },
-            ],
-            temperature=1,
-            max_tokens=4096,
-            top_p=1,
-            frequency_penalty=0.2,
-            presence_penalty=0,
-            n=randomNumber,
-        )
-        output_string = response["choices"][0]["message"]["content"]
+            },
+            {
+                "role": "assistant",
+                "content": '[["SHELLS": ["CONSTRUCTION MATERIAL", "TOURIST ATTRACTION", "COASTAL PROTECTION"]],\n ["ANIMAL FEED": ["ORGANIC MATTER", "COMPOST", "AGRICULTURE"]]]',
+            },
+            {
+                "role": "user",
+                "content": f"useful_node: {usefulnode}\nto_search_node: {tosearchnode}",
+            },
+        ],
+        temperature=1,
+        max_tokens=4096,
+        top_p=1,
+        frequency_penalty=0.2,
+        presence_penalty=0,
+        n=randomNumber)
+        output_string = response.choices[0].message.content
         logging.debug(f"genaddfeedback: {output_string}")
         return cleanio(output_string)
     except Exception as e:  # This catches all exceptions
@@ -752,14 +788,14 @@ def return_queryflow_and_nodesys(mode: str, query: list, syscolor:dict, max_trie
             knowledge_formatted = queryknowledge.replace("\n\n", "<br>").replace("\n", "<br>")
             # Now use the formatted string in the f-string without any backslashes in the expression part
             userinfo += f'<br>{knowledge_formatted}'
-            
+
         else:
             return None
 
         if queryflow is None or userinfo is None:
             attempts += 1
             continue
-        
+
         querynodesys = return_system(queryflow, syscolor)
 
         # Check if any values are None and retry if so
@@ -777,7 +813,7 @@ def return_queryflow_add_feedback(mode: str, query: list, currentflow: list):
     if mode =="add-feedback":
         queryflow = return_addfeedback(query, currentflow)
         return queryflow
-    
+
 ## transform matrix
 
 def return_matrix(mode:str, queriedflow: list, querynodesys: dict, syscolor:dict):
@@ -796,7 +832,7 @@ def return_matrix(mode:str, queriedflow: list, querynodesys: dict, syscolor:dict
             for index, input in enumerate(inputlist):
                 newmatrix[input] = [[0, offset+index], querynodesys.get(input, "UNKNOWN")]
             offset+=len(inputlist)+1
-     
+
     if mode=="add-output":
         # step 1: categorize a dict according to input
         newoutput_dict={}
@@ -811,7 +847,7 @@ def return_matrix(mode:str, queriedflow: list, querynodesys: dict, syscolor:dict
             for index, output in enumerate(outputlist):
                 newmatrix[output] = [[1, offset+index], querynodesys.get(output, "UNKNOWN")]
             offset+=len(outputlist)+1
-            
+
     if mode=="add-process":
         processio_dict={}
         for subquery in queriedflow:
@@ -823,7 +859,7 @@ def return_matrix(mode:str, queriedflow: list, querynodesys: dict, syscolor:dict
 
             # group according to input
             processio_dict.setdefault(input, []).append([process, output])
-        
+
         # loop through processio_dict and create a matrix
         offset=0
         for input, processlist in processio_dict.items():
@@ -840,10 +876,10 @@ def return_matrix(mode:str, queriedflow: list, querynodesys: dict, syscolor:dict
         for input, output in queriedflow:
             inputset.add(input)
             outputset.add(output)
-        
+
         sorted_inputlist = sortnode(list(inputset), querynodesys,syscolor)
         sorted_outputlist = sortnode(list(outputset), querynodesys,syscolor)
-        
+
         for input, output in queriedflow:
             newmatrix[input] = [[0, sorted_inputlist.index(input)], querynodesys.get(input, "UNKNOWN")]
             newmatrix[output] = [[1, sorted_outputlist.index(output)], querynodesys.get(output, "UNKNOWN")]
@@ -1053,7 +1089,7 @@ if __name__ == "__main__":
     #             [x2, y2], sys = currentmatrix[output]
     #             updatedmatrix[output] = [[math.floor(x2), math.floor(y2)], sys]
 
-    
+
     #     # step 1: categorize a dict according to the input node
     #     # processdict = defaultdict(list)
     #     # for subquery in queriedflow:

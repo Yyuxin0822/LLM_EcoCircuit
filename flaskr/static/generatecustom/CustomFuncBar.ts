@@ -1,7 +1,7 @@
 //@ts-ignore
 import { MarqueeTool } from "./MarqueeTool.js";
 //@ts-ignore
-import { CanvasDraw } from "./CanvasDraw.js";
+import { CanvasDraw } from "../CanvasDraw.js";
 //@ts-ignore
 import { CustomNode } from "./CustomNode.js";
 //@ts-ignore

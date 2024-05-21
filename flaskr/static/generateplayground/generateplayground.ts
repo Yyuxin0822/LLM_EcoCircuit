@@ -28,7 +28,19 @@ eventTypes.forEach(type => {
 ///////////////////////////Main Flow Control ///////////////
 ////////////////////////////////////////////////////////////
 
+//add a DOMContentLoaded event listener to the window object
+// (function() {
+//     // Code to execute immediately when the script is loaded
+//     const loader = document.querySelector(".loader");
+//     if (!loader || loader.classList.contains('loader-hidden')) {
+//         startload();
+//     }
+// })();
+
+
 window.onload = function () {
+    //try find loader
+
     PromptFlowline.fixLine();
     var lastPrompt = Prompt.allPrompts[Prompt.allPrompts.length - 1].prompt;
     var previousElement = lastPrompt.previousElementSibling;
@@ -45,7 +57,7 @@ window.onload = function () {
 const playFuncBar = new PlaygroundFuncBar(document.querySelector('.function-frame'));
 
 // toggling views //temporarily deactivated 
-const iframe = document.getElementById('custom-iframe');
+// const iframe = document.getElementById('custom-iframe');
 function loadplayground() {
     document.getElementById('view-playground')?.classList.remove('hidden');
     document.getElementById('view-custom')?.classList.toggle('hidden');
@@ -56,6 +68,7 @@ function loadplayground() {
     document.querySelectorAll('.send-to-custom').forEach((button) => {
         button.style.display = 'block';
     });
+    playFuncBar.enable();
     setIframeMode(false);
 }
 
@@ -69,6 +82,7 @@ function loadcustom() {
     document.querySelectorAll('.send-to-custom').forEach((button) => {
         button.style.display = 'none';
     });
+    playFuncBar.disable();
     setIframeMode(true);
 }
 document.getElementById('toggle-playground')?.addEventListener('click', loadplayground);
@@ -170,7 +184,7 @@ let findFeedback = (parentPrompt: HTMLElement) => {
     }
 }
 
-function processPrompt(prompt) {
+function processPrompt(prompt: HTMLElement) {
     var prIndex = prompt.id.replace('prompt', '');
     // console.log(prIndex);
     var flowString = prompt.querySelector('#promptFlow' + prIndex).innerText;
@@ -182,11 +196,15 @@ function processPrompt(prompt) {
     var parentPrompt = promptObject.prompt;
 
     let NodeX = Array.from(new Set(nodeArray.map(node => node[1][0])));
+
     let coorXMap = Prompt.processNodeX(NodeX.sort());
     let NodeY = Array.from(new Set(nodeArray.map(node => node[1][1])));
     let NodeYMax = Math.max(...NodeY);
     parentPrompt.style.height = ((NodeYMax + 1) * 1.5 + 6) + 'rem';
-    NodeX.forEach((x) => {
+    NodeX.forEach((x: number) => {
+        if (parentPrompt.querySelector('#col' + validId(x.toString()))) {
+            return;
+        }
         let col = document.createElement("div");
         col.classList.add('col');
         col.id = 'col' + validId(x.toString());
@@ -255,12 +273,16 @@ function processPrompt(prompt) {
 
 var prompts = document.querySelectorAll('.prompt');
 prompts.forEach(processPrompt);
-document.querySelector('.prompt-user').classList.add('hidden');
+if (document.querySelector('.prompt-user')) {
+    document.querySelector('.prompt-user').classList.add('hidden');
+}
 
 // AJAX prompt
 const addiotab = document.getElementById('add-io');
 addiotab?.addEventListener('click', addio);
 function addio() {
+    let userConfirmed = confirm('Generate more inspriations from your descriptions. Do you want to proceed?');
+    if (!userConfirmed) { return; }
     startload();
     let id = document.getElementById('project_id').innerHTML;
     let info = document.getElementById('info').innerHTML;
@@ -301,6 +323,15 @@ quickgen?.addEventListener('click', () => {
         alert('Please select a generation mode in controller and some contents to prompt')
         return;
     }
+
+    if (mode == "add-process") {
+        let userConfirmed = confirm('The unconfirmed process will not be taken into account in the generation. Do you want to proceed?');
+        if (!userConfirmed) { return; }
+    } else {
+        let userConfirmed = confirm('Your selection will be submitted for generation. Do you want to proceed?');
+        if (!userConfirmed) { return; }
+    }
+
     let { prompt_id_array, query_array } = Prompt.returnAllQuery();
 
     // console.log(prompt_id_array, query_array);
@@ -342,39 +373,78 @@ quickgen?.addEventListener('click', () => {
         });
 });
 
-
+let regenImage = document.getElementById('regen-image');
+regenImage?.addEventListener('click', () => {
+    let userConfirmed = confirm('The current description will be sent to generate a new image. Do you want to proceed?');
+    if (!userConfirmed) { return; }
+    startload();
+    let project_id = document.getElementById('project_id').innerText;
+    let info = document.getElementById('info').innerText;
+    fetch('/regen-image', {
+        method: 'POST',
+        body: JSON.stringify({
+            'project_id': project_id,
+            'info': info
+        }),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+        .then(response => response.json())
+        .then(data => {
+            let imageCanvas = document.getElementById('canvas-image');
+            console.log(data['imgurl']);
+            imageCanvas.src = data['imgurl'];
+            finishload();
+        })
+        .finally(() => {
+            console.log('finish load');
+        });
+});
 
 
 ///////////////////////////content-custom-frame/////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////
-
+let iframeEditable = false;
+const iframe = document.getElementById('custom-iframe');
+const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
 function setIframeMode(editable: boolean) {
+    iframeEditable = editable;
+
+    let viewCustom = document.getElementById('view-custom');
+    if (!viewCustom) return;
+    let content = iframeDocument.getElementById('custom-body-wrapper');
     if (editable) {
-        iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms');
-        //enable the funcbar
-        iframe.classList?.add('editable');
+        //set the control in custom.html
+        content.classList?.remove('readonly');
+        content.classList?.add('editable');
+        //set the control in generate.html
         iframe.classList?.remove('readonly');
+        iframe.classList?.add('editable');
     } else {
-        iframe.setAttribute('sandbox', 'allow-same-origin');
-        //disable the funcbar
+        //set the control in custom.html
+        content.classList?.remove('editable');
+        content.classList?.add('readonly');
+        //set the control in generate.html
         iframe.classList?.remove('editable');
         iframe.classList?.add('readonly');
     }
 }
 
-window.addEventListener('message', (event) => {
-    if (event.data === 'clickinside') {
+iframe.addEventListener('load', function () {
+    iframeDocument.addEventListener('click', function () {
+        // console.log('iframe clicked');
         setIframeMode(true);
-    }
+    })
 });
 
 document.addEventListener('click', (e) => {
+    //!e.target.closest('.func-wrapper-view') to make sure the pointer event in switiching views is not influencing the iframe
     if (!iframe.contains(e.target as HTMLElement) && !e.target.closest('.func-wrapper-view')) {
-        iframe.contentWindow.postMessage('clickOutside', '*');
+        // console.log('outside.clicked')
         setIframeMode(false);
     }
 });
-
 
 
 
@@ -384,7 +454,7 @@ document.addEventListener('click', (e) => {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 let sendAll = document.getElementById('send-all');
 let sendSelected = document.getElementById('send-selected');
-sendAll?.addEventListener('click', sendDataToCustom('send-all'));
+sendAll?.addEventListener('click', () => sendDataToCustom('send-all'));
 
 
 function sendDataToCustom(mode: string) {

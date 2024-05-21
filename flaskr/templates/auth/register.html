@@ -1,43 +1,49 @@
-{% extends 'base.html' %}
+{% extends 'index.html' %}
 
 
-{% block content %}
+{% block auth_content %}
+<div class="overlay"></div>
 <div class="auth-popup">
 
-  <div class="component-icon" class="rectangle"> 
-    <span class='icon-common icon-close'></span>
-  </div>
+  <div class="component-icon" class="rectangle"> <a href="{{ url_for('project.index') }}">
+      <span class='icon-common icon-close'></span>
+    </a></div>
 
   <div class="frame">
     <form method="post">
       <div class="signin-frame">
         <div class="div">
-          <label for="username" class="text-wrapper">Username</label>
-          <input type="username" name="username" id="username" required class="text-area" style="background-color: white;">
+          <label for="username" class="heading-2">Username</label>
+          <input type="username" name="username" id="username" required class="text-area"
+            style="background-color: white;">
         </div>
         <div class="div">
-          <label for="password" class="text-wrapper">Password</label>
+          <label for="password" class="heading-2">Password</label>
           <input type="password" name="password" id="password" required class="text-area">
         </div>
         <div class="component-bar-1">
-          <div class="div-wrapper">
-            <input type="submit" value="Register"  class="heading-2" style="cursor: pointer;border: none; background-color: transparent;">
-          </div>
+          <button type="submit" class="component-text" style="color:white">
+            Register
+          </button>
         </div>
       </div>
     </form>
 
-    <div class="horizontal-line"></div>
-   
-    <div class="new-account-frame">
-      <div class="component-bar-1">
-       <div class="div-wrapper"><div class="heading-2" style="cursor: pointer; text-align: center; border: none; background-color: transparent;">
-        <a href="{{ url_for('auth.signin') }}">Sign in</a></div></div>
-      </div>
+    <div class="divide-line">
+      <div class="horizontal-line"></div>
+      <div class="heading-2">Already have an account?</div>
+      <div class="horizontal-line"></div>
     </div>
 
+
+    <div class="new-account-frame">
+      <div class="component-bar-1" style="background-color:#F4F7FE ;">
+        <div><a href="{{ url_for('auth.signin') }}" style="color: var(--variable-collection-themedarkpurple);"  class="component-text">Sign in</a></div>
+      </div>
+    </div>
   </div>
 
 </div>
-{% endblock %}
 
+</div>
+{% endblock %}

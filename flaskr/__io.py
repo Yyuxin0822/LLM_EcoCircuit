@@ -3,12 +3,11 @@ import json
 import re
 import random
 import urllib
-import openai
+from openai import OpenAI
 import ast
 
 from instance.config import OPENAI_API_KEY
-openai.api_key = OPENAI_API_KEY
-
+client = OpenAI(api_key=OPENAI_API_KEY)
 # defaultsysdict = {
 #     "HYDRO": "#0BF",
 #     "ENERGY": "#FC0",
@@ -18,7 +17,14 @@ openai.api_key = OPENAI_API_KEY
 #     "ECOSYSTEM": "#3C4",
 #     "UNKNOWN": "#888",
 # }
+import logging
 
+logging.basicConfig(
+    level=logging.DEBUG,
+    filename="./logs/test_logs_io.log",
+    filemode="a",
+    format="%(asctime)s - %(levelname)s - %(message)s",
+)
 
 ######################################################
 ######################################################
@@ -53,6 +59,22 @@ def cleanio(output_string):
                 flowlist.append(flow_temp)
     return flowlist
 
+def cleaninput(input_string):
+    new_string = input_string.strip()[1:-1]
+    sysdict={}
+    tempflow = extract_brackets(new_string)
+    for temp in tempflow:
+        # str_input is like "waste water":["fresh water","nutrients"], split it by ":", get ["waste water",["fresh water","nutrients"]]
+        flow_str = temp.split(":")
+        try:
+            templist = extract_quotation(flow_str[1])
+        except:
+            print(f"{flow_str} for flow {temp} cannot be converted")
+            return Exception
+        if templist:
+            for i in range(len(templist)):
+                sysdict[clean(templist[i])]=clean(flow_str[0])
+    return sysdict
 
 def cleansystem(sys_string):
     new_string = sys_string.strip()[1:-1]
@@ -173,59 +195,80 @@ def geninput(
 ):
     """return unique input from environment description"""
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4o",
-            messages=[
-                {
-                    "role": "system",
-                    "content": f"You will extract and imagine potential resources in the environment description of various systems as keywords. \
+        response = client.chat.completions.create(model="gpt-4o",
+        messages=[
+            {
+                "role": "system",
+                "content": f"You will extract and imagine potential resources in the environment description of various systems as keywords. \
                             The resources include potential components, objects, materials, organisms, and even chemicals. \
-                            Please provide me with 40 resources in total and make sure at least three to five resources for each different system listed.",
-                },
-                {
-                    "role": "user",
-                    "content": f"environment: 'This scene depicts an agricultural village in the mountains. There are a couple flood valleys with turbulent water. \
+                            Please provide me with 40 resources in total.Please ensure a minimum of five resources for each system provided and don't have too many in one system. ",
+            },
+            {
+                "role": "user",
+                "content": f'environment: "This scene depicts an agricultural village in the mountains. There are a couple flood valleys with turbulent water. \
                                                 To empower this village, there are some windfarms nearby. Cheetahs in the mountains need to be preserved. \
-                                                Food and potable water can be very valuable here.'\
-                                system: '[ecosystem, hydro, energy]'",
-                },
-                {
-                    "role": "assistant",
-                    "content": f"Crops, Soil, Wind, Fresh Water, Flood valleys, Turbulent water, Wind turbines, Cheetahs, Mountain terrain, Potable water, Timber, Agricultural tools, Irrigation systems, \
-                                Wildlife, Rocks, Grass, Sunlight, Seeds, Fertilizers, Community wells, Herbal plants, Streams, Fish, Firewood, Birds, Bees, Greenhouses, Solar panels, Livestock, Natural springs, Berries, \
-                                Clay, Sand, Compost, Pollinators, Aquifers, Fungi, Rainwater, Earthworms, Organic Waste",
-                },
-                {
-                    "role": "user",
-                    "content": f"environment: 'This is an urban plaza with tech events and livehouse.' \
+                                                Food and potable water can be very valuable here."\
+                                system: ["ecosystem", "hydro", "energy"]',
+            },
+            {
+                "role": "assistant",
+                "content": f'[["ecosystem":["Crops", "Soil", "Cheetahs", "Mountain terrain", "Wildlife", "Rocks", "Seeds", "Fertilizers", "Herbal plants", "Berries", "Clay", "Sand", "Compost", "Pollinators", "Fungi", "Earthworms"]]\
+                    ["hydro":["Fresh Water", "Flood valleys", "Turbulent water", "Irrigation systems", "Streams", "Natural springs", "Aquifers", "Rainwater", "Vadose wells", "Potable water"]]\
+                    ["energy":["Wind", "Wind turbines", "Sunlight", "Solar panels", "Firewood", "Timber"]]]',
+            },
+            {
+                "role": "user",
+                "content": f"environment: 'This is an urban plaza with tech events and livehouse.' \
+                                system: [food, economy, mobility]",
+            },
+            {
+                "role": "assistant",
+                "content": f'[["food":["Food trucks","Local cuisine","Food stalls","Fresh produce","Spices","Seasonings","Beverages","Desserts","Street food","Food vendors","Food festivals","Urban farms"]],\
+                    ["economy":["Tech events","Livehouse","Local markets","Artisan crafts","Cultural shops","Smart kiosks","Handmade goods","Organic produce","Locally sourced materials", "Amphitheaters"]],\
+                    ["mobility":["Bicycles","Scooters","Electric vehicles","Pedestrian walkways","Public transportation","Bike lanes","Car-sharing services","Ride-hailing services"]]]',
+            },
+            {
+                "role": "user",
+                "content": f"environment: 'This area displays a lush mangrove forest, where roots dive deep into the brackish waters. Brightly colored crabs scuttle about, and the chirping of unseen insects is constant. Fishermen navigate through channels casting nets in a dance as old as time.' \
                                 system: '[food, economy, mobility]'",
-                },
-                {
-                    "role": "assistant",
-                    "content": "Smart kiosks, Food trucks, Event stages, Crowds, WiFi hotspots, Vending machines, Electric scooters, Charging stations, Walking paths, Local cuisine, Stalls, Digital signage, Public seating, \
-                                Recycling bins, Tech gadgets, Street performers, Micro-mobility devices, Public transit stops, Parking spaces, Food stalls, Security cameras, Public restrooms, Designed landscapes, Information booths, \
-                                Smartphones, Laptops, Lighting fixtures, Crafted beverages, E-commerce stands, Merchandise stands, Delicious snacks, Network infrastructure, Tablets, Interactive displays, Amphitheaters, Taxis, Smart benches, Delivery drones, Renewable energy sources, Tech merchandise, Mobile apps",
-                },
-                {
-                    "role": "user",
-                    "content": f"environment:'{envir_description}',\
+            },
+            {
+                "role": "assistant",
+                "content": f'[["food":["Crabs", "Fish", "Shrimp", "Mussels", "Seaweed", "Local Cuisine", "Lobsters"]], \
+                             ["economy":["Eco-tourism initiative", "Kayak and canoe rentals", "Aquaculture", "Piers and docks improvement", "Mangrove research center", "Seasonal fishing training", "Bait Nets", "Fishermen"]],\
+                             ["mobility":["Boats", "Canoes", "Ferryboats", "Sails", "Paddles"]]]',
+            },
+            {
+                "role": "user",
+                "content": f"environment: 'This is a biophilic boulevard for monarch and Latinos.' \
+                                system: '[biosystem, economy, community]'",
+            },
+            {
+                "role": "assistant",
+                "content": f'[["biosystem":["Monarch butterflies", "Milkweeds", "Shrubs", "Flowers", "Pollinators", "Soil", "Sunshine", "Rainwater", "Mulch", "Compost", "Fallen leaves", "Garden beds", "Fresh herbs"]],\
+    ["economy":["Artisan crafts", "Food vendors", "Local markets", "Cultural shops", "Artwork", "Handmade goods", "Organic produce", "Locally sourced materials"]],\
+    ["community":["Community gardens", "Latino festivals", "Murals", "Gathering spaces", "Play areas", "Affordable Housing", "Parklets for community", "Latino crafts", "Conservation awareness", "Latin American art"]]\
+]'
+
+            },
+            {
+                "role": "user",
+                "content": f"environment:'{envir_description}',\
                                 system:'{list(sysdict.keys())}'",
-                },
-            ],
-            temperature=1,
-            max_tokens=1024,
-            top_p=1,
-            frequency_penalty=0,
-            presence_penalty=0,
-            n=randomNumber,
-        )
-        input_resources = response["choices"][0]["message"]["content"].split(",")
-        unique_input = list(set(clean(i) for i in input_resources))
-        return unique_input
+            },
+        ],
+        temperature=1,
+        max_tokens=1024,
+        top_p=1,
+        frequency_penalty=0,
+        presence_penalty=0,
+        n=randomNumber)
+        input_resources = response.choices[0].message.content
+        inputdic_sys = cleaninput(input_resources)
+        return list(inputdic_sys.keys()), inputdic_sys
     except Exception as e:  # This catches all exceptions
         print(f"An error occurred: {e}")
         return None
-
 
 # def genio(input_resources, sysdict:dict, randomNumber=3):
 #     """return output resources from input resources"""
@@ -238,7 +281,7 @@ def geninput(
 #                     "role": "system",
 #                     "content": """You are a sustainabilty specialist, given the input resources, please come up with output resources. 
 #             These output resources are values and helpful optimize the environmental process to achive net-zero and net-positive vision for these systems: {sys_string}. Please come up with two to three output for each input.
-            
+
 #             I will ask in this list format:["input1","input2","input3"], such as ["waste water", "organic waste", "wind energy"].
 #             Step 1, think for each input in the list, such as "waste water" can generate "fresh water" and "nutrients".
 #             Step 2, please also try multiple inputs to co-optimize, such as "waste water" and "organic waste" can be combined in digestor to generate "biofuel".
@@ -286,39 +329,37 @@ def gensystem(node:list, sysinfodict:dict, randomNumber=3):
     """return system classification of elements"""
     uniquesys = list(set(sysinfodict.keys()))
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4o",
-            messages=[
-                {
-                    "role": "system",
-                    "content": f"""You are an encyclopedia. Your job is to classify the node list into systems.\n
+        response = client.chat.completions.create(model="gpt-4-turbo",
+        messages=[
+            {
+                "role": "system",
+                "content": f"""You are an encyclopedia. Your job is to classify the node list into system.\n
                     Output in this format: [["node1","system1"],["node2","system2"]]""",
-                },
-                {
-                    "role": "user",
-                    "content": 'nodelist: ["Cheetah", "wildlife corridors", "wadis"], system:["HYDRO", "ECOSYSTEM", "SOLID WASTE","ENERGY"]',
-                },
-                {
-                    "role": "assistant",
-                    "content": '[["Cheetah","ECOSYSTEM"], ["wildlife corridors","ECOSYSTEM"], ["wadis", "HYDRO"]]',
-                },
-                {
-                    "role": "user",
-                    "content": 'nodelist: ["forest", "irrigation", "organic waste", "biofuel"], system:["HYDRO", "ECOSYSTEM", "SOLID WASTE","ENERGY"]',
-                },
-                {
-                    "role": "assistant",
-                    "content": '[["forest","ECOSYSTEM"], ["irrigation","HYDRO"], ["organic waste", "SOLID WASTE"], ["biofuel", "ENERGY"]]',
-                },
-                {"role": "user", "content": f"nodelist:{node}, system:{uniquesys}"},
-            ],
-            temperature=1,
-            max_tokens=4096,
-            top_p=1,
-            frequency_penalty=0,
-            presence_penalty=0,
-        )
-        data = response["choices"][0]["message"]["content"]
+            },
+            {
+                "role": "user",
+                "content": 'nodelist: ["Cheetah", "wildlife corridors", "wadis"], system:["HYDRO", "ECOSYSTEM"]',
+            },
+            {
+                "role": "assistant",
+                "content": '[["Cheetah","ECOSYSTEM"], ["wildlife corridors","ECOSYSTEM"], ["wadis", "HYDRO"]]',
+            },
+            {
+                "role": "user",
+                "content": 'nodelist: ["forest", "irrigation", "organic waste", "biofuel"], system:["HYDRO", "ECOSYSTEM", "SOLID WASTE","ENERGY"]',
+            },
+            {
+                "role": "assistant",
+                "content": '[["forest","ECOSYSTEM"], ["irrigation","HYDRO"], ["organic waste", "SOLID WASTE"], ["biofuel", "ENERGY"]]',
+            },
+            {"role": "user", "content": f"nodelist:{node}, system:{uniquesys}"},
+        ],
+        temperature=1,
+        max_tokens=4096,
+        top_p=1,
+        frequency_penalty=0,
+        presence_penalty=0)
+        data = response.choices[0].message.content
         return cleansystem(data)
     except Exception as e:  # This catches all exceptions
         print(f"An error occurred: {e}")
@@ -328,10 +369,13 @@ def gensystem(node:list, sysinfodict:dict, randomNumber=3):
 ## exectution
 def return_input(env:str, sysdict:dict, max_tries=3):
     for _ in range(max_tries):
-        input_val = geninput(env, sysdict)
-        if checklist(input_val):
-            return input_val
-    print("Sorry, we can't generate a result from the environment description, please try again.")
+        try:
+            input_val, input_sys = geninput(env, sysdict)
+            logging.debug(f"input_val: {input_val}, input_sys: {input_sys}")
+            if checklist(input_val):
+                return input_val, input_sys
+        except:
+            print("Sorry, we can't generate a result from the environment description, please try again.")
     return None
 
 
@@ -344,22 +388,39 @@ def return_input(env:str, sysdict:dict, max_tries=3):
 #     print("Sorry, we can't generate a result from the input resources, please try again.")
 #     return None
 
-def return_system(node: list, syscolor: dict, max_tries: int = 3):
+def return_system(node: list, syscolor: dict, max_tries: int = 3, known_nodesys: dict = None):
     if checknestedlist(node):
         node = unielement(node)
 
+    if known_nodesys:
+        # Filter out known_nodesys.keys() from node
+        known_nodelist = list(known_nodesys.keys())
+        node = [ele for ele in node if ele not in known_nodelist]
+
     for _ in range(max_tries):
-        randomNumber = random.randint(1, 5)
-        sysdict = gensystem(node, syscolor, randomNumber)
-        if checkdict(sysdict):
-            try:
-                if set(sysdict.keys()) == set(node) and set(sysdict.values()).issubset(
-                    set(syscolor.keys())
-                ):
-                    return sysdict
-            except:
-                print(f"sysdict keys {sysdict.keys()} and node {node} are not the same")
-    print("Sorry, we can't generate a result from the node list, please try again.")
+        try:
+            randomNumber = random.randint(1, 5)
+        
+            # Split the node into list of length n, and store in a nested list
+            n = 150
+            nested_node = [node[i:i + n] for i in range(0, len(node), n)]
+            logging.debug(f"Nested node: {nested_node}")
+            sysdict = {}
+            for sublist in nested_node:
+                sub_sysdict = gensystem(sublist, syscolor, randomNumber)
+                logging.debug(f"Sub system dictionary: {sub_sysdict}")
+                if checkdict(sub_sysdict):
+                    if set(sub_sysdict.keys()) == set(sublist) and set(sub_sysdict.values()).issubset(set(syscolor.keys())):
+                        sysdict.update(sub_sysdict)
+                        logging.debug(f"Sub system dictionary: {sub_sysdict}")
+                        
+            if known_nodesys:
+                sysdict.update(known_nodesys)
+            return sysdict 
+        except Exception as e:
+            logging.error(f"Error during system generation: {e}")
+
+    logging.debug("Sorry, we can't generate a result from the node list, please try again.")
     return None
 
 

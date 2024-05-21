@@ -7,7 +7,7 @@ export class CanvasDraw {
   drawing: boolean;
   latestPoint: number[];
   
-  constructor(canvasId) {
+  constructor(canvasId:string) {
     this.canvas = document.getElementById(canvasId);
     this.context = this.canvas.getContext("2d");
     this.colour = "rgb(30, 30, 30)";
@@ -55,8 +55,8 @@ export class CanvasDraw {
 
   enable() {
     if (this.enabled) return;
-    let wrapper = document.getElementById('wrapper');
-    wrapper.classList.add('disable-pointer-events');
+    // let wrapper = document.getElementById('wrapper');
+    // wrapper.classList.add('disable-pointer-events');
     this.attachEventListeners();
     this.enabled = true;
   }
@@ -64,8 +64,8 @@ export class CanvasDraw {
   disable() {
     if (!this.enabled) return;
     this.detachEventListeners();
-    let wrapper = document.getElementById('wrapper');
-    wrapper.classList.remove('disable-pointer-events');
+    // let wrapper = document.getElementById('wrapper');
+    // wrapper.classList.remove('disable-pointer-events');
     if (this.drawing) {
       this.endStroke();
     }

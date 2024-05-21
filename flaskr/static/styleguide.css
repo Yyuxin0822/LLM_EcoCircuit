@@ -5,25 +5,30 @@
 }
 
 
+.text-area:focus {
+  outline: none;
+  border-width: 2px;
+}
+
 .tooltip .tooltiptext {
   visibility: hidden;
-  width:auto;
+  width: auto;
   min-width: 120px;
   background-color: rgba(255, 255, 255, 0.95);
   box-shadow: var(--highlight);
   color: black;
   text-align: center;
   border-radius: 6px;
-  padding: 5px 10px; 
+  padding: 5px 10px;
   position: absolute;
   z-index: 1;
   bottom: 150%;
   left: 50%;
-  margin-left: -60px;
+  transform: translateX(-50%); /* This centers the tooltip */
   outline: 1px solid var(--variable-collection-themedarkpurple);
   font-family: var(--card-14-font-family);
   font-weight: var(--card-14-font-weight);
-  font-size: var(--card-14-font-size);
+  font-size: var(--heading-1-font-size);
 }
 
 .tooltip .tooltiptext::after {
@@ -34,7 +39,7 @@
   margin-left: -5px;
   border-width: 5px;
   border-style: solid;
-  border-color: var(--variable-collection-themedarkpurple) transparent transparent  transparent;
+  border-color: var(--variable-collection-themedarkpurple) transparent transparent transparent;
 }
 
 .tooltip:hover .tooltiptext {
@@ -44,10 +49,21 @@
 
 a {
   text-decoration: none;
+  font-weight: 100;
   /* Removes underline */
-  color: black;
+  color: none;
+  text-decoration-color: none;
   /* Sets text color to black */
   /* Makes the text bold */
+}
+a::before{
+  text-decoration: none;
+}
+a::after{
+  text-decoration: none;
+}
+a:hover {
+  font-weight: 500;
 }
 
 .hidden {
@@ -55,17 +71,22 @@ a {
 }
 
 :root {
-  --heading-1-font-family: "Inter", Helvetica;
+  --heading-0-font-family: 'Georgia', serif;
+  --heading-0-font-weight: 700;
+  --heading-0-font-size: 48px;
+  --heading-0-letter-spacing: 0px;
+  --heading-0-line-height: 125%;
+  --heading-1-font-family: "Comfortaa", "Inter", Helvetica;
   --heading-1-font-weight: 700;
   --heading-1-font-size: 24px;
   --heading-1-letter-spacing: 0px;
-  --heading-1-line-height: 125%;
+  --heading-1-line-height: 150%;
   --heading-1-font-style: normal;
-  --heading-2-font-family: "Inter", Helvetica;
+  --heading-2-font-family: "Comfortaa", "Inter", Helvetica;
   --heading-2-font-weight: 300;
-  --heading-2-font-size: 20px;
+  --heading-2-font-size: 14px;
   --heading-2-letter-spacing: 0px;
-  --heading-2-line-height: 125%;
+  --heading-2-line-height: 200%;
   --heading-2-font-style: normal;
   --normal-20-font-family: "Inter", Helvetica;
   --normal-20-font-weight: 300;
@@ -79,13 +100,13 @@ a {
   --emphasis-letter-spacing: 0px;
   --emphasis-line-height: normal;
   --emphasis-font-style: italic;
-  --card-14-font-family: "Inter", Helvetica;
+  --card-14-font-family: "Comfortaa", "Inter", Helvetica;
   --card-14-font-weight: 400;
   --card-14-font-size: 14px;
   --card-14-letter-spacing: 0px;
   --card-14-line-height: normal;
   --card-14-font-style: normal;
-  --card-node-font-family: "Inter", Helvetica;
+  --card-node-font-family: "Comfortaa", "Inter", Helvetica;
   --card-node-font-weight: 700;
   --card-node-font-size: 14px;
   --card-node-letter-spacing: 0px;
@@ -94,6 +115,7 @@ a {
   --node: 0.5px 0.5px rgba(0, 0, 0, 0.1);
   --regular: 2px 2px 0.5px 0px rgba(109, 120, 148, 0.25);
   --highlight: 0px 0px 6px 0px rgba(109, 120, 148, 0.25);
+  --highlight-icon: 9px 12px 24px 0px rgba(109, 120, 148, 0.75);
   --HYDRO: #0BF;
   --ECOSYSTEM: #3C4;
   --ICT: #95A;
@@ -102,9 +124,10 @@ a {
   --TRANSPORT: #F44;
   --UNKNOWN: #888;
   --variable-collection-grey: rgba(210, 210, 210, 1);
-  --variable-collection-black: rgba(0, 0, 0, 1);
+  --variable-collection-darkblue: rgba(29, 28, 52, 1);
   --variable-collection-themelightpurple: rgba(232, 237, 250, 1);
   --variable-collection-themedarkpurple: rgba(161, 173, 204, 1);
+  /* --font-dark: #3D4043 */
 }
 
 img {
@@ -158,6 +181,24 @@ button {
   }
 }
 
+.component-text {
+  color: #FFF;
+  text-align: left;
+  font-family: var(--heading-2-font-family);
+  font-size: var(--emphasis-font-size);
+  font-weight: 500;
+  transition: none;
+}
+
+.heading-0 {
+  font-family: var(--heading-0-font-family);
+  font-weight: var(--heading-0-font-weight);
+  font-size: var(--heading-0-font-size);
+  letter-spacing: var(--heading-0-letter-spacing);
+  line-height: var(--heading-0-line-height);
+  font-style: var(--heading-0-font-style);
+}
+
 .heading-1 {
   font-family: var(--heading-1-font-family);
   font-weight: var(--heading-1-font-weight);
@@ -174,6 +215,7 @@ button {
   letter-spacing: var(--heading-2-letter-spacing);
   line-height: var(--heading-2-line-height);
   font-style: var(--heading-2-font-style);
+  color: black;
 }
 
 p,
@@ -212,11 +254,11 @@ p,
 }
 
 .card-node {
-  overflow: hidden;
+  /* overflow: hidden; */
   color: var(--TextColor, #3D4043);
   text-align: center;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  /* white-space: nowrap; */
   font-family: var(--card-node-font-family);
   font-weight: var(--card-node-font-weight);
   font-size: var(--card-node-font-size);
@@ -236,7 +278,7 @@ p,
   border-radius: 8rem;
   box-shadow: var(--regular);
   pointer-events: auto;
- align-items: center;
+  align-items: center;
   justify-content: center;
 }
 
@@ -245,6 +287,7 @@ p,
   background-color: #F4F6FC;
   cursor: pointer;
 }
+
 .icon-close:hover {
   background-color: var(--variable-collection-themedarkpurple);
 }
@@ -408,38 +451,7 @@ p,
 
 
 /* component style */
-/* component with "fill container" width */
-.component-bar-1 {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 330px;
-  gap: 10px;
-  position: relative;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: center;
-}
 
-.component-bar-1>.div-wrapper {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 8px 12px;
-  width: 100%;
-  /* Fills the width */
-  height: 100%;
-  /* Attempt to fill the height, ensure the parent's height is defined or flex is used */
-  background-color: var(--variable-collection-themelightpurple);
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: var(--regular);
-  position: relative;
-}
-.component-bar-1>.div-wrapper:hover {
-  background-color: var(--variable-collection-themedarkpurple);
-}
 
 /* component with "hug content" width */
 .component-bar-2 {
@@ -460,6 +472,7 @@ p,
 .component-bar-2:hover {
   background-color: var(--variable-collection-themedarkpurple);
 }
+
 .component-bar-2>.div-wrapper>.text-wrapper-2 {
   position: relative;
   width: fit-content;
@@ -518,11 +531,6 @@ p,
 }
 
 
-.horizontal-line {
-  border-top: 2px dashed var(--variable-collection-themedarkpurple);
-  width: 330px;
-  /* Adjust the width as needed */
-}
 
 .dropdown-menu {
   position: absolute;

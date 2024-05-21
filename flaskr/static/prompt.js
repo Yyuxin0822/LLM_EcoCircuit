@@ -128,6 +128,7 @@ function createInput(name, value) {
 document.getElementById('generate-text')?.addEventListener('click', function () {
     let form = document.createElement('form');
     form.method = 'POST';
+    form.action = '/prompt';
     document.body.appendChild(form);
     if (document.querySelector('.modal-description').style.visibility == 'visible') {
         let input = createInput('description', document.getElementById('description').textContent);
@@ -188,7 +189,7 @@ function previewUpload(fileInput, preview) {
             reader.onloadend = function () {
                 var img = new Image();
                 img.onload = function () {
-                    var resizedimension = 720;
+                    var resizedimension = 540;
                     var dimension = Math.min(img.width, img.height);
                     var canvas = document.createElement('canvas');
                     canvas.width = resizedimension;
@@ -272,6 +273,7 @@ addGlobalEventListener('keydown', '[contenteditable]', finishEdit);
 document.getElementById('generate-label')?.addEventListener('click', function () {
     let form = document.createElement('form');
     form.method = 'POST';
+    form.action = '/prompt';
     document.body.appendChild(form);
     if (document.querySelector('.modal-label').style.visibility == 'visible') {
         let buttonSelected = document.querySelectorAll('.component-bar-node-selected');

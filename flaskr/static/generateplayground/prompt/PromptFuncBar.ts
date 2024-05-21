@@ -8,7 +8,8 @@ import { PromptFlowline } from './PromptFlowline.js';
 import { PromptIdentifier } from './PromptIdentifier.js';
 //@ts-ignore
 import { Prompt } from './Prompt.js';
-
+//@ts-ignore
+// import { CanvasDraw } from '../../CanvasDraw.js';
 
 export class PromptFuncBar extends FuncBar {
     static allPromptFuncBars = [];
@@ -19,7 +20,7 @@ export class PromptFuncBar extends FuncBar {
     flowButton: HTMLElement;
     promptItem: Prompt;
     container: HTMLElement;
-
+    // canvasDrawInstance: CanvasDraw;
 
     constructor(container: HTMLElement) {
         super(container);
@@ -28,6 +29,7 @@ export class PromptFuncBar extends FuncBar {
         // this.selButton = this.container.querySelector("#selmode");
         this.nodeButton = this.container.querySelector("#nodemode");
         this.flowButton = this.container.querySelector("#flowmode");
+        // this.canvasDrawInstance = new CanvasDraw("canvasDraw");
         PromptFuncBar.allPromptFuncBars.push(this);
     }
 
@@ -35,8 +37,8 @@ export class PromptFuncBar extends FuncBar {
         super.activateFunction(id); // Call base class method
         // Extend with specific functionality
         switch (id) {
-            // case 'selmode':
-            //     this.setSelMode();
+            // case 'drawmode':
+            //     this.setDrawMode();
             //     break;
             case 'nodemode':
                 this.setNodeMode();
@@ -50,8 +52,8 @@ export class PromptFuncBar extends FuncBar {
     deactivateFunction(id: string) {
         super.deactivateFunction(id); // Call base class method
         switch (id) {
-            // case 'selmode':
-            //     this.unsetSelMode();
+            // case 'drawmode':
+            //     this.unsetDrawMode();
             //     break;
             case 'nodemode':
                 this.unsetNodeMode();
@@ -73,6 +75,16 @@ export class PromptFuncBar extends FuncBar {
     // }
 
 
+    // setDrawMode() {
+    //     this.canvasDrawInstance.enable();
+    // }
+
+    // unsetDrawMode() {
+    //     if (this.canvasDrawInstance.enabled) {
+    //         this.canvasDrawInstance.disable();
+    //       }
+    // }
+    
     setNodeMode() {
         this.prompt.style.cursor = "crosshair";
         this.prompt.addEventListener('click', this.handleNodeClick);
@@ -92,7 +104,6 @@ export class PromptFuncBar extends FuncBar {
         if (e.target.closest('.prompt-funcbar')) return;
         let customNode = PromptNode.addCustomNode(e);
         customNode.nodeWrapper.addEventListener('blur', (e) => {
-
             if (!customNode.nodeWrapper.textContent) {
                 customNode.delete();
             } else {
@@ -109,6 +120,7 @@ export class PromptFuncBar extends FuncBar {
 
                 for (let i = 0; i < currentchildnodes.length; i++) {
                     if (customNode.nodeWrapper.textContent === currentchildnodes[i].textContent) {
+                        alert("Node " + customNode.nodeWrapper.textContent + " exists in this frame");
                         newNode.delete();
                     }
                 }

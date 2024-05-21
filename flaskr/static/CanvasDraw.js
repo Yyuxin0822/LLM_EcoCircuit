@@ -42,8 +42,6 @@ export class CanvasDraw {
     enable() {
         if (this.enabled)
             return;
-        let wrapper = document.getElementById('wrapper');
-        wrapper.classList.add('disable-pointer-events');
         this.attachEventListeners();
         this.enabled = true;
     }
@@ -51,8 +49,6 @@ export class CanvasDraw {
         if (!this.enabled)
             return;
         this.detachEventListeners();
-        let wrapper = document.getElementById('wrapper');
-        wrapper.classList.remove('disable-pointer-events');
         if (this.drawing) {
             this.endStroke();
         }

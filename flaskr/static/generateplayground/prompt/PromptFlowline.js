@@ -43,10 +43,10 @@ export class PromptFlowline extends LeaderLine {
     updatePositionOptions() {
         let startRect = this.start.getBoundingClientRect();
         let endRect = this.end.getBoundingClientRect();
-        if ((endRect.left - startRect.left) <= 225) {
+        if ((endRect.left - startRect.left) <= 360 && (endRect.left - startRect.left) > 0) {
             this.setOptions({
                 startSocket: 'Right', endSocket: 'Left',
-                startSocketGravity: [150, 0], endSocketGravity: [-150, 0],
+                startSocketGravity: [25, 0], endSocketGravity: [-25, 0],
             });
         }
         else {
@@ -103,10 +103,17 @@ export class PromptFlowline extends LeaderLine {
         startSquare.style.right = '-0.25rem';
         anno.style.left = '0.25rem';
     }
-    toJSONArray() {
-        let startText = this.start.querySelector('.node-wrapper').innerHTML;
-        let endText = this.end.querySelector('.node-wrapper').innerHTML;
-        return [startText, endText];
+    toJSONArray(abs = false) {
+        if (!abs) {
+            let startText = this.start.querySelector('.node-wrapper').innerHTML;
+            let endText = this.end.querySelector('.node-wrapper').innerHTML;
+            return [startText, endText];
+        }
+        if (abs) {
+            let startNode = PromptNode.getNodeObjbyNode(this.start, this.prompt);
+            let endNode = PromptNode.getNodeObjbyNode(this.end, this.prompt);
+            return [startNode.toJSONObj(true), endNode.toJSONObj(true)];
+        }
     }
     select() {
         if (this.selected)
@@ -124,8 +131,12 @@ export class PromptFlowline extends LeaderLine {
         this.selected = true;
     }
     unselect() {
-        if (!this.selected)
-            return;
+        if (!this.selected) {
+            this.setOptions({
+                outline: false,
+                endPlugOutline: false
+            });
+        }
         this.setOptions({
             startPlugColor: this.start.style.backgroundColor,
             endPlugColor: this.end.style.backgroundColor,
@@ -133,6 +144,16 @@ export class PromptFlowline extends LeaderLine {
             endPlugOutline: false
         });
         this.selected = false;
+    }
+    toselect() {
+        if (this.selected)
+            return;
+        this.setOptions({
+            outline: true,
+            outlineColor: 'black',
+            endPlugOutline: true,
+            outlineSize: 4
+        });
     }
     remove() {
         let prompt = null;

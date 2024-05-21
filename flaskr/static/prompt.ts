@@ -1,7 +1,6 @@
 //@ts-ignore
 import { DefaultSystem, System, colorPicker } from "./SystemBar.js";
 
-
 // Modal popup for text, image, and draw
 // when clicked id="text", show the modal-text
 document.getElementById('modal-description-activate')?.addEventListener('click', function () {
@@ -171,6 +170,7 @@ function createInput(name, value) {
 document.getElementById('generate-text')?.addEventListener('click', function () {
     let form = document.createElement('form');
     form.method = 'POST';
+    form.action = '/prompt';
     document.body.appendChild(form);
 
     if (document.querySelector('.modal-description').style.visibility == 'visible') {
@@ -244,7 +244,7 @@ function previewUpload(fileInput: HTMLElement, preview: HTMLElement) {
                 var img = new Image();
                 img.onload = function () {
                     // Create a square cropped version of the image
-                    var resizedimension = 720;
+                    var resizedimension = 540;
                     var dimension = Math.min(img.width, img.height);
                     var canvas = document.createElement('canvas');
                     canvas.width = resizedimension;
@@ -342,6 +342,7 @@ addGlobalEventListener('keydown', '[contenteditable]', finishEdit);
 document.getElementById('generate-label')?.addEventListener('click', function () {
     let form = document.createElement('form');
     form.method = 'POST';
+    form.action = '/prompt';
     document.body.appendChild(form);
 
     if (document.querySelector('.modal-label').style.visibility == 'visible') {

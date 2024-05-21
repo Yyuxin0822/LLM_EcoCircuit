@@ -28,6 +28,7 @@ export class PromptFuncBar extends FuncBar {
                     let newNode = new PromptNode(customNode.nodeWrapper.textContent, customNode.nodeX, customNode.nodeY, customNode.nodeTransform, customNode.nodeRGB, "UNKNOWN", customNode.container);
                     for (let i = 0; i < currentchildnodes.length; i++) {
                         if (customNode.nodeWrapper.textContent === currentchildnodes[i].textContent) {
+                            alert("Node " + customNode.nodeWrapper.textContent + " exists in this frame");
                             newNode.delete();
                         }
                     }

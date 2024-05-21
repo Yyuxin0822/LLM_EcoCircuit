@@ -35,26 +35,40 @@ export class PromptIdentifier {
         this.identifier.addEventListener('identifier-unselect', this.handleIdentifierUnselect.bind(this));
     }
     handleIdentifierSelect(event) {
-        if (event.detail === this) {
-            this.associateLines.forEach(line => {
-                if (line.startNodeItem.inputIdentifier.selected && line.endNodeItem.outputIdentifier.selected) {
-                    line.select();
-                }
-            });
-        }
+        if (event.detail != this)
+            return;
+        let activateToSelect = true;
+        this.associateLines.forEach(line => {
+            if (line.startNodeItem.inputIdentifier.selected && line.endNodeItem.outputIdentifier.selected) {
+                line.select();
+                activateToSelect = false;
+            }
+        });
+        if (!activateToSelect)
+            return;
+        this.associateLines.forEach(line => {
+            if (line.startNodeItem.inputIdentifier === this || line.endNodeItem.outputIdentifier === this) {
+                line.toselect();
+            }
+        });
     }
     handleIdentifierUnselect(event) {
-        if (event.detail === this) {
-            this.associateLines.forEach(line => {
-                line.unselect();
-            });
-        }
+        if (event.detail != this)
+            return;
+        this.associateLines.forEach(line => {
+            line.unselect();
+            let otherIdentifier = line.startNodeItem.inputIdentifier === this ? line.endNodeItem.outputIdentifier : line.startNodeItem.inputIdentifier;
+            if (otherIdentifier.selected) {
+                otherIdentifier.associateLines.forEach(line => {
+                    line.toselect();
+                });
+            }
+        });
     }
     select() {
         if (this.selected)
             return;
         this.identifier.querySelector('.identifier-dot').classList?.add('identifier-selected');
-        this.identifier.querySelector('.identifier-dot').classList?.remove('identifier-toselect');
         this.identifier.querySelector('.identifier-dot').classList?.remove('identifier-unselected');
         this.selected = true;
         if (PromptFlowline.lineSel) {
@@ -66,7 +80,6 @@ export class PromptIdentifier {
         if (!this.selected)
             return;
         this.identifier.querySelector('.identifier-dot').classList?.remove('identifier-selected');
-        this.identifier.querySelector('.identifier-dot').classList?.remove('identifier-toselect');
         this.identifier.querySelector('.identifier-dot').classList?.add('identifier-unselected');
         this.selected = false;
         if (PromptFlowline.lineSel) {
@@ -101,3 +114,4 @@ export class PromptIdentifier {
     }
 }
 PromptIdentifier.allIdentifiers = [];
+PromptIdentifier.inSelect = null;

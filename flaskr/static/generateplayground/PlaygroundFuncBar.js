@@ -7,7 +7,7 @@ export class PlaygroundFuncBar extends FuncBar {
     constructor(container) {
         super(container);
         this.enableEditButton = this.container.querySelector("#enable-edit");
-        this.disableEditButton = this.container.querySelector("#disable-edit");
+        this.addInputButton = this.container.querySelector("#add-input");
     }
     activateFunction(id) {
         super.activateFunction(id);
@@ -88,6 +88,7 @@ export class PlaygroundFuncBar extends FuncBar {
         PromptNodeDrpDwn.globalEnabled = true;
         let firstPrompt = Prompt.allPrompts[Prompt.allPrompts.length - 1];
         firstPrompt.promptFocus();
+        this.activateInfoEdit();
     }
     unsetEditMode() {
         Prompt.allPrompts.forEach(prompt => {
@@ -95,6 +96,7 @@ export class PlaygroundFuncBar extends FuncBar {
             prompt.focusable = false;
         });
         PromptNodeDrpDwn.globalEnabled = false;
+        this.deactivateInfoEdit();
     }
     returnMode() {
         this.activeToggle = this.container.querySelector(".active");
@@ -103,4 +105,35 @@ export class PlaygroundFuncBar extends FuncBar {
             return this.activeToggle.id;
         }
     }
+    activateInfoEdit() {
+        let info = document.getElementById("info");
+        let infoPrev = document.getElementById("info-previous");
+        info.contentEditable = true;
+        info?.addEventListener('blur', function () {
+            if (!info.textContent) {
+                info.textContent = infoPrev.textContent;
+                return;
+            }
+            else {
+                let project_id = document.getElementById('project_id').innerText;
+                let data = { project_id: project_id, info: info.textContent };
+                return emitSocket("save_info", data).then(() => {
+                    infoPrev.textContent = info.textContent;
+                }).catch(error => {
+                    console.error("Failed to emit socket:", error);
+                });
+            }
+        });
+    }
+    deactivateInfoEdit() {
+        let info = document.getElementById("info");
+        info.contentEditable = false;
+    }
+    disable() {
+        this.addInputButton.click();
+    }
+    enable() {
+        this.enableEditButton.click();
+    }
+    ;
 }

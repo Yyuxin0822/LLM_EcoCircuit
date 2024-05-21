@@ -23,7 +23,7 @@
 
 <div class="function-frame">
     <!-- view bar - temporarily archived at core -->
-    <div class="func-wrapper-view">
+    <!-- <div class="func-wrapper-view">
         <div id="view-playground">
             <div class="wrapper">
                 <div class="sub-wrapper">
@@ -50,14 +50,14 @@
             <div class="card-14 send-to-custom" id="send-all">Send All Nodes And Flows To Custom</div>
             <div class="card-14 send-to-custom" id="start-select-for-sending">Click To Select Nodes And Flows To Send To
                 Custom</div>
-            <div class=" hidden">
+            <div class="hidden">
                 <div class="sub-sub-wrapper">
                     <div class="card-14 send-to-custom" id="send-selected">Confirm Select and Send To Custom</div>
                     <div class="card-14 send-to-custom" id="cancel-selected">Cancel Select</div>
                 </div>
             </div>
         </div>
-    </div>
+    </div> -->
     <!-- engineer bar -->
     <div class="func-wrapper-engbar" id="func-wrapper-engbar">
         <div id="engineer-bar-folded" class="hidden">
@@ -85,6 +85,10 @@
                     <div class="component-bar-2" id="quickgen" style="cursor: pointer;">
                         <span class="icon-common icon-add"></span>
                         <p class="emphasis">Quick Generate</p>
+                    </div>
+                    <div class="component-bar-2" id="regen-image" style="cursor: pointer;">
+                        <span class="icon-common icon-add"></span>
+                        <p class="emphasis">Regenerate Image</p>
                     </div>
                 </div>
                 <div class="sub-wapper-2" id="engplaytab">
@@ -188,14 +192,17 @@
     <div class="emphasis">Here are the labels that you prompted ...</div>
     <p style="font-style: italic;">AI may err.</p>
     <p id="info">{{project['info']}}</p>
+    <p id="info-previous" class="hidden">{{project['info']}}</p>
     {% elif project['type'] == 'image' %}
     <div class="emphasis">Here is a description of your image ...</div>
     <p style="font-style: italic;">AI may err.</p>
     <p id="info">{{project['info']}}</p>
+    <p id="info-previous" class="hidden">{{project['info']}}</p>
     {% elif project['type'] == 'description' %}
     <div class="emphasis">Here is your description ...</div>
     <p style="font-style: italic;">AI may err.</p>
     <p id="info">{{project['info']}}</p>
+    <p id="info-previous" class="hidden">{{project['info']}}</p>
     {% endif %}
     <div id="system-bar">
         <div class="project-system hidden" id="project-system">{{project['system']}}</div>
@@ -218,9 +225,11 @@
 <div class="content-frame">
     <div id="content-frame">
         <div class="wrapper">
-            <div class="canvas"><img src="{{project['img_url']}}" alt="image" style="width: 45rem; height: 45rem;">
+            <div class="canvas"><img src="{{project['img_url']}}" alt="image" style="width: 45rem; height: 45rem;"
+                    id="canvas-image">
             </div>
             <div class="prompt-frame" id="prompt-frame">
+                {% if promptIds is not none and promptIds|length >= 0 %}
                 {% set promptFlows = project['flow'].split(';') %}
                 {% set promptNodes = project['node'].split(';') %}
                 {% set promptSystems = project['system'].split(';') %}
@@ -246,28 +255,43 @@
                             <button id="nodemode" class="toggle active icon-common icon-nodeM"></button>
                             <span class="normal"> | </span>
                             <button id="flowmode" class="toggle inactive icon-common icon-flowM"></button>
-                            <span class="normal" style="visibility: hidden;"> | </span>
-                            <div class="card-14 send-to-custom" id="send-to-custom{{promptIds[i]}}"
-                                style="width: 12rem; white-space: normal; text-align: left;">Send All Nodes and Flows In
-                                This Prompt To Custom</div>
+                            <!-- <span class="normal"> | </span>
+                            <button id="drawmode" class="toggle inactive  icon-common icon-drawM"></button> -->
+                            <!-- <span class="normal" style="visibility: hidden;"> | </span>
+                                <div class="card-14 send-to-custom" id="send-to-custom{{promptIds[i]}}"
+                                    style="width: 12rem; white-space: normal; text-align: left;">Send All Nodes and Flows In
+                                    This Prompt To Custom</div> -->
                         </div>
                     </div>
+                    <!-- <div id="canvasboard">
+                        <canvas id="canvasDraw" width="1440px" height="1440px"></canvas>
+                    </div> -->
                 </div>
                 {% endfor %}
+                {% else %}
+                <div class="prompt-user"></div>
+                <div class="prompt-user">
+                    <div class="prompt-user-wrapper">
+                        <div class="heading-1">System</div>
+                        <p class="userinfo">We are so sorry about the generation error. Please click"Add Input->Output
+                            with AI Above to Regenerate Flow"</p>
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
     <div id="content-custom-frame" class="hidden">
         <div class="wrapper">
-            <iframe src="{{ url_for('project.custom', id=project['id']) }}" id="custom-iframe" class="editable"
+            <iframe src="{{ url_for('project.custom', id=project['id']) }}" id="custom-iframe" class="readonly"
                 sandbox="allow-same-origin allow-scripts"></iframe>
         </div>
     </div>
 </div>
 
-<div class="iconbutton-frame">
+<div class="iconbutton-frame" style="z-index: 10;">
     <!-- <div class="icon-common icon-info" id="icon-info"></div> -->
-    <a href="{{ url_for('project.index') }}" class="icon-common icon-newrequest" id="icon-newrequest"></a>
+    <a href="{{ url_for('project.prompt') }}" class="icon-common icon-newrequest" id="icon-newrequest"></a>
 </div>
 
 {% endif %}

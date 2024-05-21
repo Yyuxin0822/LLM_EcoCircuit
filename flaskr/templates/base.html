@@ -3,15 +3,15 @@
 
 <head>
   <title>EcoCircuit AI {% block title %}{% endblock %} </title>
+  <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='styleguide.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='auth.css') }}">
   <script src="{{ url_for('static', filename='node_modules/leader-line/leader-line.min.js') }}" defer></script>
   <script src="{{ url_for('static', filename='node_modules/plain-draggable/plain-draggable.min.js') }}" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/@jaames/iro@5"></script> 
-  <script src="{{ url_for('static', filename='base.js') }}" defer></script> 
-  <script type="module" src="{{ url_for('static', filename='SystemBar.js') }}" defer></script> 
-  <script type="module" src="{{ url_for('static', filename='index.js') }}" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@jaames/iro@5"></script>
+  <script src="{{ url_for('static', filename='base.js') }}" defer></script>
+
   </script>
 
   {% block scripts %}
@@ -23,24 +23,26 @@
 
 <body>
   <div class="title-bar">
-    <div class="title heading-2">EcoCircuit</div>
-    <div class="navbar">
-      <div class="heading-2">About</div>
-      <div class="heading-2">Help</div>
-      <div class="heading-2">Contact</div>
-      <div class="heading-2">Share</div>
-      {% if g.user %}
-      <div class="component-bar-2">
-        <div class="heading-2">{{ g.user['username'] }}</div>
+    <div class="wrapper">
+      <div class="title heading-2">EcoCircuit</div>
+      <div class="navbar">
+        <div><a href="{{ url_for('project.index') }}" class="heading-2">About</a></div>
+        <div><a href="" class="heading-2">Contact</a></div>
+        <div><a href="" class="heading-2">FAQ</a></div>
+        <!-- <div class="heading-2">Share</div> -->
+        {% if g.user %}
+        <div class="component-wrapper">
+          <div class="heading-2" id="user-signed-in">{{ g.user['username'] }}</div>
+        </div>
+        <div class="component-wrapper">
+          <div><a href="{{ url_for('auth.logout') }}" class="heading-2">Sign Out</a></div>
+        </div>
+        {% else %}
+        <div class="component-wrapper">
+          <div><a href="{{ url_for('auth.signin') }}" class="heading-2">Sign In</a></div>
+        </div>
+        {% endif %}
       </div>
-      <div class="component-bar-2">
-        <div class="heading-2"><a href="{{ url_for('auth.logout') }}">Sign Out</a></div>
-      </div>
-      {% else %}
-      <div class="component-bar-2">
-        <div class="heading-2"><a href="{{ url_for('auth.signin') }}">Sign In</a></div>
-      </div>
-      {% endif %}
     </div>
   </div>
   {% for message in get_flashed_messages() %}
