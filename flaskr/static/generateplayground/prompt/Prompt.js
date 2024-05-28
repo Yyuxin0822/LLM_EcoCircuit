@@ -85,6 +85,7 @@ export class Prompt {
             node.dropdown?.remove();
         });
         this._focused = false;
+        this._promptFuncbar.canvasDrawInstance.saveCanvas();
     }
     get prompt() {
         return this._prompt;
@@ -181,16 +182,21 @@ export class Prompt {
         return nodeXToCoordinateXMap;
     }
     returnInfo() {
+        console.log('added line saved');
         let prompt_id = this.id;
         let flow = [];
+        let feedbackflow = [];
         this.promptLines.forEach(line => {
             flow.push(line.toJSONArray());
+            if (line.feedback) {
+                feedbackflow.push(line.toJSONArray());
+            }
         });
         let nodematrix = {};
         this.promptNodes.forEach(node => {
             Object.assign(nodematrix, node.toJSONObj());
         });
-        emitSocket('save_prompt', { "prompt_id": prompt_id, "flow": flow, "node": nodematrix });
+        emitSocket('save_prompt', { "prompt_id": prompt_id, "flow": flow, "node": nodematrix, "feedbackflow": feedbackflow });
         return { prompt_id, flow, nodematrix };
     }
     returnQuery() {
@@ -246,16 +252,31 @@ export class Prompt {
         let flow = [];
         let flownode = [];
         let nodematrix = {};
+        let minY = Number.MAX_SAFE_INTEGER;
         if (mode === 'send-all') {
             this.promptLines.forEach(line => {
                 let tempflowinfo = line.toJSONArray();
                 flownode.push(tempflowinfo[0]);
                 flownode.push(tempflowinfo[1]);
-                flow.push(line.toJSONArray(true));
+                let flowinfo = line.toJSONArray(true);
+                for (let i = 0; i < flowinfo.length; i++) {
+                    Object.entries(flowinfo[i]).forEach(([key, value]) => {
+                        let nodeY = value[0][1];
+                        if (minY == undefined || minY > nodeY) {
+                            minY = nodeY;
+                        }
+                    });
+                }
+                flow.push(flowinfo);
             });
             this.promptNodes.forEach(node => {
                 if (!flownode.includes(node.nodeContent)) {
-                    Object.assign(nodematrix, node.toJSONObj(true));
+                    let nodeArray = node.toJSONObj(true);
+                    let nodeY = nodeArray[node.nodeContent][0][1];
+                    if (minY == undefined || minY > nodeY) {
+                        minY = nodeY;
+                    }
+                    Object.assign(nodematrix, nodeArray);
                 }
             });
         }
@@ -273,7 +294,11 @@ export class Prompt {
                     Object.assign(nodematrix, node.toJSONObj(true));
             });
         }
-        return { flow, nodematrix };
+        if (mode === 'send-prompt') { }
+        if (minY === Number.MAX_SAFE_INTEGER) {
+            minY = undefined;
+        }
+        return { flow, nodematrix, minY };
     }
     getLinesWhereNodeasInput(nodeItem) {
         return this.promptLines.filter(line => line.start === nodeItem.node);

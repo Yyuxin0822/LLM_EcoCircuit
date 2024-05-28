@@ -35,7 +35,6 @@ export class PromptNode {
         this._nodeWrapper.classList.add('node-wrapper', 'card-node');
         this._nodeWrapper.innerHTML = this._nodeContent;
         this.newNode.appendChild(this._nodeWrapper);
-        this.adjustFontSize();
         if (this.PromptObj) {
             let col = this._container.querySelector('#col' + validId(this._nodeX.toString()));
             if (!col) {
@@ -52,6 +51,10 @@ export class PromptNode {
                 col.style.width = '15rem';
             }
         }
+        else {
+            this._container.appendChild(this.newNode);
+        }
+        this.adjustFontSize();
     }
     adjustFontSize() {
         let nodeWrapper = this._nodeWrapper;
@@ -60,7 +63,8 @@ export class PromptNode {
             nodeWrapper.style.fontSize = `${fontSize}px`;
         }
         function isOverflowingX(nodeWrapper) {
-            return parseFloat(window.getComputedStyle(nodeWrapper).width) > (parseFloat(window.getComputedStyle(node).width) - parseFloat(window.getComputedStyle(node).paddingLeft) - parseFloat(window.getComputedStyle(node).paddingRight));
+            let nodeWrapperWidth = parseFloat(window.getComputedStyle(nodeWrapper).width);
+            return nodeWrapperWidth > (parseFloat(window.getComputedStyle(node).width) - parseFloat(window.getComputedStyle(node).paddingLeft) - parseFloat(window.getComputedStyle(node).paddingRight));
         }
         function isOverflowingY(nodeWrapper) {
             return parseFloat(window.getComputedStyle(nodeWrapper).height) > (parseFloat(window.getComputedStyle(node).width) + 4);

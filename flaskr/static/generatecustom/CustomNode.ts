@@ -27,13 +27,15 @@ export class CustomNode extends PromptNode {
   }
 
   init() {
+
+    
     super.init();
 
     this.newNode.style.left = this._nodeX + 'px';
     this.newNode.style.top = this._nodeY + 'px';
 
-    this._container.appendChild(this.newNode);
-
+    // this._container.appendChild(this.newNode);
+    
     this._draggable = new PlainDraggable(this.newNode, {
       onMove: CustomFlowline.fixLine,
       containment: {
@@ -44,10 +46,11 @@ export class CustomNode extends PromptNode {
       },
       autoScroll: true
     });
+    // this.adjustFontSize();
     //this.initSelEventListener();
     //this.setNodeDragState(this.newNode);
-
   }
+
 
   //@override
   attachEventListeners(): void {
@@ -275,5 +278,7 @@ export class CustomNode extends PromptNode {
   static getAllNodes() {
     return CustomNode.myCustomNodes;
   }
+
+  
 }
 

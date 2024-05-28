@@ -8,6 +8,8 @@ import { PromptFlowline } from './PromptFlowline.js';
 import { PromptFuncBar } from './PromptFuncBar.js';
 //@ts-ignore
 import { PromptNodeDrpDwn } from './PromptNodeDrpDwn.js';
+//@ts-ignore
+import { PromptCanvasDraw } from './PromptCanvasDraw.js';
 
 export class Prompt {
     static allPrompts = [];
@@ -58,6 +60,12 @@ export class Prompt {
             });
 
             document.addEventListener('click', this.handleClickOutside, false);
+            // window.onbeforeunload = function () {
+            //     this.parent._promptFuncbar.canvasDrawInstance.saveCanvas();
+            // };
+            // window.addEventListener("DOMContentLoaded", () => {
+            //     this.parent._promptFuncbar.canvasDrawInstance.loadCanvas();
+            // });
         }
 
         detachEventListeners(): void {
@@ -119,6 +127,7 @@ export class Prompt {
             node.dropdown?.remove();
         });
         this._focused = false;
+        this._promptFuncbar.canvasDrawInstance.saveCanvas();
     }
 
 
@@ -265,17 +274,22 @@ export class Prompt {
 
     //prompt Manager
     returnInfo() {
+        console.log('added line saved')
         let prompt_id = this.id;
         let flow = [];
+        let feedbackflow=[];
         this.promptLines.forEach(line => {
             flow.push(line.toJSONArray());
+            if (line.feedback){
+                feedbackflow.push(line.toJSONArray());
+            }
         });
         let nodematrix = {};
         this.promptNodes.forEach(node => {
             Object.assign(nodematrix, node.toJSONObj());
         });
 
-        emitSocket('save_prompt', { "prompt_id": prompt_id, "flow": flow, "node": nodematrix });
+        emitSocket('save_prompt', { "prompt_id": prompt_id, "flow": flow, "node": nodematrix, "feedbackflow":feedbackflow});
         return { prompt_id, flow, nodematrix };
     }
 
@@ -344,17 +358,34 @@ export class Prompt {
         let flow = [];
         let flownode=[];
         let nodematrix = {};
+        let minY:number = Number.MAX_SAFE_INTEGER;
         if (mode === 'send-all') {
             this.promptLines.forEach(line => {
                 let tempflowinfo = line.toJSONArray();
                 flownode.push(tempflowinfo[0]);
                 flownode.push(tempflowinfo[1]);
-                flow.push(line.toJSONArray(true));
+
+                let flowinfo = line.toJSONArray(true);
+                for (let i = 0; i < flowinfo.length; i++) {
+                    Object.entries(flowinfo[i]).forEach(([key, value]) => {
+                        let nodeY=value[0][1]
+                        // console.log(nodeY)
+                        if (minY==undefined || minY > nodeY){
+                            minY=nodeY;
+                        }
+                    });
+                }
+                flow.push(flowinfo);
             });
             this.promptNodes.forEach(node => {
                 //if node.nodeContent is not in flownode, then push the node to nodematrix
                 if (!flownode.includes(node.nodeContent)){
-                Object.assign(nodematrix, node.toJSONObj(true));}
+                let nodeArray = node.toJSONObj(true);
+                let nodeY=nodeArray[node.nodeContent][0][1]
+                if (minY==undefined || minY > nodeY){
+                    minY=nodeY;
+                }
+                Object.assign(nodematrix, nodeArray);}
             });
         }
 
@@ -373,7 +404,13 @@ export class Prompt {
                     Object.assign(nodematrix, node.toJSONObj(true));
             });
         }
-        return { flow, nodematrix };
+
+        if (mode === 'send-prompt'){}
+
+        if (minY === Number.MAX_SAFE_INTEGER) {
+            minY = undefined; // If minY wasn't updated, set it back to undefined
+        }
+        return { flow, nodematrix, minY };
     }
 
 

@@ -3,11 +3,11 @@ import json
 import re
 import random
 import urllib
-from openai import OpenAI
-import ast
-
+from openai import AsyncOpenAI
+import asyncio
+import aiohttp
 from instance.config import OPENAI_API_KEY
-client = OpenAI(api_key=OPENAI_API_KEY)
+client = AsyncOpenAI(api_key=OPENAI_API_KEY)
 # defaultsysdict = {
 #     "HYDRO": "#0BF",
 #     "ENERGY": "#FC0",
@@ -19,12 +19,12 @@ client = OpenAI(api_key=OPENAI_API_KEY)
 # }
 import logging
 
-logging.basicConfig(
-    level=logging.DEBUG,
-    filename="./logs/test_logs_io.log",
-    filemode="a",
-    format="%(asctime)s - %(levelname)s - %(message)s",
-)
+# logging.basicConfig(
+#     level=logging.DEBUG,
+#     filename="./logs/test_logs_io.log",
+#     filemode="a",
+#     format="%(asctime)s - %(levelname)s - %(message)s",
+# )
 
 ######################################################
 ######################################################
@@ -89,7 +89,6 @@ def cleansystem(sys_string):
             return Exception
     return systemdict
 
-
 def unielement(flowlist):
     element_set = set()
     # if flowlist contains sublist
@@ -98,10 +97,8 @@ def unielement(flowlist):
             element_set.add(clean(ele))
     return list(element_set)
 
-
 def has_letters(string):
     return any(char.isalpha() for char in string)
-
 
 def extract_brackets(text):
     pattern = (
@@ -110,7 +107,6 @@ def extract_brackets(text):
     matches = re.findall(pattern, text)  # Find all matches of the pattern in the text
     return matches
 
-
 def extract_curly_brackets(text):
     pattern = (
         r"\{(.*?)\}"  # Regular expression pattern to match strings between "{" and "}"
@@ -118,13 +114,11 @@ def extract_curly_brackets(text):
     matches = re.findall(pattern, text)  # Find all matches of the pattern in the text
     return matches
 
-
 def extract_quotation(text):
     matches = re.findall(r"\'(.*?)\'", text)
     if len(matches) == 0:
         matches = re.findall('"(.*?)"', text)
     return matches
-
 
 def checkjson(jsonfile):
     # open a json file from the path
@@ -132,7 +126,6 @@ def checkjson(jsonfile):
         data = json.load(f)
         # check if the json file contains no letters
         return has_letters(str(data))
-
 
 def checknestedlist(nestedlist):
     # If nestedlist is None or not a list or is empty, return False
@@ -188,14 +181,14 @@ def sortnode(nodelist, nodesys, syscolor):
 # Generate input from environment description
 
 
-def geninput(
+async def geninput(
     envir_description: str,
     sysdict: dict,
     randomNumber=3,
 ):
     """return unique input from environment description"""
     try:
-        response = client.chat.completions.create(model="gpt-4o",
+        response = await client.chat.completions.create(model="gpt-4o",
         messages=[
             {
                 "role": "system",
@@ -270,6 +263,216 @@ def geninput(
         print(f"An error occurred: {e}")
         return None
 
+
+async def gensystem(node:list, sysinfodict:dict, randomNumber=3):
+    """return system classification of elements"""
+    uniquesys = list(set(sysinfodict.keys()))
+    try:
+        response = await client.chat.completions.create(model="gpt-4-turbo",
+        messages=[
+            {
+                "role": "system",
+                "content": f"""You are an encyclopedia. Your job is to classify the node list into system.\n
+                    Output in this format: [["node1","system1"],["node2","system2"]]""",
+            },
+            {
+                "role": "user",
+                "content": 'nodelist: ["Cheetah", "wildlife corridors", "wadis"], system:["HYDRO", "ECOSYSTEM"]',
+            },
+            {
+                "role": "assistant",
+                "content": '[["Cheetah","ECOSYSTEM"], ["wildlife corridors","ECOSYSTEM"], ["wadis", "HYDRO"]]',
+            },
+            {
+                "role": "user",
+                "content": 'nodelist: ["forest", "irrigation", "organic waste", "biofuel"], system:["HYDRO", "ECOSYSTEM", "SOLID WASTE","ENERGY"]',
+            },
+            {
+                "role": "assistant",
+                "content": '[["forest","ECOSYSTEM"], ["irrigation","HYDRO"], ["organic waste", "SOLID WASTE"], ["biofuel", "ENERGY"]]',
+            },
+            {"role": "user", "content": f"nodelist:{node}, system:{uniquesys}"},
+        ],
+        temperature=1,
+        max_tokens=4096,
+        top_p=1,
+        frequency_penalty=0,
+        presence_penalty=0)
+        data = response.choices[0].message.content
+        logging.debug(f"Data: {data}")
+        return cleansystem(data)
+    except Exception as e:  # This catches all exceptions
+        print(f"An error occurred: {e}")
+        return None
+
+
+## exectution
+async def return_input(env:str, sysdict:dict, max_tries=3):
+    for _ in range(max_tries):
+        try:
+            input_val, input_sys = await geninput(env, sysdict)
+            logging.debug(f"input_val: {input_val}, input_sys: {input_sys}")
+            if checklist(input_val):
+                return input_val, input_sys
+        except:
+            print("Sorry, we can't generate a result from the environment description, please try again.")
+    return None
+
+
+# def return_io(input_resources, sysdict:dict, max_tries=4):
+#     for i in range(max_tries):
+#         flow_list = genio(input_resources, sysdict, i+1)
+#         print(f"flow_list: {flow_list}")
+#         if checknestedlist(flow_list):
+#             return flow_list
+#     print("Sorry, we can't generate a result from the input resources, please try again.")
+#     return None
+
+# async def return_system(node: list, syscolor: dict, max_tries: int = 3, known_nodesys: dict = None):
+#     if checknestedlist(node):
+#         node = unielement(node)
+
+#     if known_nodesys:
+#         # Filter out known_nodesys.keys() from node
+#         known_nodelist = list(known_nodesys.keys())
+#         node = [ele for ele in node if ele not in known_nodelist]
+
+#     for _ in range(max_tries):
+#         try:
+#             randomNumber = random.randint(1, 5)
+        
+#             # Split the node into list of length n, and store in a nested list
+#             n = 150
+#             nested_node = [node[i:i + n] for i in range(0, len(node), n)]
+#             logging.debug(f"Nested node: {nested_node}")
+#             sysdict = {}
+            
+#             # Create a list of coroutine tasks for processing each sublist in parallel
+#             tasks = [gensystem(sublist, syscolor, randomNumber) for sublist in nested_node]
+            
+#             # Run the tasks concurrently
+#             results = await asyncio.gather(*tasks)
+            
+#             for sublist, sub_sysdict in zip(nested_node, results):
+#                 # logging.debug(f"Sub system dictionary: {sub_sysdict}")
+#                 if checkdict(sub_sysdict):
+#                     if set(sub_sysdict.keys()) == set(sublist) and set(sub_sysdict.values()).issubset(set(syscolor.keys())):
+#                         sysdict.update(sub_sysdict)
+#                         logging.debug(f"Sub system dictionary: {sub_sysdict}")
+                        
+#             if known_nodesys:
+#                 sysdict.update(known_nodesys)
+#             return sysdict 
+#         except Exception as e:
+#             logging.error(f"Error during system generation: {e}")
+
+#     logging.debug("Sorry, we can't generate a result from the node list, please try again.")
+#     return None
+
+async def return_system(node: list, syscolor: dict, max_tries: int = 3, known_nodesys: dict = None):
+    """_summary_
+
+    Args:
+        node (list): _description_
+        syscolor (dict): _description_
+        max_tries (int, optional): _description_. Defaults to 3.
+        known_nodesys (dict, optional): nodes that come with a system from other steps. Defaults to None.
+    """
+    if checknestedlist(node):
+        node = unielement(node)
+        
+    if known_nodesys:
+        # Filter out known_nodesys.keys() from node
+        known_nodelist = list(known_nodesys.keys())
+        node = [ele for ele in node if ele not in known_nodelist]
+        
+    # Split the node into list of length n, and store in a nested list
+    n = 100
+    nested_node = [node[i:i + n] for i in range(0, len(node), n)]
+    logging.debug(f"Nested node: {nested_node}")
+    sysdict = {}
+
+    # Create a list of coroutine tasks for processing each sublist in parallel
+    tasks = [return_sub_system(sublist, syscolor) for sublist in nested_node]
+    
+    # Run the tasks concurrently
+    results = await asyncio.gather(*tasks)
+    
+    for sublist, sub_sysdict in zip(nested_node, results):
+        if sub_sysdict:  # Ensure sub_sysdict is not None
+            sysdict.update(sub_sysdict)
+                
+    if known_nodesys:
+        sysdict.update(known_nodesys)
+    
+    return sysdict    
+        
+async def return_sub_system(sub_nodelist: list, syscolor: dict, max_tries: int = 3):
+    """
+    Attempts to generate a system dictionary for a sublist of nodes.
+
+    Args:
+        sub_nodelist (list): Sublist of nodes to process.
+        syscolor (dict): Dictionary mapping systems to colors.
+        max_tries (int, optional): Maximum number of attempts to generate a system. Defaults to 3.
+
+    Returns:
+        dict: Dictionary mapping nodes to systems if successful, otherwise None.
+    """
+    for attempt in range(max_tries):
+        try:
+            random_number = random.randint(1, 5)
+            sub_sysdict = await gensystem(sub_nodelist, syscolor, random_number)
+            logging.debug(f"Trying Gen Sub system dictionary: {sub_sysdict}")
+            if checkdict(sub_sysdict):
+                if set(sub_sysdict.keys()) == set(sub_nodelist) and set(sub_sysdict.values()).issubset(set(syscolor.keys())):
+                    logging.debug(f"Sub system dictionary: {sub_sysdict}")
+                    return sub_sysdict
+        except Exception as e:
+            logging.error(f"Error during system generation on attempt {attempt + 1}: {e}")
+    return None
+
+# ### Build Simple Matrix
+def nodematrix(nodelist, nodesys, syscolor):
+    listin = set()
+    listout = set()
+
+    for sublist in nodelist:
+        ele0, ele1 = sublist  # Unpack elements for readability
+        listin.add(ele0)
+        if ele1 not in listin:
+            listout.add(ele1)
+
+    listinput = sortnode(list(listin), nodesys, syscolor)
+    listoutput = sortnode(list(listout - listin), nodesys, syscolor)
+
+    nodematrix = {}
+    for n in listinput:
+        nodematrix[n] = [0, listinput.index(n)], nodesys[n]
+    for n in listoutput:
+        nodematrix[n] = [1, listoutput.index(n)], nodesys[n]
+    return nodematrix
+
+
+######################################################
+######################################################
+if __name__ == "__main__":
+    pass
+    # env = "this is an urbran plaza"
+    # input_val = return_input(env)
+    # # print(input_val)
+    # flow_list = return_io(input_val)
+    # # print(flow_list)
+    # node=unielement(flow_list)
+    # # print(node)
+    # sysdict={"hydro":"rgba(0, 174, 239, 0.8)", "energy":"rgba(255, 198, 11, 0.8)",
+    #         "solidwaste":"rgba(0, 166, 81, 0.8)", "food":"rgba(0, 114, 41, 0.8)",
+    #         "transport":"rgba(185, 29, 71, 0.8)","ecosystem":"rgba(57, 181, 74, 0.8)",
+    #         "unknown":"rgba(191, 191, 191, 0.8)",}
+    # nodesysdict=return_system(node,sysdict)
+    # print(nodesysdict)
+
+
 # def genio(input_resources, sysdict:dict, randomNumber=3):
 #     """return output resources from input resources"""
 #     sys_string = ", ".join(list(sysdict.keys())).upper()
@@ -323,143 +526,3 @@ def geninput(
 #     except Exception as e:  # This catches all exceptions
 #         print(f"An error occurred: {e}")
 #         return None
-
-
-def gensystem(node:list, sysinfodict:dict, randomNumber=3):
-    """return system classification of elements"""
-    uniquesys = list(set(sysinfodict.keys()))
-    try:
-        response = client.chat.completions.create(model="gpt-4-turbo",
-        messages=[
-            {
-                "role": "system",
-                "content": f"""You are an encyclopedia. Your job is to classify the node list into system.\n
-                    Output in this format: [["node1","system1"],["node2","system2"]]""",
-            },
-            {
-                "role": "user",
-                "content": 'nodelist: ["Cheetah", "wildlife corridors", "wadis"], system:["HYDRO", "ECOSYSTEM"]',
-            },
-            {
-                "role": "assistant",
-                "content": '[["Cheetah","ECOSYSTEM"], ["wildlife corridors","ECOSYSTEM"], ["wadis", "HYDRO"]]',
-            },
-            {
-                "role": "user",
-                "content": 'nodelist: ["forest", "irrigation", "organic waste", "biofuel"], system:["HYDRO", "ECOSYSTEM", "SOLID WASTE","ENERGY"]',
-            },
-            {
-                "role": "assistant",
-                "content": '[["forest","ECOSYSTEM"], ["irrigation","HYDRO"], ["organic waste", "SOLID WASTE"], ["biofuel", "ENERGY"]]',
-            },
-            {"role": "user", "content": f"nodelist:{node}, system:{uniquesys}"},
-        ],
-        temperature=1,
-        max_tokens=4096,
-        top_p=1,
-        frequency_penalty=0,
-        presence_penalty=0)
-        data = response.choices[0].message.content
-        return cleansystem(data)
-    except Exception as e:  # This catches all exceptions
-        print(f"An error occurred: {e}")
-        return None
-
-
-## exectution
-def return_input(env:str, sysdict:dict, max_tries=3):
-    for _ in range(max_tries):
-        try:
-            input_val, input_sys = geninput(env, sysdict)
-            logging.debug(f"input_val: {input_val}, input_sys: {input_sys}")
-            if checklist(input_val):
-                return input_val, input_sys
-        except:
-            print("Sorry, we can't generate a result from the environment description, please try again.")
-    return None
-
-
-# def return_io(input_resources, sysdict:dict, max_tries=4):
-#     for i in range(max_tries):
-#         flow_list = genio(input_resources, sysdict, i+1)
-#         print(f"flow_list: {flow_list}")
-#         if checknestedlist(flow_list):
-#             return flow_list
-#     print("Sorry, we can't generate a result from the input resources, please try again.")
-#     return None
-
-def return_system(node: list, syscolor: dict, max_tries: int = 3, known_nodesys: dict = None):
-    if checknestedlist(node):
-        node = unielement(node)
-
-    if known_nodesys:
-        # Filter out known_nodesys.keys() from node
-        known_nodelist = list(known_nodesys.keys())
-        node = [ele for ele in node if ele not in known_nodelist]
-
-    for _ in range(max_tries):
-        try:
-            randomNumber = random.randint(1, 5)
-        
-            # Split the node into list of length n, and store in a nested list
-            n = 150
-            nested_node = [node[i:i + n] for i in range(0, len(node), n)]
-            logging.debug(f"Nested node: {nested_node}")
-            sysdict = {}
-            for sublist in nested_node:
-                sub_sysdict = gensystem(sublist, syscolor, randomNumber)
-                logging.debug(f"Sub system dictionary: {sub_sysdict}")
-                if checkdict(sub_sysdict):
-                    if set(sub_sysdict.keys()) == set(sublist) and set(sub_sysdict.values()).issubset(set(syscolor.keys())):
-                        sysdict.update(sub_sysdict)
-                        logging.debug(f"Sub system dictionary: {sub_sysdict}")
-                        
-            if known_nodesys:
-                sysdict.update(known_nodesys)
-            return sysdict 
-        except Exception as e:
-            logging.error(f"Error during system generation: {e}")
-
-    logging.debug("Sorry, we can't generate a result from the node list, please try again.")
-    return None
-
-
-# ### Build Simple Matrix
-def nodematrix(nodelist, nodesys, syscolor):
-    listin = set()
-    listout = set()
-
-    for sublist in nodelist:
-        ele0, ele1 = sublist  # Unpack elements for readability
-        listin.add(ele0)
-        if ele1 not in listin:
-            listout.add(ele1)
-
-    listinput = sortnode(list(listin), nodesys, syscolor)
-    listoutput = sortnode(list(listout - listin), nodesys, syscolor)
-
-    nodematrix = {}
-    for n in listinput:
-        nodematrix[n] = [0, listinput.index(n)], nodesys[n]
-    for n in listoutput:
-        nodematrix[n] = [1, listoutput.index(n)], nodesys[n]
-    return nodematrix
-
-
-######################################################
-######################################################
-if __name__ == "__main__":
-    pass
-    # env = "this is an urbran plaza"
-    # input_val = return_input(env)
-    # # print(input_val)
-    # flow_list = return_io(input_val)
-    # # print(flow_list)
-    # node=unielement(flow_list)
-    # # print(node)
-    # sysdict={"hydro":"rgba(0, 174, 239, 0.8)", "energy":"rgba(255, 198, 11, 0.8)",
-    #         "solidwaste":"rgba(0, 166, 81, 0.8)", "food":"rgba(0, 114, 41, 0.8)",
-    #         "transport":"rgba(185, 29, 71, 0.8)","ecosystem":"rgba(57, 181, 74, 0.8)",
-    #         "unknown":"rgba(191, 191, 191, 0.8)",}
-    # nodesysdict=return_system(node,sysdict)
-    # print(nodesysdict)

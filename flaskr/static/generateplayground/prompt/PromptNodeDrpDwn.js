@@ -63,6 +63,22 @@ export class PromptNodeDrpDwn extends Dropdown {
             }
         }
     }
+    addEditFlowOption() {
+        if (this.nodeItem && this.promptItem) {
+            let startLines = this.promptItem.getLinesWhereNodeasInput(this.nodeItem);
+            let endLines = this.promptItem.getLinesWhereNodeasOutput(this.nodeItem);
+            if (startLines.length > 0) {
+                startLines.forEach(line => {
+                    this.options.get('Edit Flowline Style').push('To ' + line.toJSONArray()[1]);
+                });
+            }
+            if (endLines.length > 0) {
+                endLines.forEach(line => {
+                    this.options.get('Edit Flowline Style').push('From ' + line.toJSONArray()[0]);
+                });
+            }
+        }
+    }
     addAddFlowOption() {
         if (this.nodeItem && this.promptItem) {
             this.promptItem.promptNodes.forEach(node => {

@@ -80,7 +80,8 @@ def create_app(test_config=None):
     if not app.debug:
         import logging
         from logging import FileHandler
-        file_handler = FileHandler('errorlog.txt')
+        #set filemode to append
+        file_handler = FileHandler('./logs/errorlog.txt', mode='a')
         file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(logging.Formatter(
             "%(asctime)s - %(levelname)s - %(message)s"

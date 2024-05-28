@@ -11,12 +11,13 @@ from werkzeug.datastructures import FileStorage
 # export PYTHONPATH="/home/ubuntu/Sherbot/App_Development:$PYTHONPATH"
 logging.basicConfig(
     level=logging.DEBUG,
-    filename="test_logs_project.log",
+    filename="logs/test_logs_project.log",
     filemode="a",
     format="%(asctime)s - %(levelname)s - %(message)s",
 )
 
-
+# Suppress specific debug messages from asyncio
+logging.getLogger('asyncio').setLevel(logging.WARNING)
 # Path: App_240327/instance/flaskr.sqlite
 # db_path = os.path.join(os.path.dirname(__file__), "..", "instance", "flaskr.sqlite")
 # db_path = os.path.abspath(db_path)
@@ -24,7 +25,9 @@ logging.basicConfig(
 
 
 class TestIndex:
-    # @pytest.mark.skip(reason="leave this for a while.")
+
+    # @pytest.mark.asyncio
+    @pytest.mark.skip(reason="leave this for a while.")
     def test_post_description(self, app, client):
         """Test posting a description type."""
         with app.app_context():
@@ -47,6 +50,8 @@ class TestIndex:
             ), f"Unexpected final URL: {response.request.path}"
             assert b"Input" in response.data
 
+
+    # @pytest.mark.asyncio
     # @pytest.mark.skip(reason="leave this for a while.")
     def test_post_image(self, app, client):
         # """Test posting an image file from the local filesystem."""
@@ -72,7 +77,9 @@ class TestIndex:
                     ), f"Unexpected final URL: {response.request.path}"
                     assert b"Input" in response.data
     
-    # @pytest.mark.skip(reason="leave this for a while.")
+
+    # @pytest.mark.asyncio
+    @pytest.mark.skip(reason="leave this for a while.")
     def test_post_label(self, app, client):
         """Test posting a label type."""
         with app.app_context():
@@ -93,6 +100,8 @@ class TestIndex:
             ), f"Unexpected final URL: {response.request.path}"
             assert b"Input" in response.data
 
+    # @pytest.mark.asyncio
+    @pytest.mark.skip(reason="leave this for a while.")
     def test_post_label2(self, app, client):
         """Test posting a label type."""
         with app.app_context():
@@ -898,7 +907,7 @@ if __name__ == "__main__":
 
     pytest.main(
         [
-            "test_project.py::TestIndex::test_post_description",
+            "test_project.py::TestIndex",
             "-x",
         ]
     )

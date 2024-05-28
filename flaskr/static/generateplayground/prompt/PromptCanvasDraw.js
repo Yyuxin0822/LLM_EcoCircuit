@@ -1,6 +1,7 @@
-export class CanvasDraw {
-    constructor(canvasId) {
-        this.canvas = document.getElementById(canvasId);
+export class PromptCanvasDraw {
+    constructor(canvasId, container) {
+        this.container = container;
+        this.canvas = container.querySelector(`#${canvasId}`);
         this.context = this.canvas.getContext("2d");
         this.colour = "rgb(30, 30, 30)";
         this.strokeWidth = 4;
@@ -16,8 +17,11 @@ export class CanvasDraw {
             mouseOut: this.endStroke.bind(this),
             mouseEnter: this.mouseEnter.bind(this)
         };
+        this.disable();
         this.enabled = false;
-        this.enable();
+        PromptCanvasDraw.promptDrawInstances.push(this);
+        window.onbeforeunload = this.saveAllCanvases.bind(this);
+        window.addEventListener("DOMContentLoaded", this.loadCanvas.bind(this));
     }
     attachEventListeners() {
         this.canvas.addEventListener("touchstart", this.handlers.touchStart, false);
@@ -42,6 +46,7 @@ export class CanvasDraw {
     enable() {
         if (this.enabled)
             return;
+        this.container.classList.add('disable-pointer-events');
         this.attachEventListeners();
         this.enabled = true;
     }
@@ -49,6 +54,7 @@ export class CanvasDraw {
         if (!this.enabled)
             return;
         this.detachEventListeners();
+        this.container.classList.remove('disable-pointer-events');
         if (this.drawing) {
             this.endStroke();
         }
@@ -122,4 +128,66 @@ export class CanvasDraw {
     touchEnd() {
         this.drawing = false;
     }
+    saveCanvas() {
+        console.log("saving canvas");
+        var dataURL = this.canvas.toDataURL("image/png");
+        var prompt = this.container.closest(".prompt");
+        if (!prompt)
+            return;
+        var prompt_id = prompt.id.substring(6);
+        this.canvas.toBlob((blob) => {
+            const data = new FormData();
+            data.append("data_url", blob);
+            data.append("prompt_id", prompt_id);
+            console.log("Blob size:", blob.size);
+            console.log("prompt_id:", prompt_id);
+            var isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+            var url = isLocal ? 'http://localhost:8000/save_promptcanvas' : 'https://www.ecocircuitai.com/save_promptcanvas';
+            fetch(url, {
+                method: 'POST',
+                body: data,
+                keepalive: true
+            })
+                .then(response => response.json())
+                .then(result => {
+                console.log("Canvas saved successfully using fetch with Blob.");
+            })
+                .catch(error => {
+                console.error("Error saving canvas using fetch with Blob:", error);
+            });
+        }, 'image/png');
+    }
+    loadCanvas() {
+        console.log("loading canvas");
+        var prompt = this.container.closest(".prompt");
+        if (!prompt)
+            return;
+        var prompt_id = prompt.id.substring(6);
+        fetch('/load_promptcanvas', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ "prompt_id": prompt_id })
+        })
+            .then(response => response.json())
+            .then(data => this.processCanvasUrl(data.data_url))
+            .catch(error => {
+            console.error("Error loading canvas:", error);
+        });
+    }
+    processCanvasUrl(dataURL) {
+        if (dataURL) {
+            const img = new Image();
+            img.onload = () => {
+                this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.context.drawImage(img, 0, 0);
+            };
+            img.src = dataURL;
+        }
+    }
+    saveAllCanvases() {
+        PromptCanvasDraw.promptDrawInstances.forEach(instance => instance.saveCanvas());
+    }
 }
+PromptCanvasDraw.promptDrawInstances = [];

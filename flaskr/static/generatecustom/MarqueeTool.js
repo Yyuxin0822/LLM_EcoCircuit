@@ -273,7 +273,6 @@ export class MarqueeTool {
 customprompt.addEventListener('marquee', CustomFlowline.fixLine, false);
 const customPromptRect = customprompt.getBoundingClientRect();
 const img = document.getElementById("customImage");
-var imageDraggable = new PlainDraggable(img, { containment: { left: 0, top: 0, width: 12000, height: 12000 } });
 function parseTranslate(transformString) {
     const regex = /translate\(([\d\-.]+)px, ([\d\-.]+)px\)/i;
     const match = transformString.match(regex);

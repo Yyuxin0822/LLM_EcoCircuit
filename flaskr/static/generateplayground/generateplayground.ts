@@ -65,6 +65,7 @@ function loadplayground() {
     document.getElementById('content-custom-frame').classList.add('hidden');
     document.getElementById('func-wrapper-engbar')?.classList.remove('hidden');
     document.getElementById('func-wrapper-edit')?.classList.remove('hidden');
+    document.getElementById('info-frame')?.classList.remove('hidden');
     document.querySelectorAll('.send-to-custom').forEach((button) => {
         button.style.display = 'block';
     });
@@ -79,12 +80,16 @@ function loadcustom() {
     document.getElementById('content-custom-frame')?.classList.remove('hidden');
     document.getElementById('func-wrapper-engbar')?.classList.add('hidden');
     document.getElementById('func-wrapper-edit')?.classList.add('hidden');
+    document.getElementById('info-frame')?.classList.add('hidden');
     document.querySelectorAll('.send-to-custom').forEach((button) => {
         button.style.display = 'none';
     });
     playFuncBar.disable();
     setIframeMode(true);
+    // scrolltobottom of thescreen
+    window.scrollTo(0, document.body.scrollHeight);
 }
+
 document.getElementById('toggle-playground')?.addEventListener('click', loadplayground);
 document.getElementById('toggle-custom')?.addEventListener('click', loadcustom);
 
@@ -158,30 +163,38 @@ processSystem(systemBar.container);
 
 
 ////////////// prompt-frame ////////////// 
+// let findFeedback = (parentPrompt: HTMLElement) => {
+//     var userPrompt = parentPrompt.previousElementSibling;
+//     var userInfoElement = userPrompt.querySelector('.userinfo');
+//     if (userInfoElement) {
+
+//         var feedbackInfo = userInfoElement.innerHTML.trim();
+//         //trim whitespace and find the first word
+//         var feedbackType = feedbackInfo.split(' ')[0];
+//         if (feedbackType != 'Feedback' && feedbackType != 'Regeneration') {
+//             return;
+//         }
+
+//         // Regex to find patterns like 'Element1--&gt; Element2' considering HTML entity
+//         var regex = /\s*(.*?)\s*--&gt;\s*(.*?)\s*(?=<br>|$)/g;
+//         var matches, pairs = [];
+
+//         // Extracting pairs using the regex
+//         while (matches = regex.exec(feedbackInfo)) {
+//             // matches[1] and matches[2] are the captured groups from the regex
+//             pairs.push([matches[1], matches[2]]);
+//         }
+//         return pairs;
+
+//     }
+// }
+
 let findFeedback = (parentPrompt: HTMLElement) => {
-    var userPrompt = parentPrompt.previousElementSibling;
-    var userInfoElement = userPrompt.querySelector('.userinfo');
-    if (userInfoElement) {
-
-        var feedbackInfo = userInfoElement.innerHTML.trim();
-        //trim whitespace and find the first word
-        var feedbackType = feedbackInfo.split(' ')[0];
-        if (feedbackType != 'Feedback' && feedbackType != 'Regeneration') {
-            return;
-        }
-
-        // Regex to find patterns like 'Element1--&gt; Element2' considering HTML entity
-        var regex = /\s*(.*?)\s*--&gt;\s*(.*?)\s*(?=<br>|$)/g;
-        var matches, pairs = [];
-
-        // Extracting pairs using the regex
-        while (matches = regex.exec(feedbackInfo)) {
-            // matches[1] and matches[2] are the captured groups from the regex
-            pairs.push([matches[1], matches[2]]);
-        }
-        return pairs;
-
+    var fbInfo = parentPrompt.querySelector('.prompt-feedbackflow').innerHTML;
+    if (fbInfo == "") {
+        return;
     }
+    return JSON.parse(fbInfo);
 }
 
 function processPrompt(prompt: HTMLElement) {
@@ -201,6 +214,9 @@ function processPrompt(prompt: HTMLElement) {
     let NodeY = Array.from(new Set(nodeArray.map(node => node[1][1])));
     let NodeYMax = Math.max(...NodeY);
     parentPrompt.style.height = ((NodeYMax + 1) * 1.5 + 6) + 'rem';
+    let canvas = parentPrompt.querySelector('#canvasDraw');
+    canvas.height = ((NodeYMax + 1) * 1.5 + 3) * 16; //no unit, cautious
+
     NodeX.forEach((x: number) => {
         if (parentPrompt.querySelector('#col' + validId(x.toString()))) {
             return;
@@ -250,22 +266,20 @@ function processPrompt(prompt: HTMLElement) {
         }
     });
 
+    let feedbackLines = findFeedback(parentPrompt);
+    if (feedbackLines) {
+        feedbackLines.forEach((line) => {
+            promptObject.promptLines.forEach((flowline) => {
+                if (flowline.start.querySelector('.node-wrapper').innerText == line[0] && flowline.end.querySelector('.node-wrapper').innerText == line[1]) {
+                    flowline.feedback = true;
+                    flowline.setFeedbackStyle();
+                }
+            })
+        })
+    }
 
     if (nodeArray.length == 0) {
         parentPrompt.style.display = 'none';
-        let feedbackLines = findFeedback(parentPrompt);
-
-        if (feedbackLines) {
-            feedbackLines.forEach((line) => {
-                PromptFlowline.getAllLines().forEach((flowline) => {
-                    if (flowline.start.querySelector('.node-wrapper').innerText == line[0] && flowline.end.querySelector('.node-wrapper').innerText == line[1]) {
-                        flowline.feedback = true;
-                        flowline.setFeedbackStyle();
-
-                    }
-                })
-            })
-        }
         return;
     }
 }
@@ -416,15 +430,20 @@ function setIframeMode(editable: boolean) {
     let content = iframeDocument.getElementById('custom-body-wrapper');
     if (editable) {
         //set the control in custom.html
-        content.classList?.remove('readonly');
-        content.classList?.add('editable');
+        if (content) {
+            content.classList?.remove('readonly');
+            content.classList?.add('editable');
+
+        }
         //set the control in generate.html
         iframe.classList?.remove('readonly');
         iframe.classList?.add('editable');
     } else {
         //set the control in custom.html
-        content.classList?.remove('editable');
-        content.classList?.add('readonly');
+        if (content) {
+            content.classList?.remove('editable');
+            content.classList?.add('readonly');
+        }
         //set the control in generate.html
         iframe.classList?.remove('editable');
         iframe.classList?.add('readonly');
@@ -435,6 +454,7 @@ iframe.addEventListener('load', function () {
     iframeDocument.addEventListener('click', function () {
         // console.log('iframe clicked');
         setIframeMode(true);
+
     })
 });
 
@@ -448,27 +468,77 @@ document.addEventListener('click', (e) => {
 
 
 
-
-
 /////////////////////////////what send data to custom means here. When sending customers//////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-let sendAll = document.getElementById('send-all');
-let sendSelected = document.getElementById('send-selected');
+const sendAll = document.getElementById('send-all');
 sendAll?.addEventListener('click', () => sendDataToCustom('send-all'));
+
+const startSelect = document.getElementById('start-select-for-sending');
+const finishSelect = document.getElementById('finish-select-for-sending');
+// startSelect?.addEventListener('click', () => {
+//     startSelect.style.display = 'none';
+//     PromptNode.nodeSel = true;
+//     PromptFlowline.lineSel = true;
+//     PromptNode.addIdentifier();
+// })
+const sendSelected = document.getElementById('send-selected');
+const sendprompt = document.querySelectorAll('.send-prompt'); //these divs have id="send-to-custom{{promptIds[i]}}"
+
+// what is the actual difference between all these three modes 
+// when send selected, it might be slghtly similar to what is done with all
+// when sendprompt, it doesn't have to process all the prompts
 
 
 function sendDataToCustom(mode: string) {
     let project_id = document.getElementById('project_id').innerText;
     let flow_array = [];
     let node_array = {};
+    let finalminY: number = Number.MAX_SAFE_INTEGER;
     Prompt.allPrompts.forEach(prompt => {
-        let { flow, nodematrix } = prompt.collectCustomInfo(mode);
+        let { flow, nodematrix, minY } = prompt.collectCustomInfo(mode);
         if (flow.length > 0) {
             flow_array = [...flow_array, ...flow];
         }
         if (Object.keys(nodematrix).length > 0) {
             node_array = { ...node_array, ...nodematrix };
         }
+        if (finalminY == undefined || minY < finalminY) {
+            finalminY = minY;
+        }
+    });
+    if (finalminY === Number.MAX_SAFE_INTEGER) {
+        finalminY = undefined; // If minY wasn't updated, set it back to undefined
+    }
+
+    //update posY for all nodes in nodematrix or flow
+    //step 1, understand the whitespace in current flow_array and node_array, generate.html
+    console.log(finalminY)
+
+    //step2 understand the maxY. This is custom.html
+    let iframe = document.getElementById('custom-iframe');
+    let iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
+    let nodeContainer = iframeDocument.getElementById('customnode-wrapper');
+    let nodes = nodeContainer.querySelectorAll('.node');
+    let nodeRects = Array.from(nodes).map(node => node.getBoundingClientRect());
+    let maxY: number;
+    if (nodeRects.length == 0) {
+        maxY = 0;
+    } else { maxY = Math.max(...nodeRects.map(rect => rect.bottom)); }
+
+    console.log(maxY);
+
+    //step3 for all objs in flow_array and node_array, update posY
+    // posY = posY - finalminY + maxY
+    flow_array.forEach((flow) => {
+        flow.forEach((node) => {
+            Object.entries(node).forEach(([key, value]) => {
+                value[0][1] = value[0][1] - finalminY + maxY;
+            });
+        });
+    });
+
+    Object.entries(node_array).forEach(([key, value]) => {
+        value[0][1] = value[0][1] - finalminY + maxY;
     });
 
     var isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
@@ -488,11 +558,11 @@ function sendDataToCustom(mode: string) {
 
 
 
-function savePlayground() {
-    let project_id = document.getElementById('project_id').innerHTML;
-    let { prompt_id, flow, nodematrix } = Prompt.returnAllInfo();
-    emitSocket('save_prompt', { "prompt_id": prompt_id, "flow": flow, "node": nodematrix, "project_id": project_id });
-}
+// function savePlayground() {
+//     let project_id = document.getElementById('project_id').innerHTML;
+//     let { prompt_id, flow, nodematrix } = Prompt.returnAllInfo();
+//     emitSocket('save_prompt', { "prompt_id": prompt_id, "flow": flow, "node": nodematrix, "project_id": project_id });
+// }
 
 
 
@@ -541,22 +611,22 @@ function savePlayground() {
 //     return { prompt_id, info, currentmatrix };
 // }
 
-function absPostionMatrix(prompt) {
-    //this function is to transform the relative position matrix to absolute position matrix
-    //the relative position matrix is the matrix that is stored in the database
-    //the absolute position matrix is the matrix that is displayed in the playground
+// function absPostionMatrix(prompt) {
+//     //this function is to transform the relative position matrix to absolute position matrix
+//     //the relative position matrix is the matrix that is stored in the database
+//     //the absolute position matrix is the matrix that is displayed in the playground
 
-    //the absolute position matrix is a 2D array with the following structure
-    // {nodeName:[[absX, absY], nodeSystem]}
+//     //the absolute position matrix is a 2D array with the following structure
+//     // {nodeName:[[absX, absY], nodeSystem]}
 
-    let absMatrix = {};
+//     let absMatrix = {};
 
-    var nodewrapper = prompt.querySelectorAll('.node-wrapper')
-    nodewrapper.forEach((nodewrapper) => {
-        let node = nodewrapper.closest('.node');
-        let absPosition = getnodePositionInDOM(node);
-        absMatrix[nodewrapper.innerHTML] = [absPosition, node.style.transform, node.style.backgroundColor];
-    })
-    return absMatrix;
-}
+//     var nodewrapper = prompt.querySelectorAll('.node-wrapper')
+//     nodewrapper.forEach((nodewrapper) => {
+//         let node = nodewrapper.closest('.node');
+//         let absPosition = getnodePositionInDOM(node);
+//         absMatrix[nodewrapper.innerHTML] = [absPosition, node.style.transform, node.style.backgroundColor];
+//     })
+//     return absMatrix;
+// }
 

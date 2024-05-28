@@ -2,10 +2,10 @@ import { Prompt } from './Prompt.js';
 import { PromptNode } from './PromptNode.js';
 export class PromptFlowline extends LeaderLine {
     constructor(start, end) {
+        super(start, end);
         if (PromptFlowline.isLineExists(start, end)) {
             return;
         }
-        super(start, end);
         this.start = start;
         this.end = end;
         this.prompt = this.start.closest('.prompt');

@@ -7,6 +7,7 @@ import { FuncBar } from '../../FuncBar.js';
 import { PromptNode } from './PromptNode.js';
 import { PromptFlowline } from './PromptFlowline.js';
 import { Prompt } from './Prompt.js';
+import { PromptCanvasDraw } from './PromptCanvasDraw.js';
 export class PromptFuncBar extends FuncBar {
     constructor(container) {
         super(container);
@@ -47,11 +48,15 @@ export class PromptFuncBar extends FuncBar {
         this.prompt = this.container.closest(".prompt");
         this.nodeButton = this.container.querySelector("#nodemode");
         this.flowButton = this.container.querySelector("#flowmode");
+        this.canvasDrawInstance = new PromptCanvasDraw("canvasDraw", this.prompt);
         PromptFuncBar.allPromptFuncBars.push(this);
     }
     activateFunction(id) {
         super.activateFunction(id);
         switch (id) {
+            case 'drawmode':
+                this.setDrawMode();
+                break;
             case 'nodemode':
                 this.setNodeMode();
                 break;
@@ -63,12 +68,31 @@ export class PromptFuncBar extends FuncBar {
     deactivateFunction(id) {
         super.deactivateFunction(id);
         switch (id) {
+            case 'drawmode':
+                this.unsetDrawMode();
+                break;
             case 'nodemode':
                 this.unsetNodeMode();
                 break;
             case 'flowmode':
                 this.unsetFlowMode();
                 break;
+        }
+    }
+    setSelMode() {
+        document.body.style.cursor = "default";
+    }
+    unsetSelMode() {
+        document.body.style.cursor = "default";
+        this.promptItem = Prompt.getPromptItembyPrompt(this.prompt);
+        this.promptItem.returnInfo();
+    }
+    setDrawMode() {
+        this.canvasDrawInstance.enable();
+    }
+    unsetDrawMode() {
+        if (this.canvasDrawInstance.enabled) {
+            this.canvasDrawInstance.disable();
         }
     }
     setNodeMode() {
@@ -102,13 +126,20 @@ export class PromptFuncBar extends FuncBar {
     }
     enable() {
         this.container.classList.remove("hidden");
-        this.activateFunction("nodemode");
+        let active = this.container.querySelector(".active");
+        if (active) {
+            this.activateFunction(active.id);
+        }
+        else {
+            this.nodeButton.click();
+        }
     }
     disable() {
         this.container.classList.add("hidden");
         this.deactivateFunction("selmode");
         this.deactivateFunction("nodemode");
         this.deactivateFunction("flowmode");
+        this.deactivateFunction("drawmode");
     }
 }
 PromptFuncBar.allPromptFuncBars = [];
@@ -117,6 +148,7 @@ function createTempIdentifierHTML(container, identifierClass) {
     identifier.classList.add(identifierClass);
     let identifierDot = document.createElement("div");
     identifierDot.classList.add('identifier-temp', 'identifier-unselected');
+    identifierDot.title = "Click to Add Flowline, \nAlt+Click to Add Regeneration/Feedback Flowline";
     identifier.appendChild(identifierDot);
     container.appendChild(identifier);
     return identifier;
@@ -133,13 +165,25 @@ let Temp = (_a = class {
             document.addEventListener('disableTempClick', this.handleDisableTempClick.bind(this));
             Temp.allTemps.push(this);
         }
-        handleClick() {
-            if (this.selected) {
-                this.unselect();
+        handleClick(event) {
+            if (event.altKey) {
+                if (this.selected) {
+                    this.unselect();
+                }
+                else {
+                    this.select(true);
+                }
             }
             else {
-                this.select();
+                if (this.selected) {
+                    this.unselect();
+                }
+                else {
+                    this.select();
+                }
             }
+            event.preventDefault();
+            event.stopPropagation();
         }
         handleTempClick() {
             if (this.selectable) {
@@ -164,13 +208,13 @@ let Temp = (_a = class {
                 });
             }
             if (total === 1) {
-                if (event.detail === this) {
+                if (event.detail.instance === this) {
                     this.selectable = true;
                     if (this.temp.closest('.input-identifier')) {
                         Temp.allTemps.forEach(temp => {
                             if (temp.tempContent !== this.tempContent && temp.temp.closest('.output-identifier')) {
                                 temp.selectable = true;
-                                temp.toselect();
+                                temp.toselect(event.detail.feedback);
                             }
                         });
                     }
@@ -178,7 +222,7 @@ let Temp = (_a = class {
                         Temp.allTemps.forEach(temp => {
                             if (temp.tempContent !== this.tempContent && temp.temp.closest('.input-identifier')) {
                                 temp.selectable = true;
-                                temp.toselect();
+                                temp.toselect(event.detail.feedback);
                             }
                         });
                     }
@@ -203,7 +247,13 @@ let Temp = (_a = class {
                 let line = PromptFlowline.getLinebyEndTexts(startText, endText, promptItem);
                 if (!line) {
                     line = new PromptFlowline(startNode, endNode);
+                    if (startNode.querySelector(".identifier-temp").classList.contains('feedback-selected') || endNode.querySelector(".identifier-temp").classList.contains('feedback-selected')) {
+                        console.log("feedback line created");
+                        line.feedback = true;
+                        line.setFeedbackStyle();
+                    }
                     promptItem.returnInfo();
+                    PromptFlowline.fixLine();
                 }
                 Temp.allTemps.forEach(temp => {
                     temp.selectable = true;
@@ -211,9 +261,12 @@ let Temp = (_a = class {
                 });
             }
         }
-        toselect() {
+        toselect(feedback = false) {
             this.temp.querySelector('.identifier-temp').classList?.remove('identifier-unselected');
             this.temp.querySelector('.identifier-temp').classList?.add('identifier-toselect');
+            if (feedback) {
+                this.temp.querySelector('.identifier-temp').classList?.add('feedback-toselect');
+            }
         }
         unselect() {
             if (!this.selectable)
@@ -221,6 +274,7 @@ let Temp = (_a = class {
             this.temp.querySelector('.identifier-temp').classList?.remove('identifier-selected');
             this.temp.querySelector('.identifier-temp').classList?.remove('identifier-toselect');
             this.temp.querySelector('.identifier-temp').classList?.add('identifier-unselected');
+            this.temp.querySelector('.identifier-temp').classList?.remove('feedback-selected');
             let index = Temp.totalSelected.indexOf(this);
             if (index > -1) {
                 Temp.totalSelected.splice(index, 1);
@@ -231,7 +285,7 @@ let Temp = (_a = class {
                 this.temp.dispatchEvent(event);
             }
         }
-        select() {
+        select(feedback = false) {
             if (!this.selectable)
                 return;
             if (this.selected)
@@ -241,10 +295,27 @@ let Temp = (_a = class {
             this.temp.querySelector('.identifier-temp').classList?.remove('identifier-toselect');
             this.temp.querySelector('.identifier-temp').classList?.remove('identifier-unselected');
             this.temp.querySelector('.identifier-temp').classList?.add('identifier-selected');
-            let event = new CustomEvent('temp-add', { detail: this });
-            this.temp.dispatchEvent(event);
-            event = new CustomEvent('TempClick');
-            document.dispatchEvent(event);
+            if (!feedback) {
+                let event = new CustomEvent('temp-add', {
+                    detail: {
+                        instance: this,
+                        feedback: false
+                    }
+                });
+                this.temp.dispatchEvent(event);
+            }
+            else {
+                this.temp.querySelector('.identifier-temp').classList?.add('feedback-selected');
+                let event = new CustomEvent('temp-add', {
+                    detail: {
+                        instance: this,
+                        feedback: true
+                    }
+                });
+                this.temp.dispatchEvent(event);
+            }
+            let event2 = new CustomEvent('TempClick');
+            document.dispatchEvent(event2);
         }
         remove() {
             this.temp.removeEventListener('temp-add', this.handleAddLine.bind(this));

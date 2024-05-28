@@ -3,23 +3,24 @@ import json
 import re
 import random
 import urllib
-from openai import OpenAI
+from openai import AsyncOpenAI
 from instance.config import OPENAI_API_KEY
-client = OpenAI(api_key=OPENAI_API_KEY)
+client = AsyncOpenAI(api_key=OPENAI_API_KEY)
 import numpy as np
 from collections import defaultdict
-
+import asyncio
+import aiohttp
 from flaskr.project import *
 from flaskr.__io import *
 import math
 import logging
 
-logging.basicConfig(
-    level=logging.DEBUG,
-    filename="./logs/test_logs_addiput.log",
-    filemode="a",
-    format="%(asctime)s - %(levelname)s - %(message)s",
-)
+# logging.basicConfig(
+#     level=logging.DEBUG,
+#     filename="./logs/test_logs_addiput.log",
+#     filemode="a",
+#     format="%(asctime)s - %(levelname)s - %(message)s",
+# )
 
 
 ######################################################
@@ -120,7 +121,6 @@ def cleangenknowledge(flow_string):
 
     return flowlist
 
-
 def maplistx(currentx: list, use_zero_index=False) -> list:
     """
     return a list of the same length of 1 arithmetic progression
@@ -170,13 +170,11 @@ def maplistx(currentx: list, use_zero_index=False) -> list:
 
     return currentx, newx
 
-
 def mapX(currentx, use_zero_index=False) -> dict:
     currentx = sorted(list(set(currentx)))
     currentx, newx = maplistx(currentx, use_zero_index)
     mapXdict = dict(zip(currentx, newx))
     return mapXdict
-
 
 def npsearcher(twodimensionlist: list, tosearchnode: list) -> list:
     """
@@ -205,7 +203,6 @@ def npsearcher(twodimensionlist: list, tosearchnode: list) -> list:
     else:
         return [search_x, 0]
     return [search_x, min_y]
-
 
 def refactormatrixy(matrix: dict, syscolor:dict ,use_sys_sort: bool = False) -> dict:
     """
@@ -290,7 +287,7 @@ def is_process(node: list) -> bool:
 ######################################################
 ######################################################
 ## gen "add-input"
-def genaddinput(output:list, sysdict:dict, randomNumber=3) -> list:
+async def genaddinput(output:list, sysdict:dict, randomNumber=3) -> list:
     """return input resources from output
     Args:
     output(list) -- the output resources
@@ -301,7 +298,7 @@ def genaddinput(output:list, sysdict:dict, randomNumber=3) -> list:
     """
 
     try:
-        response = client.chat.completions.create(model="gpt-4o",
+        response =await client.chat.completions.create(model="gpt-4o",
         messages=[
             {
                 "role": "system",
@@ -336,7 +333,7 @@ def genaddinput(output:list, sysdict:dict, randomNumber=3) -> list:
 
 
 ## gen "add-output"
-def genaddoutput(input, sysdict:dict, randomNumber=3) -> list:
+async def genaddoutput(input, sysdict:dict, randomNumber=3) -> list:
     """return input resources from output
     Args:
     output(list) -- the output resources
@@ -346,7 +343,7 @@ def genaddoutput(input, sysdict:dict, randomNumber=3) -> list:
     [[i1,o1],[i2,o2],...] -- a list of list of input and output
     """
     try:
-        response = client.chat.completions.create(model="gpt-4o",
+        response = await client.chat.completions.create(model="gpt-4o",
         messages=[
             {
             "role": "system",
@@ -436,9 +433,9 @@ def genaddoutput(input, sysdict:dict, randomNumber=3) -> list:
 
 
 ## gen "add-process"
-def genknowledge(io, randomNumber=4):
+async def genknowledge(io, randomNumber=4):
     try:
-        response = client.chat.completions.create(model="gpt-4o",
+        response = await client.chat.completions.create(model="gpt-4o",
         messages=[
             {
                 "role": "system",
@@ -462,7 +459,7 @@ def genknowledge(io, randomNumber=4):
                         ["Moss can absorb water up to 20 times dry weight. Due to their cellular structure and the lack of a traditional root system, moss absorb moisture directly through their leaves and becomes humidifier"]]
             """,
             },
-            {"role": "user", "content": str(io)},
+            {"role": "user", "content":f'Flow: {str(io)}'},
         ],
         temperature=1,
         n=randomNumber)
@@ -472,12 +469,19 @@ def genknowledge(io, randomNumber=4):
         print(f"An error occurred: {e}")
         return None
 
+async def returnknowledge(io, max_tries=3):
+    knowledge = None
+    for i in range(max_tries):
+        knowledge = await genknowledge(io)
+        if knowledge:
+            break
+    return knowledge
 
-def genprocess(io, knowledge=None, randomNumber=4) -> list:
+async def genprocess(io, knowledge=None, randomNumber=4) -> list:
     if knowledge == None:
-        knowledge = genknowledge(io)
+        knowledge = await returnknowledge(io)
     try:
-        response = client.chat.completions.create(model="gpt-4o",
+        response = await client.chat.completions.create(model="gpt-4o",
         messages=[
             {
                 "role": "system",
@@ -526,11 +530,11 @@ def genprocess(io, knowledge=None, randomNumber=4) -> list:
         return (knowledge, process)
     except Exception as e:  # This catches all exceptions
         print(f"An error occurred: {e}")
-        return None
+        return None, None
 
 
 ## gen "add-process"
-def genaddcooptimization(input: list, randomNumber=3) -> list:
+async def genaddcooptimization(input: list, randomNumber=3) -> list:
     """return co-optimized resources from input
 
     Args:
@@ -541,7 +545,7 @@ def genaddcooptimization(input: list, randomNumber=3) -> list:
      [i1,o2],[i2,o2],[i3,o2],...] -- a list of list of input and output
     """
     try:
-        response = client.chat.completions.create(model="gpt-4o",
+        response = await client.chat.completions.create(model="gpt-4o",
         messages=[
             {
                 "role": "system",
@@ -627,7 +631,7 @@ def genaddcooptimization(input: list, randomNumber=3) -> list:
 
 
 ## gen "add-feedback"
-def genaddfeedback(tosearchnode: list, usefulnode: list, randomNumber=3):
+async def genaddfeedback(tosearchnode: list, usefulnode: list, randomNumber=3):
     """return co-optimized resources from input
 
     Args:
@@ -646,7 +650,7 @@ def genaddfeedback(tosearchnode: list, usefulnode: list, randomNumber=3):
         usefulnode = unielement(usefulnode)
 
     try:
-        response = client.chat.completions.create(model="gpt-4o",
+        response = await client.chat.completions.create(model="gpt-4o",
         messages=[
             {
                 "role": "system",
@@ -695,38 +699,53 @@ def genaddfeedback(tosearchnode: list, usefulnode: list, randomNumber=3):
 ######################################################
 ######################################################
 ## exectution
-def return_addinput(output_resources: list, syscolor:dict,  max_tries=3):
+async def return_addinput(output_resources: list, syscolor:dict,  max_tries=3):
     for _ in range(max_tries):
         randomNumber = random.randint(1, 5)
-        flow_list = genaddinput(output_resources, syscolor, randomNumber=randomNumber)
+        flow_list = await genaddinput(output_resources, syscolor, randomNumber=randomNumber)
         if checknestedlist(flow_list):
             return flow_list
     print ("Sorry, we can't generate a result from the output resources, please try again.")
     return None
 
 
-def return_addoutput(input_resources: list, sysdict:dict, max_tries=3):
+async def return_addoutput(input_resources: list, sysdict:dict, max_tries=3):
     for i in range(max_tries):
-        randomNumber = i+1
-        flow_list = genaddoutput(input_resources, sysdict, randomNumber=randomNumber)
-        if checknestedlist(flow_list):
-            return flow_list
+        try:
+            randomNumber = i+1
+            n=15
+            flow_list=[]
+            nested_inputs=[input_resources[i:i + n] for i in range(0, len(input_resources), n)]
+            
+            # Create a list of coroutine tasks for processing each sublist in parallel
+            tasks = [genaddoutput(inputlist, sysdict, randomNumber=randomNumber) for inputlist in nested_inputs]
+            
+            # Run the tasks concurrently
+            results = await asyncio.gather(*tasks)
+            
+            for sub_inputlist in results:
+                logging.debug(f"genaddoutput: {sub_inputlist}")
+                if checknestedlist(sub_inputlist):
+                    flow_list.extend(sub_inputlist)
+                    
+            if flow_list:
+                return flow_list
+        except Exception as e:
+            continue
     print ("Sorry, we can't generate a result from the input resources, please try again.")
     return None
 
 
-def return_addprocess(list_of_io, max_tries=4):
+async def return_addprocess(list_of_io, max_tries=4):
     knowledgelist=[]
     flowlist = []
-    for io in list_of_io:
-        for _ in range(max_tries):
-            randomNumber1 = random.randint(1, 5)
-            ioknowledge,ioprocess = genprocess(io, randomNumber=randomNumber1)
-            if checknestedlist(ioprocess):
-                knowledgelist.extend(ioknowledge)
-                flowlist.extend(ioprocess)
-                break
-
+    tasks = [return_subprocess(io,max_tries) for io in list_of_io]
+    
+    results = await asyncio.gather(*tasks)
+    for knowledge, flow in results:
+        if knowledge and flow:
+            knowledgelist.extend(knowledge)
+            flowlist.extend(flow)
     # unique_tuples = {tuple(item) for item in flowlist}
     # flowquery = [list(tup) for tup in unique_tuples]
 
@@ -737,50 +756,60 @@ def return_addprocess(list_of_io, max_tries=4):
         return None, None
 
 
-def return_addcooptimization(input_resources: list, max_tries=3):
+async def return_subprocess(io, max_tries=3):
     for _ in range(max_tries):
         randomNumber = random.randint(1, 5)
-        knowstring, flow_list = genaddcooptimization(input_resources, randomNumber=randomNumber)
+        ioknowledge,ioprocess = await genprocess(io, randomNumber=randomNumber)
+        logging.debug(f"ioknowledge: {ioknowledge}")
+        if checknestedlist(ioprocess):
+            return ioknowledge,ioprocess
+    logging.debug ("Sorry, we can't generate a result from the input resources, please try again.")
+    return None
+
+
+async def return_addcooptimization(input_resources: list, max_tries=3):
+    for _ in range(max_tries):
+        randomNumber = random.randint(1, 5)
+        knowstring, flow_list = await genaddcooptimization(input_resources, randomNumber=randomNumber)
         if checknestedlist(flow_list):
             return knowstring, flow_list
     print ("Sorry, we can't generate a result from the input resources, please try again.")
     return None
 
 
-def return_addfeedback(toseachnode: list, fullnode: list, max_tries=3):
+async def return_addfeedback(toseachnode: list, fullnode: list, max_tries=3):
     for _ in range(max_tries):
         randomNumber = random.randint(1, 5)
-        flow_list = genaddfeedback(toseachnode, fullnode, randomNumber=randomNumber)
+        flow_list = await genaddfeedback(toseachnode, fullnode, randomNumber=randomNumber)
         if checknestedlist(flow_list):
             return flow_list
     print ("Sorry, we can't generate a result from the input resources, please try again.")
     return None
 
 
-def return_queryflow_and_nodesys(mode: str, query: list, syscolor:dict, max_tries=3):
+async def return_queryflow_and_nodesys(mode: str, query: list, syscolor:dict, max_tries=3):
     attempts = 0
-
 
     while attempts < max_tries:
         if mode == "add-input":
-            queryflow = return_addinput(query, syscolor)
+            queryflow = await return_addinput(query, syscolor)
             string= ", ".join(query)
             userinfo = f'More input resources added for {string}.'
         elif mode == "add-output":
-            queryflow = return_addoutput(query, syscolor)
+            queryflow = await return_addoutput(query, syscolor)
             string= ", ".join(query)
             userinfo = f'More output resources added for {string}.'
         elif mode == "add-process":
-            queryknowledge, queryflow = return_addprocess(query)
+            queryknowledge, queryflow = await return_addprocess(query)
             userinfo = f'More process added for flow '
             flowstring = ", ".join(" --> ".join(q) for q in query)
             userinfo += flowstring+'.'
             userinfo+=f'<br>'
             for knowledge in queryknowledge:
-                print(knowledge)
+                logging.debug(knowledge)
                 userinfo += f'<br>{knowledge[0]}'
         elif mode == "add-cooptimization":
-            queryknowledge, queryflow = return_addcooptimization(query)
+            queryknowledge, queryflow = await return_addcooptimization(query)
             string= ", ".join(query)
             userinfo = f'More co-optimization added for {string}.'
             userinfo+=f'<br><br>'
@@ -796,8 +825,8 @@ def return_queryflow_and_nodesys(mode: str, query: list, syscolor:dict, max_trie
             attempts += 1
             continue
 
-        querynodesys = return_system(queryflow, syscolor)
-
+        querynodesys = await return_system(queryflow, syscolor)
+        logging.debug(f"querynodesys: {querynodesys}")
         # Check if any values are None and retry if so
         if querynodesys is None:
             attempts += 1
@@ -809,9 +838,9 @@ def return_queryflow_and_nodesys(mode: str, query: list, syscolor:dict, max_trie
     return None
 
 
-def return_queryflow_add_feedback(mode: str, query: list, currentflow: list):
+async def return_queryflow_add_feedback(mode: str, query: list, currentflow: list):
     if mode =="add-feedback":
-        queryflow = return_addfeedback(query, currentflow)
+        queryflow = await return_addfeedback(query, currentflow)
         return queryflow
 
 ## transform matrix

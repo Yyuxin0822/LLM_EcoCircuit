@@ -1,4 +1,4 @@
-import { CustomNode } from "./CustomNode";
+import { CustomNode } from "./CustomNode.js";
 
 export class CustomFlowline extends LeaderLine {
   //field declaration
@@ -81,11 +81,19 @@ export class CustomFlowline extends LeaderLine {
   //   return this.start === otherLine.start && this.end === otherLine.end;
   // }
 
-  toJSONArray() {
-    let startText = this.start.querySelector('.node-wrapper').innerHTML;
-    let endText = this.end.querySelector('.node-wrapper').innerHTML;
-    return [startText, endText];
+  toJSONArray(abs = false) {
+    if (!abs) {
+      let startText = this.start.querySelector('.node-wrapper').innerHTML;
+      let endText = this.end.querySelector('.node-wrapper').innerHTML;
+      return [startText, endText];
+    }
+    if (abs) {
+      let startNode = CustomNode.getNodeObjbyNode(this.start);
+      let endNode = CustomNode.getNodeObjbyNode(this.end);
+      return [startNode.toJSONObj(true), endNode.toJSONObj(true)];
+    }
   }
+
 
   remove() {
     super.remove();

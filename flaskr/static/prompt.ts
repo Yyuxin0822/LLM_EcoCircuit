@@ -1,6 +1,8 @@
 //@ts-ignore
 import { DefaultSystem, System, colorPicker } from "./SystemBar.js";
 
+//this is the script for prompt.html, the naming happened to be confusing with the Prompt class
+
 // Modal popup for text, image, and draw
 // when clicked id="text", show the modal-text
 document.getElementById('modal-description-activate')?.addEventListener('click', function () {

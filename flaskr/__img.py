@@ -4,8 +4,10 @@ import re
 import random
 import urllib
 from openai import OpenAI
+from openai import AsyncOpenAI
 from instance.config import OPENAI_API_KEY, GITHUB_TOKEN
 client = OpenAI(api_key=OPENAI_API_KEY)
+clientasync = AsyncOpenAI(api_key=OPENAI_API_KEY)
 import requests
 import base64
 
@@ -42,10 +44,11 @@ def genexpand(prompt):
         print(f"An error occurred: {e}")
         return None
 
-def getcanvas(envir_description, max_tries=3):
+
+async def getcanvas(envir_description, max_tries=3):
     for _ in range(max_tries):
         try:
-            response = client.images.generate(
+            response =await clientasync.images.generate(
                 model="dall-e-3",
                 prompt=f"{envir_description}, photorealistic",
                 n=1,
@@ -58,9 +61,11 @@ def getcanvas(envir_description, max_tries=3):
             print(f"An error occurred: {e}")
     return None
 
+
 def encode_image(image_path='../instance/images/envir.jpg'):
   with open(image_path, "rb") as image_file:
     return base64.b64encode(image_file.read()).decode('utf-8')
+
 
 def getdescription(base64_image, max_tries=3):  
     for i in range(max_tries):

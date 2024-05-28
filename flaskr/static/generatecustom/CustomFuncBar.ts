@@ -1,7 +1,7 @@
 //@ts-ignore
 import { MarqueeTool } from "./MarqueeTool.js";
 //@ts-ignore
-import { CanvasDraw } from "../CanvasDraw.js";
+import { CustomCanvasDraw } from "./CustomCanvasDraw.js";
 //@ts-ignore
 import { CustomNode } from "./CustomNode.js";
 //@ts-ignore
@@ -27,9 +27,8 @@ export class CustomFuncBar {
     this.nodeButton = this.contanier.querySelector("#nodemode");
     this.selButton = this.contanier.querySelector("#selmode");
     this.fullButton = this.contanier.querySelector("#fullscreen");
-
     this.marqueeToolInstance = null;
-    this.canvasDrawInstance = new CanvasDraw("canvasDraw");
+    this.canvasDrawInstance = new CustomCanvasDraw("canvasDraw", customprompt);
     this.attachEventListeners();
   }
 

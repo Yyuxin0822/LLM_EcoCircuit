@@ -1,5 +1,5 @@
 import { MarqueeTool } from "./MarqueeTool.js";
-import { CanvasDraw } from "../CanvasDraw.js";
+import { CustomCanvasDraw } from "./CustomCanvasDraw.js";
 import { CustomNode } from "./CustomNode.js";
 import { CustomFlowline } from "./CustomFlowline.js";
 const customprompt = document.getElementById("customprompt");
@@ -12,7 +12,7 @@ export class CustomFuncBar {
         this.selButton = this.contanier.querySelector("#selmode");
         this.fullButton = this.contanier.querySelector("#fullscreen");
         this.marqueeToolInstance = null;
-        this.canvasDrawInstance = new CanvasDraw("canvasDraw");
+        this.canvasDrawInstance = new CustomCanvasDraw("canvasDraw", customprompt);
         this.attachEventListeners();
     }
     attachEventListeners() {

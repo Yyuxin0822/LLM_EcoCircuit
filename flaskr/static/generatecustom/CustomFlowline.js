@@ -1,3 +1,4 @@
+import { CustomNode } from "./CustomNode.js";
 export class CustomFlowline extends LeaderLine {
     constructor(start, end) {
         if (CustomFlowline.isLineExists(start, end)) {
@@ -51,10 +52,17 @@ export class CustomFlowline extends LeaderLine {
             endIdentifier.style.left = "0rem";
         }
     }
-    toJSONArray() {
-        let startText = this.start.querySelector('.node-wrapper').innerHTML;
-        let endText = this.end.querySelector('.node-wrapper').innerHTML;
-        return [startText, endText];
+    toJSONArray(abs = false) {
+        if (!abs) {
+            let startText = this.start.querySelector('.node-wrapper').innerHTML;
+            let endText = this.end.querySelector('.node-wrapper').innerHTML;
+            return [startText, endText];
+        }
+        if (abs) {
+            let startNode = CustomNode.getNodeObjbyNode(this.start);
+            let endNode = CustomNode.getNodeObjbyNode(this.end);
+            return [startNode.toJSONObj(true), endNode.toJSONObj(true)];
+        }
     }
     remove() {
         super.remove();

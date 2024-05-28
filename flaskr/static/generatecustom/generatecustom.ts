@@ -1,6 +1,8 @@
 import { CustomNode } from "./CustomNode.js";
 import { CustomFlowline } from "./CustomFlowline.js";
 
+
+
 const eventTypes = ['click', 'keydown', 'keyup', 'scroll', 'load'];
 
 eventTypes.forEach(type => {
@@ -22,9 +24,8 @@ eventTypes.forEach(type => {
 
 const customprompt = document.getElementById('customprompt');
 const computedStyle = window.getComputedStyle(customprompt);
-const customPromptWrapper = document.querySelector('.customprompt-wrapper') as HTMLElement;
-
-
+//below is important difference from generate.html, as it is used to process the max Y in custom.html
+const nodecontainer = document.getElementById('customnode-wrapper');
 console.log(computedStyle.left, computedStyle.top, computedStyle.width, computedStyle.height);
 
 function loadPlayground() {
@@ -61,7 +62,6 @@ function parseJson(jsonString) {
 }
 
 function validId(nodeName) {
-
     // Replace problematic characters with dashes and remove leading/trailing non-alphanumeric characters
     return nodeName
         .replace(/[\s,().]+/g, '-') // Replace spaces, commas, and parentheses with dashes
@@ -90,10 +90,10 @@ function processPrompt(nodeArray, flowArray) {
             }
         });
         //check if the node already exists
-        let nodeItem=CustomNode.getNodebyInfo(nodeName, nodeX, nodeY, nodeSys, nodeTransform);
+        let nodeItem = CustomNode.getNodebyInfo(nodeName, nodeX, nodeY, nodeSys, nodeTransform);
         if (nodeItem === undefined || nodeItem === null) {
-            return new CustomNode(nodeName, nodeX, nodeY, nodeTransform, nodeRGB, nodeSys, customPromptWrapper);
-        }else{
+            return new CustomNode(nodeName, nodeX, nodeY, nodeTransform, nodeRGB, nodeSys, nodecontainer);
+        } else {
             // console.log("Node already exists"+nodeItem.nodeContent);
             return nodeItem;
         }
@@ -128,9 +128,14 @@ function processPrompt(nodeArray, flowArray) {
         });
     }
 
+    //set nodeContainer height
+    let maxNodeY = Math.max(...CustomNode.myCustomNodes.map(node => node.nodeY));
+    nodecontainer.style.height = maxNodeY + 'px';
+    // console.log(maxNodeY);
+
 }
 
-function setDOMeditable(editable:boolean) {
+function setDOMeditable(editable: boolean) {
     let content = document.getElementById('custom-body-wrapper');
     if (editable) {
         //set the control in custom.html
@@ -145,9 +150,9 @@ function setDOMeditable(editable:boolean) {
 
 //Exectution
 
-let flowString = customprompt.querySelector('#customPromptFlow').innerText;
+let flowString = document.getElementById('customPromptFlow').innerText;
 let flowArray = parseJson(flowString);
-let nodeString = customprompt.querySelector('#customPromptNode').innerText;
+let nodeString = document.getElementById('customPromptNode').innerText;
 let nodeArray = parseJson(nodeString);
 processPrompt(nodeArray, flowArray);
 
@@ -165,8 +170,8 @@ socket.on('data_from_playground', function (data) {
     // console.log(nodeArray, flowArray);
     processPrompt(nodeArray, flowArray);
     CustomFlowline.fixLine();
-    // saveCustom();
-    
+    saveCustom();
+
     setDOMeditable(true);
     finishload();
 });
@@ -182,28 +187,35 @@ socket.on('data_from_playground', function (data) {
 
 
 
-
+//////////////////////////////////////////////////////////////////////////////
 /////////////////////////customprompt functions///////////////////////////////
 function saveCustom() {
     let prompt_id = document.getElementById('custom-id').innerHTML; //prompt_id === project_id
-    let { flow, nodematrix } = returnInfo();
+    let { flow, nodematrix } = returnCustomInfo();
     console.log(flow, nodematrix)
     var image;
-    var canvas;
-    socket.emit('save_custom', { "prompt_id": prompt_id, "flow": flow, "node": nodematrix });
+
+    // Use navigator.sendBeacon to send the data
+    // socket.emit('save_custom', { "prompt_id": prompt_id, "flow": flow, "node": nodematrix });
 }
 
 
-function returnInfo() {
+function returnCustomInfo() {
     let flow = [];
+    let flownode = [];
     let nodematrix = {};
     CustomFlowline.myCustomLines.forEach((line) => {
-        flow.push(line.toJSONArray());
+        let tempflowinfo = line.toJSONArray();
+        flownode.push(tempflowinfo[0]);
+        flownode.push(tempflowinfo[1]);
+
+        flow.push(line.toJSONArray(true));
     })
     CustomNode.myCustomNodes.forEach((node) => {
-        nodematrix = { ...nodematrix, ...node.toJSONObj() };
+        if (!flownode.includes(node.nodeContent)) {
+            nodematrix = { ...nodematrix, ...node.toJSONObj() };
+        }
     })
     return { flow, nodematrix };
 }
-
 

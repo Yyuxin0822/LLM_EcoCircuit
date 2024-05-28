@@ -24,9 +24,10 @@ export class PromptNodeDrpDwn extends Dropdown {
       this.options.set('Reclassify System', []);
       this.options.set('Delete Node', []);
       this.options.set('Delete Flowline', []);
-      // this.options.set('Add Flowline', []);
+      // this.options.set('Edit Flowline Style', []);
       this.addReclassifyOption();
       this.addDeleteFlowOption();
+      // this.addEditFlowOption();
       // this.addAddFlowOption();
       //console.log(this.options);
     }
@@ -52,6 +53,7 @@ export class PromptNodeDrpDwn extends Dropdown {
       delFlowSubs.forEach(delFlow => {
       delFlow.addEventListener('click', this.handleDelFlow.bind(this));});
     }
+
 
   }
 
@@ -86,6 +88,24 @@ export class PromptNodeDrpDwn extends Dropdown {
       }
     }
   }
+
+  addEditFlowOption() {
+    if (this.nodeItem && this.promptItem) {
+      let startLines = this.promptItem.getLinesWhereNodeasInput(this.nodeItem);
+      let endLines = this.promptItem.getLinesWhereNodeasOutput(this.nodeItem);
+      if (startLines.length > 0) {
+        startLines.forEach(line => {
+          this.options.get('Edit Flowline Style').push('To ' + line.toJSONArray()[1]);
+        });
+      }
+      if (endLines.length > 0) {
+        endLines.forEach(line => {
+          this.options.get('Edit Flowline Style').push('From ' + line.toJSONArray()[0]);
+        });
+      }
+    }
+  }
+
 
   addAddFlowOption() {
     if (this.nodeItem && this.promptItem) {

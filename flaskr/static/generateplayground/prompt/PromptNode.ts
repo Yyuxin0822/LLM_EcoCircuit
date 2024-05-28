@@ -74,7 +74,6 @@ export class PromptNode {
     this._nodeWrapper.classList.add('node-wrapper', 'card-node');
     this._nodeWrapper.innerHTML = this._nodeContent;
     this.newNode.appendChild(this._nodeWrapper);
-    this.adjustFontSize();
 
     //for customnode, this.PromptObj is undefined
     if (this.PromptObj) {
@@ -94,7 +93,10 @@ export class PromptNode {
       if (this._nodeX % 1 !== 0) {
         col.style.width = '15rem';
       }
+    }else{
+      this._container.appendChild(this.newNode);
     }
+    this.adjustFontSize();
   }
 
   adjustFontSize() {
@@ -107,18 +109,25 @@ export class PromptNode {
 
     // Check if the text is overflowing
     function isOverflowingX(nodeWrapper: HTMLElement) {
-      // console.log('actual width', parseFloat(window.getComputedStyle(nodeWrapper).width));
-      // console.log('frame width', parseFloat(window.getComputedStyle(node).width));
-      return parseFloat(window.getComputedStyle(nodeWrapper).width) > (parseFloat(window.getComputedStyle(node).width) - parseFloat(window.getComputedStyle(node).paddingLeft) - parseFloat(window.getComputedStyle(node).paddingRight));
+      //if container has classList
+      // console.log(nodeWrapper.closest('.node').classList.contains('plain-draggable'));
+      // console.log(nodeWrapper.closest('.customprompt'));
+      // if (nodeWrapper.closest('.customprompt')) {
+      //   console.log('actual width', parseFloat(window.getComputedStyle(nodeWrapper).width));
+      //   console.log('frame width', parseFloat(window.getComputedStyle(node).width));
+      // }
+      let nodeWrapperWidth = parseFloat(window.getComputedStyle(nodeWrapper).width);
+      return nodeWrapperWidth > (parseFloat(window.getComputedStyle(node).width) - parseFloat(window.getComputedStyle(node).paddingLeft) - parseFloat(window.getComputedStyle(node).paddingRight));
     }
+    
     function isOverflowingY(nodeWrapper: HTMLElement) {
       // console.log('actual height', parseFloat(window.getComputedStyle(nodeWrapper).height));
       // console.log('frame height', parseFloat(window.getComputedStyle(node).width)+4);
       return parseFloat(window.getComputedStyle(nodeWrapper).height) > (parseFloat(window.getComputedStyle(node).width) + 4);
     }
+
     // Adjust font size to prevent overflow or reduce to minimum size
     function adjust(node: HTMLElement) {
-
       let fontSize = 14; // Start from initial font size
       updateFontSize(nodeWrapper, fontSize);
 
@@ -381,7 +390,7 @@ export class PromptNode {
     if (!abs) {
       return { [this.nodeContent]: [[this.nodeX, this.nodeY], this.nodeSys, this.nodeTransform] };
     } else {
-      let [posX, posY] = PromptNode.getnodePositionInDOM(this.newNode);
+      let [posX, posY] = PromptNode.getnodePositionInDOM(this.newNode); 
       return { [this.nodeContent]: [[posX, posY], this.nodeSys, this.nodeTransform] };
     }
   }
@@ -448,7 +457,6 @@ export class PromptCustomNode extends PromptNode {
     } else {
       return
     }
-
   }
 }
 

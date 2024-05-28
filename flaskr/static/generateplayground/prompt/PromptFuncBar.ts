@@ -9,7 +9,7 @@ import { PromptIdentifier } from './PromptIdentifier.js';
 //@ts-ignore
 import { Prompt } from './Prompt.js';
 //@ts-ignore
-// import { CanvasDraw } from '../../CanvasDraw.js';
+import { PromptCanvasDraw } from './PromptCanvasDraw.js';
 
 export class PromptFuncBar extends FuncBar {
     static allPromptFuncBars = [];
@@ -20,7 +20,7 @@ export class PromptFuncBar extends FuncBar {
     flowButton: HTMLElement;
     promptItem: Prompt;
     container: HTMLElement;
-    // canvasDrawInstance: CanvasDraw;
+    canvasDrawInstance: PromptCanvasDraw;
 
     constructor(container: HTMLElement) {
         super(container);
@@ -29,7 +29,7 @@ export class PromptFuncBar extends FuncBar {
         // this.selButton = this.container.querySelector("#selmode");
         this.nodeButton = this.container.querySelector("#nodemode");
         this.flowButton = this.container.querySelector("#flowmode");
-        // this.canvasDrawInstance = new CanvasDraw("canvasDraw");
+        this.canvasDrawInstance = new PromptCanvasDraw("canvasDraw", this.prompt);
         PromptFuncBar.allPromptFuncBars.push(this);
     }
 
@@ -37,9 +37,9 @@ export class PromptFuncBar extends FuncBar {
         super.activateFunction(id); // Call base class method
         // Extend with specific functionality
         switch (id) {
-            // case 'drawmode':
-            //     this.setDrawMode();
-            //     break;
+            case 'drawmode':
+                this.setDrawMode();
+                break;
             case 'nodemode':
                 this.setNodeMode();
                 break;
@@ -52,9 +52,9 @@ export class PromptFuncBar extends FuncBar {
     deactivateFunction(id: string) {
         super.deactivateFunction(id); // Call base class method
         switch (id) {
-            // case 'drawmode':
-            //     this.unsetDrawMode();
-            //     break;
+            case 'drawmode':
+                this.unsetDrawMode();
+                break;
             case 'nodemode':
                 this.unsetNodeMode();
                 break;
@@ -64,27 +64,26 @@ export class PromptFuncBar extends FuncBar {
         }
     }
 
-    // setSelMode() {
-    //     document.body.style.cursor = "default";
-    // }
+    setSelMode() {
+        document.body.style.cursor = "default";
+    }
 
-    // unsetSelMode() {
-    //     document.body.style.cursor = "default";
-    //     this.promptItem = Prompt.getPromptItembyPrompt(this.prompt);
-    //     this.promptItem.returnInfo();
-    // }
+    unsetSelMode() {
+        document.body.style.cursor = "default";
+        this.promptItem = Prompt.getPromptItembyPrompt(this.prompt);
+        this.promptItem.returnInfo();
+    }
 
+    setDrawMode() {
+        this.canvasDrawInstance.enable();
+    }
 
-    // setDrawMode() {
-    //     this.canvasDrawInstance.enable();
-    // }
+    unsetDrawMode() {
+        if (this.canvasDrawInstance.enabled) {
+            this.canvasDrawInstance.disable();
+        }
+    }
 
-    // unsetDrawMode() {
-    //     if (this.canvasDrawInstance.enabled) {
-    //         this.canvasDrawInstance.disable();
-    //       }
-    // }
-    
     setNodeMode() {
         this.prompt.style.cursor = "crosshair";
         this.prompt.addEventListener('click', this.handleNodeClick);
@@ -172,7 +171,12 @@ export class PromptFuncBar extends FuncBar {
 
     enable() {
         this.container.classList.remove("hidden");
-        this.activateFunction("nodemode");
+        let active = this.container.querySelector(".active") as HTMLElement;
+        if (active) {
+            this.activateFunction(active.id);
+        } else {
+            this.nodeButton.click();
+        }
     }
 
     disable() {
@@ -181,20 +185,28 @@ export class PromptFuncBar extends FuncBar {
         this.deactivateFunction("selmode");
         this.deactivateFunction("nodemode");
         this.deactivateFunction("flowmode");
+        this.deactivateFunction("drawmode");
     }
 
 
 }
+
+
+
+
+
 
 function createTempIdentifierHTML(container: HTMLElement, identifierClass: string) {
     let identifier = document.createElement("div");
     identifier.classList.add(identifierClass);
     let identifierDot = document.createElement("div");
     identifierDot.classList.add('identifier-temp', 'identifier-unselected');
+    identifierDot.title = "Click to Add Flowline, \nAlt+Click to Add Regeneration/Feedback Flowline";
     identifier.appendChild(identifierDot);
     container.appendChild(identifier);
     return identifier;
 }
+
 
 let Temp = class {
     static totalSelected = [];
@@ -216,13 +228,14 @@ let Temp = class {
         Temp.allTemps.push(this);
     }
 
-    handleClick() {
-        if (this.selected) {
-            this.unselect();
+    handleClick(event: MouseEvent) {
+        if (event.altKey) {
+            if (this.selected) { this.unselect(); } else { this.select(true); }
+        } else {
+            if (this.selected) { this.unselect(); } else { this.select(); }
         }
-        else {
-            this.select();
-        }
+        event.preventDefault();
+        event.stopPropagation();
     }
 
     handleTempClick() {
@@ -234,6 +247,7 @@ let Temp = class {
     handleDisableTempClick() {
         this.temp.style.cursor = "default";
     }
+
     handleAddLine(event: CustomEvent) {
         let total = Temp.totalSelected.length;
 
@@ -257,20 +271,20 @@ let Temp = class {
 
         //if total is 1, enter "to add mode"
         if (total === 1) {
-            if (event.detail === this) {
+            if (event.detail.instance === this) {
                 this.selectable = true;
                 if (this.temp.closest('.input-identifier')) {
                     Temp.allTemps.forEach(temp => {
                         if (temp.tempContent !== this.tempContent && temp.temp.closest('.output-identifier')) {
                             temp.selectable = true;
-                            temp.toselect();
+                            temp.toselect(event.detail.feedback);
                         }
                     })
                 } else if (this.temp.closest('.output-identifier')) {
                     Temp.allTemps.forEach(temp => {
                         if (temp.tempContent !== this.tempContent && temp.temp.closest('.input-identifier')) {
                             temp.selectable = true;
-                            temp.toselect();
+                            temp.toselect(event.detail.feedback);
                         }
                     })
                 }
@@ -293,6 +307,7 @@ let Temp = class {
                     endText = temp.tempContent;
                     endNode = temp.temp.closest('.node');
                 }
+
             });
 
             let promptItem = Prompt.getPromptItembyPrompt(this.temp.closest('.prompt'));
@@ -301,7 +316,14 @@ let Temp = class {
             if (!line) {
                 // console.log(startNode, endNode)
                 line = new PromptFlowline(startNode, endNode);
+                //if either startNode or endNode contains class "feedback-selected"
+                if (startNode.querySelector(".identifier-temp").classList.contains('feedback-selected') || endNode.querySelector(".identifier-temp").classList.contains('feedback-selected')) {
+                    console.log("feedback line created");
+                    line.feedback = true;
+                    line.setFeedbackStyle();
+                }
                 promptItem.returnInfo();//save the info immediately after adding the line
+                PromptFlowline.fixLine();
             }
 
             Temp.allTemps.forEach(temp => {
@@ -312,9 +334,12 @@ let Temp = class {
 
     }
 
-    toselect() {
+    toselect(feedback: boolean = false) {
         this.temp.querySelector('.identifier-temp').classList?.remove('identifier-unselected');
         this.temp.querySelector('.identifier-temp').classList?.add('identifier-toselect');
+        if (feedback) {
+            this.temp.querySelector('.identifier-temp').classList?.add('feedback-toselect');
+        }
     }
 
     unselect() {
@@ -322,6 +347,7 @@ let Temp = class {
         this.temp.querySelector('.identifier-temp').classList?.remove('identifier-selected');
         this.temp.querySelector('.identifier-temp').classList?.remove('identifier-toselect');
         this.temp.querySelector('.identifier-temp').classList?.add('identifier-unselected');
+        this.temp.querySelector('.identifier-temp').classList?.remove('feedback-selected');
         let index = Temp.totalSelected.indexOf(this);
         if (index > -1) {
             Temp.totalSelected.splice(index, 1);
@@ -333,7 +359,7 @@ let Temp = class {
         } // timing is very impoortant as the count of total selected matters
     }
 
-    select() {
+    select(feedback: boolean = false) {
         if (!this.selectable) return;
         if (this.selected) return;
         this.selected = true;
@@ -341,11 +367,32 @@ let Temp = class {
         this.temp.querySelector('.identifier-temp').classList?.remove('identifier-toselect');
         this.temp.querySelector('.identifier-temp').classList?.remove('identifier-unselected');
         this.temp.querySelector('.identifier-temp').classList?.add('identifier-selected');
-        let event = new CustomEvent('temp-add', { detail: this });
-        this.temp.dispatchEvent(event);
-        event = new CustomEvent('TempClick');
-        document.dispatchEvent(event);
+
+        if (!feedback) {
+            let event = new CustomEvent('temp-add', {
+                detail: {
+                    instance: this,
+                    feedback: false
+                }
+            });
+            this.temp.dispatchEvent(event);
+        } else {
+            this.temp.querySelector('.identifier-temp').classList?.add('feedback-selected');
+            let event = new CustomEvent('temp-add', {
+                detail: {
+                    instance: this,
+                    feedback: true
+                }
+            });
+            this.temp.dispatchEvent(event);
+        }
+
+        let event2 = new CustomEvent('TempClick');
+        document.dispatchEvent(event2);
     }
+
+
+
 
     remove() {
         // Detach event listeners

@@ -23,7 +23,7 @@
 
 <div class="function-frame">
     <!-- view bar - temporarily archived at core -->
-    <!-- <div class="func-wrapper-view">
+    <div class="func-wrapper-view">
         <div id="view-playground">
             <div class="wrapper">
                 <div class="sub-wrapper">
@@ -51,13 +51,13 @@
             <div class="card-14 send-to-custom" id="start-select-for-sending">Click To Select Nodes And Flows To Send To
                 Custom</div>
             <div class="hidden">
-                <div class="sub-sub-wrapper">
+                <div class="sub-sub-wrapper" id="finish-select-for-sending">
                     <div class="card-14 send-to-custom" id="send-selected">Confirm Select and Send To Custom</div>
                     <div class="card-14 send-to-custom" id="cancel-selected">Cancel Select</div>
                 </div>
             </div>
         </div>
-    </div> -->
+    </div>
     <!-- engineer bar -->
     <div class="func-wrapper-engbar" id="func-wrapper-engbar">
         <div id="engineer-bar-folded" class="hidden">
@@ -187,37 +187,39 @@
 </div>
 
 <div class="info-frame" id="info-frame">
-    <div id="project_id" class="hidden">{{id}}</div>
-    {% if project['type'] == 'label' %}
-    <div class="emphasis">Here are the labels that you prompted ...</div>
-    <p style="font-style: italic;">AI may err.</p>
-    <p id="info">{{project['info']}}</p>
-    <p id="info-previous" class="hidden">{{project['info']}}</p>
-    {% elif project['type'] == 'image' %}
-    <div class="emphasis">Here is a description of your image ...</div>
-    <p style="font-style: italic;">AI may err.</p>
-    <p id="info">{{project['info']}}</p>
-    <p id="info-previous" class="hidden">{{project['info']}}</p>
-    {% elif project['type'] == 'description' %}
-    <div class="emphasis">Here is your description ...</div>
-    <p style="font-style: italic;">AI may err.</p>
-    <p id="info">{{project['info']}}</p>
-    <p id="info-previous" class="hidden">{{project['info']}}</p>
-    {% endif %}
-    <div id="system-bar">
-        <div class="project-system hidden" id="project-system">{{project['system']}}</div>
-        <!-- <div class="toggle" id="hydro"> <span class="icon-common icon-water"></span></div>
+    <div class="wrapper">
+        <div id="project_id" class="hidden">{{id}}</div>
+        {% if project['type'] == 'label' %}
+        <div class="emphasis">Here are the labels that you prompted ...</div>
+        <p style="font-style: italic;">AI may err.</p>
+        <p id="info">{{project['info']}}</p>
+        <p id="info-previous" class="hidden">{{project['info']}}</p>
+        {% elif project['type'] == 'image' %}
+        <div class="emphasis">Here is a description of your image ...</div>
+        <p style="font-style: italic;">AI may err.</p>
+        <p id="info">{{project['info']}}</p>
+        <p id="info-previous" class="hidden">{{project['info']}}</p>
+        {% elif project['type'] == 'description' %}
+        <div class="emphasis">Here is your description ...</div>
+        <p style="font-style: italic;">AI may err.</p>
+        <p id="info">{{project['info']}}</p>
+        <p id="info-previous" class="hidden">{{project['info']}}</p>
+        {% endif %}
+        <div id="system-bar">
+            <div class="project-system hidden" id="project-system">{{project['system']}}</div>
+            <!-- <div class="toggle" id="hydro"> <span class="icon-common icon-water"></span></div>
         <div class="toggle" id="bio"> <span class="icon-common icon-bio"></span></div>
         <div class="toggle" id="unknown"> <span class="icon-common icon-unknown"></span></div>
         <div class="toggle" id="ict"> <span class="icon-common icon-ict"></span></div>
         <div class="toggle" id="solidwaste"> <span class="icon-common icon-solidwaste"></span></div>
         <div class="toggle" id ="energy"> <span class="icon-common icon-energy"></span></div>
         <div class="toggle" id="transport"> <span class="icon-common icon-transport"></span></div> -->
-        <div id="colorPicker" class="stopper" style="display: none;"></div>
-        <div id="colorPickerFunc" style="display: none;">
-            <p class="pickerfunc" id="confirm-color">+ Confirm System Color</p>
-            <br>
-            <p class="pickerfunc" id="reset-color">+ Reset System Color</p>
+            <div id="colorPicker" class="stopper" style="display: none;"></div>
+            <div id="colorPickerFunc" style="display: none;">
+                <p class="pickerfunc" id="confirm-color">+ Confirm System Color</p>
+                <br>
+                <p class="pickerfunc" id="reset-color">+ Reset System Color</p>
+            </div>
         </div>
     </div>
 </div>
@@ -230,7 +232,8 @@
             </div>
             <div class="prompt-frame" id="prompt-frame">
                 {% if promptIds is not none and promptIds|length >= 0 %}
-                {% set promptFlows = project['flow'].split(';') %}
+                {% set promptFlows = (project['flow'] or '').split(';') %}
+                {% set promptFeedbackFlows = (project['feedbackflow'] or '').split(';') %}
                 {% set promptNodes = project['node'].split(';') %}
                 {% set promptSystems = project['system'].split(';') %}
                 {% set promptIds = project['prompt_id'].split(';') %}
@@ -247,6 +250,7 @@
                 </div>
                 <div class="prompt" id="prompt{{promptIds[i]}}">
                     <div class="prompt-flow hidden" id="promptFlow{{promptIds[i]}}">{{promptFlows[i]}}</div>
+                    <div class="prompt-feedbackflow hidden" id="promptFeedbackFlow{{promptIds[i]}}">{{promptFeedbackFlows[i]}}</div>
                     <div class="prompt-node hidden" id="promptNode{{promptIds[i]}}">{{promptNodes[i]}}</div>
                     <div class="prompt-funcbar hidden" id="promptFuncBar{{promptIds[i]}}">
                         <div class="wrapper">
@@ -255,17 +259,17 @@
                             <button id="nodemode" class="toggle active icon-common icon-nodeM"></button>
                             <span class="normal"> | </span>
                             <button id="flowmode" class="toggle inactive icon-common icon-flowM"></button>
-                            <!-- <span class="normal"> | </span>
-                            <button id="drawmode" class="toggle inactive  icon-common icon-drawM"></button> -->
-                            <!-- <span class="normal" style="visibility: hidden;"> | </span>
-                                <div class="card-14 send-to-custom" id="send-to-custom{{promptIds[i]}}"
-                                    style="width: 12rem; white-space: normal; text-align: left;">Send All Nodes and Flows In
-                                    This Prompt To Custom</div> -->
+                            <span class="normal"> | </span>
+                            <button id="drawmode" class="toggle inactive  icon-common icon-drawM"></button>
+                            <span class="normal" style="visibility: hidden;"> | </span>
+                            <div class="card-14 send-to-custom send-prompt" id="send-to-custom{{promptIds[i]}}"
+                                style="width: 12rem; white-space: normal; text-align: left;">Send All Nodes and Flows In
+                                This Prompt To Custom</div>
                         </div>
                     </div>
-                    <!-- <div id="canvasboard">
-                        <canvas id="canvasDraw" width="1440px" height="1440px"></canvas>
-                    </div> -->
+                    <div id="canvasboard">
+                        <canvas id="canvasDraw" width="1440"></canvas>
+                    </div>
                 </div>
                 {% endfor %}
                 {% else %}
@@ -281,11 +285,12 @@
             </div>
         </div>
     </div>
-    <div id="content-custom-frame" class="hidden">
-        <div class="wrapper">
-            <iframe src="{{ url_for('project.custom', id=project['id']) }}" id="custom-iframe" class="readonly"
-                sandbox="allow-same-origin allow-scripts"></iframe>
-        </div>
+</div>
+
+<div id="content-custom-frame" class="hidden">
+    <div class="wrapper">
+        <iframe src="{{ url_for('project.custom', id=project['id']) }}" id="custom-iframe" class="readonly"
+            sandbox="allow-same-origin allow-scripts"></iframe>
     </div>
 </div>
 

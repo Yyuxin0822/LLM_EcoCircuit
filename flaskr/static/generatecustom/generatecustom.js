@@ -9,7 +9,7 @@ eventTypes.forEach(type => {
 });
 const customprompt = document.getElementById('customprompt');
 const computedStyle = window.getComputedStyle(customprompt);
-const customPromptWrapper = document.querySelector('.customprompt-wrapper');
+const nodecontainer = document.getElementById('customnode-wrapper');
 console.log(computedStyle.left, computedStyle.top, computedStyle.width, computedStyle.height);
 function loadPlayground() {
     fetch('/save-to-custom')
@@ -73,7 +73,7 @@ function processPrompt(nodeArray, flowArray) {
         });
         let nodeItem = CustomNode.getNodebyInfo(nodeName, nodeX, nodeY, nodeSys, nodeTransform);
         if (nodeItem === undefined || nodeItem === null) {
-            return new CustomNode(nodeName, nodeX, nodeY, nodeTransform, nodeRGB, nodeSys, customPromptWrapper);
+            return new CustomNode(nodeName, nodeX, nodeY, nodeTransform, nodeRGB, nodeSys, nodecontainer);
         }
         else {
             return nodeItem;
@@ -98,6 +98,8 @@ function processPrompt(nodeArray, flowArray) {
             }
         });
     }
+    let maxNodeY = Math.max(...CustomNode.myCustomNodes.map(node => node.nodeY));
+    nodecontainer.style.height = maxNodeY + 'px';
 }
 function setDOMeditable(editable) {
     let content = document.getElementById('custom-body-wrapper');
@@ -110,9 +112,9 @@ function setDOMeditable(editable) {
         content.classList?.add('readonly');
     }
 }
-let flowString = customprompt.querySelector('#customPromptFlow').innerText;
+let flowString = document.getElementById('customPromptFlow').innerText;
 let flowArray = parseJson(flowString);
-let nodeString = customprompt.querySelector('#customPromptNode').innerText;
+let nodeString = document.getElementById('customPromptNode').innerText;
 let nodeArray = parseJson(nodeString);
 processPrompt(nodeArray, flowArray);
 var isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
@@ -125,25 +127,30 @@ socket.on('data_from_playground', function (data) {
     var flowArray = parseJson(data["flow"]);
     processPrompt(nodeArray, flowArray);
     CustomFlowline.fixLine();
+    saveCustom();
     setDOMeditable(true);
     finishload();
 });
 function saveCustom() {
     let prompt_id = document.getElementById('custom-id').innerHTML;
-    let { flow, nodematrix } = returnInfo();
+    let { flow, nodematrix } = returnCustomInfo();
     console.log(flow, nodematrix);
     var image;
-    var canvas;
-    socket.emit('save_custom', { "prompt_id": prompt_id, "flow": flow, "node": nodematrix });
 }
-function returnInfo() {
+function returnCustomInfo() {
     let flow = [];
+    let flownode = [];
     let nodematrix = {};
     CustomFlowline.myCustomLines.forEach((line) => {
-        flow.push(line.toJSONArray());
+        let tempflowinfo = line.toJSONArray();
+        flownode.push(tempflowinfo[0]);
+        flownode.push(tempflowinfo[1]);
+        flow.push(line.toJSONArray(true));
     });
     CustomNode.myCustomNodes.forEach((node) => {
-        nodematrix = { ...nodematrix, ...node.toJSONObj() };
+        if (!flownode.includes(node.nodeContent)) {
+            nodematrix = { ...nodematrix, ...node.toJSONObj() };
+        }
     });
     return { flow, nodematrix };
 }

@@ -28,6 +28,7 @@ function loadplayground() {
     document.getElementById('content-custom-frame').classList.add('hidden');
     document.getElementById('func-wrapper-engbar')?.classList.remove('hidden');
     document.getElementById('func-wrapper-edit')?.classList.remove('hidden');
+    document.getElementById('info-frame')?.classList.remove('hidden');
     document.querySelectorAll('.send-to-custom').forEach((button) => {
         button.style.display = 'block';
     });
@@ -41,11 +42,13 @@ function loadcustom() {
     document.getElementById('content-custom-frame')?.classList.remove('hidden');
     document.getElementById('func-wrapper-engbar')?.classList.add('hidden');
     document.getElementById('func-wrapper-edit')?.classList.add('hidden');
+    document.getElementById('info-frame')?.classList.add('hidden');
     document.querySelectorAll('.send-to-custom').forEach((button) => {
         button.style.display = 'none';
     });
     playFuncBar.disable();
     setIframeMode(true);
+    window.scrollTo(0, document.body.scrollHeight);
 }
 document.getElementById('toggle-playground')?.addEventListener('click', loadplayground);
 document.getElementById('toggle-custom')?.addEventListener('click', loadcustom);
@@ -71,21 +74,11 @@ function processSystem(container) {
 }
 processSystem(systemBar.container);
 let findFeedback = (parentPrompt) => {
-    var userPrompt = parentPrompt.previousElementSibling;
-    var userInfoElement = userPrompt.querySelector('.userinfo');
-    if (userInfoElement) {
-        var feedbackInfo = userInfoElement.innerHTML.trim();
-        var feedbackType = feedbackInfo.split(' ')[0];
-        if (feedbackType != 'Feedback' && feedbackType != 'Regeneration') {
-            return;
-        }
-        var regex = /\s*(.*?)\s*--&gt;\s*(.*?)\s*(?=<br>|$)/g;
-        var matches, pairs = [];
-        while (matches = regex.exec(feedbackInfo)) {
-            pairs.push([matches[1], matches[2]]);
-        }
-        return pairs;
+    var fbInfo = parentPrompt.querySelector('.prompt-feedbackflow').innerHTML;
+    if (fbInfo == "") {
+        return;
     }
+    return JSON.parse(fbInfo);
 };
 function processPrompt(prompt) {
     var prIndex = prompt.id.replace('prompt', '');
@@ -100,6 +93,8 @@ function processPrompt(prompt) {
     let NodeY = Array.from(new Set(nodeArray.map(node => node[1][1])));
     let NodeYMax = Math.max(...NodeY);
     parentPrompt.style.height = ((NodeYMax + 1) * 1.5 + 6) + 'rem';
+    let canvas = parentPrompt.querySelector('#canvasDraw');
+    canvas.height = ((NodeYMax + 1) * 1.5 + 3) * 16;
     NodeX.forEach((x) => {
         if (parentPrompt.querySelector('#col' + validId(x.toString()))) {
             return;
@@ -143,19 +138,19 @@ function processPrompt(prompt) {
             new PromptFlowline(nodeStart.node, nodeEnd.node);
         }
     });
+    let feedbackLines = findFeedback(parentPrompt);
+    if (feedbackLines) {
+        feedbackLines.forEach((line) => {
+            promptObject.promptLines.forEach((flowline) => {
+                if (flowline.start.querySelector('.node-wrapper').innerText == line[0] && flowline.end.querySelector('.node-wrapper').innerText == line[1]) {
+                    flowline.feedback = true;
+                    flowline.setFeedbackStyle();
+                }
+            });
+        });
+    }
     if (nodeArray.length == 0) {
         parentPrompt.style.display = 'none';
-        let feedbackLines = findFeedback(parentPrompt);
-        if (feedbackLines) {
-            feedbackLines.forEach((line) => {
-                PromptFlowline.getAllLines().forEach((flowline) => {
-                    if (flowline.start.querySelector('.node-wrapper').innerText == line[0] && flowline.end.querySelector('.node-wrapper').innerText == line[1]) {
-                        flowline.feedback = true;
-                        flowline.setFeedbackStyle();
-                    }
-                });
-            });
-        }
         return;
     }
 }
@@ -278,14 +273,18 @@ function setIframeMode(editable) {
         return;
     let content = iframeDocument.getElementById('custom-body-wrapper');
     if (editable) {
-        content.classList?.remove('readonly');
-        content.classList?.add('editable');
+        if (content) {
+            content.classList?.remove('readonly');
+            content.classList?.add('editable');
+        }
         iframe.classList?.remove('readonly');
         iframe.classList?.add('editable');
     }
     else {
-        content.classList?.remove('editable');
-        content.classList?.add('readonly');
+        if (content) {
+            content.classList?.remove('editable');
+            content.classList?.add('readonly');
+        }
         iframe.classList?.remove('editable');
         iframe.classList?.add('readonly');
     }
@@ -300,21 +299,55 @@ document.addEventListener('click', (e) => {
         setIframeMode(false);
     }
 });
-let sendAll = document.getElementById('send-all');
-let sendSelected = document.getElementById('send-selected');
+const sendAll = document.getElementById('send-all');
 sendAll?.addEventListener('click', () => sendDataToCustom('send-all'));
+const startSelect = document.getElementById('start-select-for-sending');
+const finishSelect = document.getElementById('finish-select-for-sending');
+const sendSelected = document.getElementById('send-selected');
+const sendprompt = document.querySelectorAll('.send-prompt');
 function sendDataToCustom(mode) {
     let project_id = document.getElementById('project_id').innerText;
     let flow_array = [];
     let node_array = {};
+    let finalminY = Number.MAX_SAFE_INTEGER;
     Prompt.allPrompts.forEach(prompt => {
-        let { flow, nodematrix } = prompt.collectCustomInfo(mode);
+        let { flow, nodematrix, minY } = prompt.collectCustomInfo(mode);
         if (flow.length > 0) {
             flow_array = [...flow_array, ...flow];
         }
         if (Object.keys(nodematrix).length > 0) {
             node_array = { ...node_array, ...nodematrix };
         }
+        if (finalminY == undefined || minY < finalminY) {
+            finalminY = minY;
+        }
+    });
+    if (finalminY === Number.MAX_SAFE_INTEGER) {
+        finalminY = undefined;
+    }
+    console.log(finalminY);
+    let iframe = document.getElementById('custom-iframe');
+    let iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
+    let nodeContainer = iframeDocument.getElementById('customnode-wrapper');
+    let nodes = nodeContainer.querySelectorAll('.node');
+    let nodeRects = Array.from(nodes).map(node => node.getBoundingClientRect());
+    let maxY;
+    if (nodeRects.length == 0) {
+        maxY = 0;
+    }
+    else {
+        maxY = Math.max(...nodeRects.map(rect => rect.bottom));
+    }
+    console.log(maxY);
+    flow_array.forEach((flow) => {
+        flow.forEach((node) => {
+            Object.entries(node).forEach(([key, value]) => {
+                value[0][1] = value[0][1] - finalminY + maxY;
+            });
+        });
+    });
+    Object.entries(node_array).forEach(([key, value]) => {
+        value[0][1] = value[0][1] - finalminY + maxY;
     });
     var isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
     var url = isLocal ? 'http://localhost:8000' : 'https://www.ecocircuitai.com';
@@ -327,19 +360,4 @@ function sendDataToCustom(mode) {
         'flow_array': flow_array,
         'node_array': node_array,
     });
-}
-function savePlayground() {
-    let project_id = document.getElementById('project_id').innerHTML;
-    let { prompt_id, flow, nodematrix } = Prompt.returnAllInfo();
-    emitSocket('save_prompt', { "prompt_id": prompt_id, "flow": flow, "node": nodematrix, "project_id": project_id });
-}
-function absPostionMatrix(prompt) {
-    let absMatrix = {};
-    var nodewrapper = prompt.querySelectorAll('.node-wrapper');
-    nodewrapper.forEach((nodewrapper) => {
-        let node = nodewrapper.closest('.node');
-        let absPosition = getnodePositionInDOM(node);
-        absMatrix[nodewrapper.innerHTML] = [absPosition, node.style.transform, node.style.backgroundColor];
-    });
-    return absMatrix;
 }

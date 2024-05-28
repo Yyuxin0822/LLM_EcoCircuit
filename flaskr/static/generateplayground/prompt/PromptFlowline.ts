@@ -22,11 +22,12 @@ export class PromptFlowline extends LeaderLine {
   feedback: boolean;
   //constructor
   constructor(start: HTMLElement, end: HTMLElement) {
+    super(start, end);
     if (PromptFlowline.isLineExists(start, end)) {
       return;
     }
 
-    super(start, end);
+    
     this.start = start;
     this.end = end;
     this.prompt = this.start.closest('.prompt') as HTMLElement;
@@ -191,10 +192,8 @@ export class PromptFlowline extends LeaderLine {
     //   startSquare.style.left = '-0.25rem';
     //   anno.style.right = '0.25rem';
     // }
-
-
-
   }
+  
   // equals(otherLine) {
   //   if (!(otherLine instanceof PromptFlowline)) {
   //     return false;
@@ -214,8 +213,6 @@ export class PromptFlowline extends LeaderLine {
       let endNode = PromptNode.getNodeObjbyNode(this.end, this.prompt);
       return [startNode.toJSONObj(true), endNode.toJSONObj(true)];
     }
-
-
   }
 
   select() {

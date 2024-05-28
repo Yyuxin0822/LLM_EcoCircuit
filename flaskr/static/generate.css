@@ -1,4 +1,5 @@
 /* generate.html */
+
 .title-bar {
   background: linear-gradient(to bottom, #ffffff 50%, rgba(255, 255, 255, 0.5) 75%, rgba(255, 255, 255, 0) 100%);
   z-index: 5;
@@ -6,7 +7,6 @@
 
 .function-frame {
   display: flex;
-
   width: 90rem;
   padding: 5rem 5rem 3rem 5rem;
   flex-direction: column;
@@ -81,7 +81,7 @@
   gap: 1rem;
 }
 
-.sub-wrapper .card-14{
+.sub-wrapper .card-14 {
   text-align: left;
 }
 
@@ -225,7 +225,7 @@
 }
 
 /* info-frame */
-.info-frame {
+.info-frame>.wrapper {
   display: flex;
   width: 90rem;
   padding: 0.75rem 5rem 2.25rem 5rem;
@@ -234,7 +234,7 @@
   gap: 1.5rem;
 }
 
-.info-frame>#system-bar {
+.info-frame #system-bar {
   /* layout */
   display: flex;
   justify-content: center;
@@ -245,7 +245,8 @@
 .info-frame>#info[contenteditable]:focus {
   outline: 2px solid var(--variable-collection-themedarkpurple);
   border-radius: 0.25rem;
-  outline-offset:0.5rem; /* Adjust this value as needed */
+  outline-offset: 0.5rem;
+  /* Adjust this value as needed */
   border: none;
 }
 
@@ -292,13 +293,13 @@
 /* content-frame */
 #content-frame>.wrapper {
   display: flex;
-  height: 115.5rem;
+  height: auto;
   padding: 1rem 0rem;
+  padding-bottom: 12rem;
   flex-direction: column;
   justify-content: center;
   align-items: flex-start;
   position: relative;
-
 }
 
 #content-frame .canvas {
@@ -325,7 +326,7 @@
 
 #content-frame .prompt-frame {
   width: 90rem;
-  height: 113.5rem;
+  height: auto;
   flex-shrink: 0;
   position: relative;
 
@@ -336,7 +337,7 @@
   width: 90rem;
   /* Fixed width of the container */
   padding-top: 3rem;
-  padding-bottom: 3rem;
+  /* padding-bottom: 3rem; */
   align-items: flex-start;
   align-self: stretch;
   position: relative;
@@ -347,10 +348,19 @@
   /* Ensures no text wrapping occurs */
 }
 
+.prompt.disable-pointer-events {
+  pointer-events: none;
+}
+
+.prompt.disable-pointer-events #canvasDraw {
+  pointer-events: auto;
+}
+
 .prompt #canvasboard {
   position: relative;
   width: 100%;
   height: 100%;
+  pointer-events: none;
 }
 
 .prompt #canvasDraw {
@@ -360,7 +370,7 @@
   width: 100%;
   height: 100%;
   box-sizing: border-box;
-  z-index: 5;
+  z-index: 2;
 }
 
 .prompt-frame>.prompt.focused {
@@ -472,11 +482,21 @@
   outline: 2px solid #000;
 }
 
+.identifier-selected.feedback-selected{
+  background: #525A70;
+  outline: 2px solid #525A70;
+}
+
 .identifier-toselect {
+  background: white;
   outline: 2px solid #000;
   /* outline-offset: 2px;  */
 }
+.identifier-toselect.feedback-toselect{
+  outline: 2px solid #525A70;
+  /* outline-offset: 2px;  */
 
+}
 .node-selected {
   outline: 4px solid #000;
   outline-offset: -2px;
@@ -492,15 +512,26 @@ svg.leader-line {
 #content-custom-frame>.wrapper {
   display: flex;
   padding: 1rem 5rem;
+  padding-top: -3rem;
   flex-direction: column;
   align-items: left;
   align-self: stretch;
 }
 
+/* this is the secret sauce for adjusting fontsize for iframe */
+#content-custom-frame.hidden {
+  display: block;
+  visibility: hidden;
+}
+/* this is the secret sauce for adjusting fontsize for iframe */
+#content-custom-frame.hidden .wrapper iframe {
+  height: 0;
+}
+
 #content-custom-frame>.wrapper iframe {
   align-self: stretch;
-  width: 90rem;
-  height: 90rem;
+  width: 96rem;
+  height: 54rem;
   border-radius: 0.5rem;
   box-sizing: border-box;
 }
@@ -513,9 +544,11 @@ iframe.editable {
   pointer-events: auto;
   border: 2px solid var(--variable-collection-themedarkpurple);
 }
+
 .zoomable {
   transform-origin: 0 0;
 }
+
 /* iconbutton-frame */
 .iconbutton-frame {
   display: flex;
@@ -528,4 +561,3 @@ iframe.editable {
   bottom: 0rem;
   pointer-events: none;
 }
-

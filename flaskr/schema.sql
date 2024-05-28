@@ -29,15 +29,18 @@ CREATE TABLE prompt (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   prompt TEXT,
   flow TEXT,
+  feedbackflow TEXT DEFAULT ' ',
   node TEXT,
   userinfo TEXT DEFAULT ' ',
   project_id INTEGER,
+  promptcanvas TEXT,
   FOREIGN KEY (project_id) REFERENCES project (id)
 );
 
 CREATE TABLE customprompt (
   id INTEGER PRIMARY KEY AUTOINCREMENT, 
   flow TEXT,
+  feedbackflow TEXT,
   node TEXT,
   img TEXT,
   canvas TEXT,

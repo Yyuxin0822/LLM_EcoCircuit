@@ -15,7 +15,6 @@ export class CustomNode extends PromptNode {
         super.init();
         this.newNode.style.left = this._nodeX + 'px';
         this.newNode.style.top = this._nodeY + 'px';
-        this._container.appendChild(this.newNode);
         this._draggable = new PlainDraggable(this.newNode, {
             onMove: CustomFlowline.fixLine,
             containment: {
