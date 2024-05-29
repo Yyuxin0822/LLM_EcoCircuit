@@ -191,10 +191,12 @@ processSystem(systemBar.container);
 
 let findFeedback = (parentPrompt: HTMLElement) => {
     var fbInfo = parentPrompt.querySelector('.prompt-feedbackflow').innerHTML;
-    if (fbInfo == "") {
+    //strip the whitespace
+
+    if (fbInfo.trim() == "") {
         return;
     }
-    return JSON.parse(fbInfo);
+    return JSON.parse(fbInfo.trim());
 }
 
 function processPrompt(prompt: HTMLElement) {

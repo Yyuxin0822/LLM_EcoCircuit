@@ -75,10 +75,10 @@ function processSystem(container) {
 processSystem(systemBar.container);
 let findFeedback = (parentPrompt) => {
     var fbInfo = parentPrompt.querySelector('.prompt-feedbackflow').innerHTML;
-    if (fbInfo == "") {
+    if (fbInfo.trim() == "") {
         return;
     }
-    return JSON.parse(fbInfo);
+    return JSON.parse(fbInfo.trim());
 };
 function processPrompt(prompt) {
     var prIndex = prompt.id.replace('prompt', '');

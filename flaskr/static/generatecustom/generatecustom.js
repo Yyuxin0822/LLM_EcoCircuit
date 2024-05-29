@@ -117,20 +117,6 @@ let flowArray = parseJson(flowString);
 let nodeString = document.getElementById('customPromptNode').innerText;
 let nodeArray = parseJson(nodeString);
 processPrompt(nodeArray, flowArray);
-var isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-var url = isLocal ? 'http://localhost:8000' : 'https://www.ecocircuitai.com';
-var socket = io.connect(url);
-socket.on('data_from_playground', function (data) {
-    setDOMeditable(false);
-    startload();
-    var nodeArray = parseJson(data["node"]);
-    var flowArray = parseJson(data["flow"]);
-    processPrompt(nodeArray, flowArray);
-    CustomFlowline.fixLine();
-    saveCustom();
-    setDOMeditable(true);
-    finishload();
-});
 function saveCustom() {
     let prompt_id = document.getElementById('custom-id').innerHTML;
     let { flow, nodematrix } = returnCustomInfo();

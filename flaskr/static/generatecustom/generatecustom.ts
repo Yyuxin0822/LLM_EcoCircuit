@@ -159,22 +159,30 @@ processPrompt(nodeArray, flowArray);
 
 ////////////////////////////////Process socket///////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////
-var isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-var url = isLocal ? 'http://localhost:8000' : 'https://www.ecocircuitai.com';
-var socket = io.connect(url);
-socket.on('data_from_playground', function (data) {
-    setDOMeditable(false);
-    startload();
-    var nodeArray = parseJson(data["node"]);
-    var flowArray = parseJson(data["flow"]);
-    // console.log(nodeArray, flowArray);
-    processPrompt(nodeArray, flowArray);
-    CustomFlowline.fixLine();
-    saveCustom();
+// var isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+// var url = isLocal ? 'http://localhost:8000' : 'https://www.ecocircuitai.com';
+// var socket = io.connect(url);
+// socket.on('connect_error', (error) => {
+//     console.error('WebSocket Connection Error:', error);
+// });
 
-    setDOMeditable(true);
-    finishload();
-});
+// socket.on('disconnect', (reason) => {
+//     console.error('WebSocket disconnected:', reason);
+// });
+
+// socket.on('data_from_playground', function (data) {
+//     setDOMeditable(false);
+//     startload();
+//     var nodeArray = parseJson(data["node"]);
+//     var flowArray = parseJson(data["flow"]);
+//     // console.log(nodeArray, flowArray);
+//     processPrompt(nodeArray, flowArray);
+//     CustomFlowline.fixLine();
+//     saveCustom();
+
+//     setDOMeditable(true);
+//     finishload();
+// });
 
 
 
