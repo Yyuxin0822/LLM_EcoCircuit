@@ -54,7 +54,6 @@ export class PromptNode {
 
     // status
     this.selected = false;
-
     this.init();
     this.attachEventListeners();
 
@@ -72,9 +71,20 @@ export class PromptNode {
     // Node wrapper
     this._nodeWrapper = document.createElement("div");
     this._nodeWrapper.classList.add('node-wrapper', 'card-node');
-    this._nodeWrapper.innerHTML = this._nodeContent;
+    this._nodeWrapper.innerText = this._nodeContent;
     this.newNode.appendChild(this._nodeWrapper);
 
+    //Add tooltip to the nodewrapper
+    // <div class="node-wrapper tooltip">My text
+    //   <span class="tooltiptext">Tooltip text</span>
+    // </div>
+    this._nodeWrapper.classList.add('tooltip');
+    let tooltiptext= document.createElement('span');
+    tooltiptext.classList.add('tooltiptext');
+    tooltiptext.innerHTML = this._nodeContent;
+    this._nodeWrapper.appendChild(tooltiptext);
+
+   
     //for customnode, this.PromptObj is undefined
     if (this.PromptObj) {
       let col = this._container.querySelector('#col' + validId(this._nodeX.toString())) as HTMLElement;
@@ -140,9 +150,10 @@ export class PromptNode {
         // console.log(nodeWrapper.textContent);
         nodeWrapper.style.whiteSpace = 'normal';
         nodeWrapper.style.lineHeight = '1.0';
-        // node.style.height = '1.5rem'; // Allow node height to adjust to content
+        node.style.height = '24px'; // Allow node height to adjust to content
         node.style.alignItems = 'flex-start';
-        node.style.overflow = 'hidden'
+        // nodeWrapper.style.overflow = 'hidden';
+        node.style.textOverflow = 'ellipsis';
         // if (isOverflowingY(nodeWrapper)) {
         //   nodeWrapper.title = nodeWrapper.textContent;
         // }
@@ -160,6 +171,8 @@ export class PromptNode {
   attachEventListeners() {
     this.node.addEventListener('contextmenu', this.handleContextMenuClick.bind(this));
     this.nodeWrapper.addEventListener('click', this.handleClick.bind(this));
+    // this.nodeWrapper.addEventListener('mouseover', this.handleHover.bind(this));
+    // this.nodeWrapper.addEventListener('mouseout', this.handleHoverOver.bind(this));
     document.addEventListener('nodeTabClick', event => { this.nodeWrapper.style.cursor = 'pointer'; });
     document.addEventListener('disableNodeTabClick', event => { this.nodeWrapper.style.cursor = 'default'; });
     document.addEventListener('flowlineTabClick', event => {
@@ -179,6 +192,71 @@ export class PromptNode {
       }
 
     });
+  }
+
+  handleHover() {
+    this.nodeWrapper.classList.add('hovered');
+    // let sameNodes= PromptNode.myNodes.filter(node => node.nodeContent === this.nodeContent);
+    // if (sameNodes.length > 0) {
+    //   sameNodes.forEach(node => {
+    //     node.nodeWrapper.classList.add('hovered');
+    //     //find associatedLines and add hovered class
+    //     let findAssociatedNodes = function (node: PromptNode) {
+    //       let associatedNodes = [];
+    //       let startLines = node.PromptObj.getLinesWhereNodeasInput(node);
+    //       console.log(startLines);
+    //       //get the endNodes of the startLines
+    //       startLines.forEach(line => {
+    //         associatedNodes.push(line.endNodeItem);
+    //       });
+    //       let endLines = node.PromptObj.getLinesWhereNodeasOutput(node);
+    //       console.log(endLines);
+    //       //get the startNodes of the endLines
+    //       endLines.forEach(line => {
+    //         associatedNodes.push(line.startNodeItem);
+    //       });
+    //       return associatedNodes;
+    //     }
+
+    //     let associatedNodes = findAssociatedNodes(node);
+    //     associatedNodes.forEach(node => {
+    //       console.log(node.nodeWrapper);
+    //       node.nodeWrapper.classList.add('hovered');
+    //     });
+    //   });
+    // }
+    
+  }
+
+  handleHoverOver() {
+    this.nodeWrapper.classList.remove('hovered');
+    // let sameNodes= PromptNode.myNodes.filter(node => node.nodeContent === this.nodeContent);
+    // if (sameNodes.length > 0) {
+    //   sameNodes.forEach(node => {
+    //     node.nodeWrapper.classList.remove('hovered');
+    //     //find associatedLines and add hovered class
+    //     let findAssociatedNodes = function (node) {
+    //       let associatedNodes = [];
+    //       let startLines = node.PromptObj.getLinesWhereNodeasInput(node);
+    //       //get the endNodes of the startLines
+    //       startLines.forEach(line => {
+    //         associatedNodes.push(line.endNodeItem);
+    //       });
+    //       let endLines = node.PromptObj.getLinesWhereNodeasOutput(node);
+    //       //get the startNodes of the endLines
+    //       endLines.forEach(line => {
+    //         associatedNodes.push(line.startNodeItem);
+    //       });
+    //       return associatedNodes;
+    //     }
+    //     let associatedNodes = findAssociatedNodes(node);
+    //     associatedNodes.forEach(node => {
+    //       node.nodeWrapper.classList.remove('hovered');
+    //     });
+    //   });
+    // }
+
+    
   }
 
   handleClick() {
@@ -449,16 +527,23 @@ export class PromptCustomNode extends PromptNode {
     let PromptObj = Prompt.getPromptItembyPrompt(container);
     let nodeX = PromptObj.convertAbstoNodeX(absNodeX);
     let nodeY = PromptObj.convertAbstoNodeY(absNodeY);
-    console.log(nodeX, nodeY);
-    //check in PromptNode.myNodes if there is already a node at the same position
-    let node = PromptNode.myNodes.find(node => node.nodeX === nodeX && node.nodeY === nodeY && node.container === container);
-    if (!node) {
-      super("", nodeX, nodeY, 'translate(0%, 0%)', hexToRGBA("#888", 0.75), "UNKNOWN", container);
-    } else {
-      return
-    }
+    
+    // Call the super constructor first
+    super("", nodeX, nodeY, 'translate(0%, 0%)', hexToRGBA("#888", 0.75), "UNKNOWN", container);
+    this.nodeWrapper.classList.remove('tooltip');
+    // Check in PromptNode.myNodes if there is already a node at the same position
+    // let node = PromptNode.myNodes.find(node => node.nodeX === nodeX && node.nodeY === nodeY && node.container === container);
+    // if (node.length === 0) {
+
+    // } else {
+    //   // If a node already exists at the same position, you might want to handle this case.
+    //   // For now, we'll simply return to avoid creating a new node.
+
+    //   return;
+    // }
   }
 }
+
 
 
 

@@ -129,18 +129,19 @@ export class PromptCanvasDraw {
         this.drawing = false;
     }
     saveCanvas() {
-        console.log("saving canvas");
         var dataURL = this.canvas.toDataURL("image/png");
         var prompt = this.container.closest(".prompt");
         if (!prompt)
             return;
         var prompt_id = prompt.id.substring(6);
         this.canvas.toBlob((blob) => {
+            if (!blob) {
+                console.error("Failed to create blob from canvas.");
+                return;
+            }
             const data = new FormData();
             data.append("data_url", blob);
             data.append("prompt_id", prompt_id);
-            console.log("Blob size:", blob.size);
-            console.log("prompt_id:", prompt_id);
             var isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
             var url = isLocal ? 'http://localhost:8000/save_promptcanvas' : 'https://www.ecocircuitai.com/save_promptcanvas';
             fetch(url, {
@@ -150,7 +151,6 @@ export class PromptCanvasDraw {
             })
                 .then(response => response.json())
                 .then(result => {
-                console.log("Canvas saved successfully using fetch with Blob.");
             })
                 .catch(error => {
                 console.error("Error saving canvas using fetch with Blob:", error);

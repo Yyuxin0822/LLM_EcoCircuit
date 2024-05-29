@@ -67,15 +67,15 @@ def encode_image(image_path='../instance/images/envir.jpg'):
     return base64.b64encode(image_file.read()).decode('utf-8')
 
 
-def getdescription(base64_image, max_tries=3):  
+async def getdescription(base64_image, max_tries=3):  
     for i in range(max_tries):
         try:
-            response =  client.chat.completions.create(
+            response =  await clientasync.chat.completions.create(
                 model="gpt-4-vision-preview",
                 messages=[{
                 "role": "user",
                 "content": [
-                    {"type": "text", "text": "What’s in this image? Provide me with a Dalle image description."},
+                    {"type": "text", "text": "What is in this image? Provide me with a Dalle image description."},
                     {
                     "type": "image_url",
                     "image_url": {
@@ -84,7 +84,7 @@ def getdescription(base64_image, max_tries=3):
                     },
                 ],
                 } ],
-            n=i+1,
+            n=1,
             max_tokens=300,
             )
             description = response.choices[0].message.content

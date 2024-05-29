@@ -274,7 +274,7 @@ export class Prompt {
 
     //prompt Manager
     returnInfo() {
-        console.log('added line saved')
+        // console.log('added line saved')
         let prompt_id = this.id;
         let flow = [];
         let feedbackflow=[];

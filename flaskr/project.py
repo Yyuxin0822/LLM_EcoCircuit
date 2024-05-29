@@ -75,6 +75,7 @@ def prompt():
                     imgurl_task = IndexHelper.gen_canvas((max_project_id + 1), info, filepath)
                     genio_task = IndexHelper.genio_from_description((max_prompt_id + 1), (max_project_id + 1), info, json.loads(system))
                     return await asyncio.gather(imgurl_task, genio_task)
+                
                 if requesttype == "description":
                     promptuser = request.form["description"]
                     expand = request.form["expand"]
@@ -93,7 +94,7 @@ def prompt():
                         if file:
                             file.save(filepath)
                             promptuser = "Untitled"
-                            imgurl, info = IndexHelper.gen_from_image(
+                            imgurl, info = await IndexHelper.gen_from_image(
                                 (max_project_id + 1), filepath
                             )
                     await IndexHelper.genio_from_description(
@@ -200,14 +201,20 @@ def quickgen():
 def regen_image():  
     data = request.get_json()
     filepath = os.path.join(current_app.instance_path, "images/envir.jpg")
-    imgurl,tempurl=update_img(data["project_id"], filepath, data["info"])
+    imgurl,tempurl= update_img_sync(data["project_id"], filepath, data["info"])
     if imgurl is None:
         error = "Gereration error, please ask again."
         flash(error)
         return 400
     return jsonify({"status": "success", "imgurl": tempurl})
 
-    
+def update_img_sync(project_id, filepath, info):
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    imgurl, tempurl = loop.run_until_complete(update_img(project_id, filepath, info))
+    loop.close()
+    return imgurl, tempurl   
+
 # (UD)
 @socketio.on("save_prompt")
 def save_prompt(data):
@@ -495,7 +502,7 @@ def save_custom_view(data):
 ######################################################
 # Helper Functions
 class IndexHelper:
-    def gen_from_image(id, filepath):
+    async def gen_from_image(id, filepath):
         """
         gen imgurl and info from image
 
@@ -510,7 +517,7 @@ class IndexHelper:
         info = ""
         cropImage(filepath, 720)
         base64_image = encode_image(filepath)
-        info = getdescription(base64_image)
+        info = await getdescription(base64_image)
         imgurl = genurl(id, local_path=filepath)
         return imgurl, info
 
@@ -578,11 +585,11 @@ class IndexHelper:
         # gen input
         logging.debug(f"env: {env}")
         input_sys = None
+        input = None
         if isinstance(env, str):
             input,input_sys = await return_input(env, syscolor)
         elif isinstance(env, list):
             input = env
-
 
         logging.debug(f"Input: {input}")
         io = await return_addoutput(input, syscolor)
@@ -595,7 +602,11 @@ class IndexHelper:
         logging.debug(f"IO System: {iosys}")
         if iosys is None:
             return None
-
+        
+        
+        #add "UNKNOWN" to syscolor
+        syscolor["UNKNOWN"] = ["rgb(136, 136, 136)", None]
+        logging.debug(f"System Color: {syscolor}")
         iomatrix = nodematrix(io, iosys, syscolor)
         logging.debug(f"IO Matrix: {iomatrix}")
         # save io to db
@@ -710,10 +721,11 @@ async def update(
         )
         db.commit()
         return new_prompt_id
-
-def update_img(id:int,filepath:str,info:str):
+    
+@staticmethod
+async def update_img(id:int,filepath:str,info:str):
     imgurl = ""
-    tempurl = getcanvas(info)
+    tempurl =await getcanvas(info)
     urllib.request.urlretrieve(tempurl, filepath)
     imgurl = genurl(id, local_path=filepath)
     # print("Image URL: ", imgurl)

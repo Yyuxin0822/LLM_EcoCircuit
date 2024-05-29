@@ -182,7 +182,6 @@ export class Prompt {
         return nodeXToCoordinateXMap;
     }
     returnInfo() {
-        console.log('added line saved');
         let prompt_id = this.id;
         let flow = [];
         let feedbackflow = [];
