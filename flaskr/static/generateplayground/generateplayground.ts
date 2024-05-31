@@ -10,6 +10,7 @@ import { PromptNode } from './prompt/PromptNode.js';
 import { DefaultSystem, System, SystemFuncBar } from '../SystemBar.js';
 
 
+
 ///////////////Helper Func////////////////////
 const eventTypes = ['click', 'keydown', 'keyup', 'scroll', 'load'];
 
@@ -421,52 +422,52 @@ regenImage?.addEventListener('click', () => {
 
 ///////////////////////////content-custom-frame/////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////
-let iframeEditable = false;
-const iframe = document.getElementById('custom-iframe');
-const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
-function setIframeMode(editable: boolean) {
-    iframeEditable = editable;
+// let iframeEditable = false;
+// const iframe = document.getElementById('custom-iframe');
+// const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
+// function setIframeMode(editable: boolean) {
+//     iframeEditable = editable;
 
-    let viewCustom = document.getElementById('view-custom');
-    if (!viewCustom) return;
-    let content = iframeDocument.getElementById('custom-body-wrapper');
-    if (editable) {
-        //set the control in custom.html
-        if (content) {
-            content.classList?.remove('readonly');
-            content.classList?.add('editable');
+//     let viewCustom = document.getElementById('view-custom');
+//     if (!viewCustom) return;
+//     let content = iframeDocument.getElementById('custom-body-wrapper');
+//     if (editable) {
+//         //set the control in custom.html
+//         if (content) {
+//             content.classList?.remove('readonly');
+//             content.classList?.add('editable');
 
-        }
-        //set the control in generate.html
-        iframe.classList?.remove('readonly');
-        iframe.classList?.add('editable');
-    } else {
-        //set the control in custom.html
-        if (content) {
-            content.classList?.remove('editable');
-            content.classList?.add('readonly');
-        }
-        //set the control in generate.html
-        iframe.classList?.remove('editable');
-        iframe.classList?.add('readonly');
-    }
-}
+//         }
+//         //set the control in generate.html
+//         iframe.classList?.remove('readonly');
+//         iframe.classList?.add('editable');
+//     } else {
+//         //set the control in custom.html
+//         if (content) {
+//             content.classList?.remove('editable');
+//             content.classList?.add('readonly');
+//         }
+//         //set the control in generate.html
+//         iframe.classList?.remove('editable');
+//         iframe.classList?.add('readonly');
+//     }
+// }
 
-iframe.addEventListener('load', function () {
-    iframeDocument.addEventListener('click', function () {
-        // console.log('iframe clicked');
-        setIframeMode(true);
+// iframe.addEventListener('load', function () {
+//     iframeDocument.addEventListener('click', function () {
+//         // console.log('iframe clicked');
+//         setIframeMode(true);
 
-    })
-});
+//     })
+// });
 
-document.addEventListener('click', (e) => {
-    //!e.target.closest('.func-wrapper-view') to make sure the pointer event in switiching views is not influencing the iframe
-    if (!iframe.contains(e.target as HTMLElement) && !e.target.closest('.func-wrapper-view')) {
-        // console.log('outside.clicked')
-        setIframeMode(false);
-    }
-});
+// document.addEventListener('click', (e) => {
+//     //!e.target.closest('.func-wrapper-view') to make sure the pointer event in switiching views is not influencing the iframe
+//     if (!iframe.contains(e.target as HTMLElement) && !e.target.closest('.func-wrapper-view')) {
+//         // console.log('outside.clicked')
+//         setIframeMode(false);
+//     }
+// });
 
 
 
@@ -495,7 +496,10 @@ function sendDataToCustom(mode: string) {
     let project_id = document.getElementById('project_id').innerText;
     let flow_array = [];
     let node_array = {};
+    let imgurl_array={};
+
     let finalminY: number = Number.MAX_SAFE_INTEGER;
+    //gathering all prompt information
     Prompt.allPrompts.forEach(prompt => {
         let { flow, nodematrix, minY } = prompt.collectCustomInfo(mode);
         if (flow.length > 0) {
@@ -508,12 +512,17 @@ function sendDataToCustom(mode: string) {
             finalminY = minY;
         }
     });
-    if (finalminY === Number.MAX_SAFE_INTEGER) {
-        finalminY = undefined; // If minY wasn't updated, set it back to undefined
-    }
+    //gathering all image information
+    // {“imgurl”:[[pos_array(num)], [size_array(num)], transform]}
+    let imageCanvas =document.getElementById('canvas-image');
+    let imgurl=imageCanvas.src;
+
 
     //update posY for all nodes in nodematrix or flow
     //step 1, understand the whitespace in current flow_array and node_array, generate.html
+    if (finalminY === Number.MAX_SAFE_INTEGER) {
+        finalminY = undefined; // If minY wasn't updated, set it back to undefined
+    }
     console.log(finalminY)
 
     //step2 understand the maxY. This is custom.html

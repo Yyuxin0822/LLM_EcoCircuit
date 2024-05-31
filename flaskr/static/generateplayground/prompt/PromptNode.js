@@ -33,8 +33,13 @@ export class PromptNode {
         this.newNode.style.backgroundColor = this._nodeRGB;
         this._nodeWrapper = document.createElement("div");
         this._nodeWrapper.classList.add('node-wrapper', 'card-node');
-        this._nodeWrapper.innerHTML = this._nodeContent;
+        this._nodeWrapper.innerText = this._nodeContent;
         this.newNode.appendChild(this._nodeWrapper);
+        this._nodeWrapper.classList.add('tooltip');
+        let tooltiptext = document.createElement('span');
+        tooltiptext.classList.add('tooltiptext');
+        tooltiptext.innerHTML = this._nodeContent;
+        this._nodeWrapper.appendChild(tooltiptext);
         if (this.PromptObj) {
             let col = this._container.querySelector('#col' + validId(this._nodeX.toString()));
             if (!col) {
@@ -79,8 +84,9 @@ export class PromptNode {
             if (fontSize === 12 && isOverflowingX(nodeWrapper)) {
                 nodeWrapper.style.whiteSpace = 'normal';
                 nodeWrapper.style.lineHeight = '1.0';
+                node.style.height = '24px';
                 node.style.alignItems = 'flex-start';
-                node.style.overflow = 'hidden';
+                node.style.textOverflow = 'ellipsis';
             }
         }
         if (document.readyState === 'complete') {
@@ -111,6 +117,12 @@ export class PromptNode {
                 this.outputIdentifier.identifier.style.cursor = 'default';
             }
         });
+    }
+    handleHover() {
+        this.nodeWrapper.classList.add('hovered');
+    }
+    handleHoverOver() {
+        this.nodeWrapper.classList.remove('hovered');
     }
     handleClick() {
         if (!PromptNode.nodeSel)
@@ -339,13 +351,7 @@ export class PromptCustomNode extends PromptNode {
         let PromptObj = Prompt.getPromptItembyPrompt(container);
         let nodeX = PromptObj.convertAbstoNodeX(absNodeX);
         let nodeY = PromptObj.convertAbstoNodeY(absNodeY);
-        console.log(nodeX, nodeY);
-        let node = PromptNode.myNodes.find(node => node.nodeX === nodeX && node.nodeY === nodeY && node.container === container);
-        if (!node) {
-            super("", nodeX, nodeY, 'translate(0%, 0%)', hexToRGBA("#888", 0.75), "UNKNOWN", container);
-        }
-        else {
-            return;
-        }
+        super("", nodeX, nodeY, 'translate(0%, 0%)', hexToRGBA("#888", 0.75), "UNKNOWN", container);
+        this.nodeWrapper.classList.remove('tooltip');
     }
 }

@@ -263,42 +263,6 @@ regenImage?.addEventListener('click', () => {
         console.log('finish load');
     });
 });
-let iframeEditable = false;
-const iframe = document.getElementById('custom-iframe');
-const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
-function setIframeMode(editable) {
-    iframeEditable = editable;
-    let viewCustom = document.getElementById('view-custom');
-    if (!viewCustom)
-        return;
-    let content = iframeDocument.getElementById('custom-body-wrapper');
-    if (editable) {
-        if (content) {
-            content.classList?.remove('readonly');
-            content.classList?.add('editable');
-        }
-        iframe.classList?.remove('readonly');
-        iframe.classList?.add('editable');
-    }
-    else {
-        if (content) {
-            content.classList?.remove('editable');
-            content.classList?.add('readonly');
-        }
-        iframe.classList?.remove('editable');
-        iframe.classList?.add('readonly');
-    }
-}
-iframe.addEventListener('load', function () {
-    iframeDocument.addEventListener('click', function () {
-        setIframeMode(true);
-    });
-});
-document.addEventListener('click', (e) => {
-    if (!iframe.contains(e.target) && !e.target.closest('.func-wrapper-view')) {
-        setIframeMode(false);
-    }
-});
 const sendAll = document.getElementById('send-all');
 sendAll?.addEventListener('click', () => sendDataToCustom('send-all'));
 const startSelect = document.getElementById('start-select-for-sending');
@@ -309,6 +273,7 @@ function sendDataToCustom(mode) {
     let project_id = document.getElementById('project_id').innerText;
     let flow_array = [];
     let node_array = {};
+    let imgurl_array = {};
     let finalminY = Number.MAX_SAFE_INTEGER;
     Prompt.allPrompts.forEach(prompt => {
         let { flow, nodematrix, minY } = prompt.collectCustomInfo(mode);
@@ -322,6 +287,8 @@ function sendDataToCustom(mode) {
             finalminY = minY;
         }
     });
+    let imageCanvas = document.getElementById('canvas-image');
+    let imgurl = imageCanvas.src;
     if (finalminY === Number.MAX_SAFE_INTEGER) {
         finalminY = undefined;
     }

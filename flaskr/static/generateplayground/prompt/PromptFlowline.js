@@ -105,8 +105,8 @@ export class PromptFlowline extends LeaderLine {
     }
     toJSONArray(abs = false) {
         if (!abs) {
-            let startText = this.start.querySelector('.node-wrapper').innerHTML;
-            let endText = this.end.querySelector('.node-wrapper').innerHTML;
+            let startText = this.start.querySelector('.node-wrapper').innerText;
+            let endText = this.end.querySelector('.node-wrapper').innerText;
             return [startText, endText];
         }
         if (abs) {

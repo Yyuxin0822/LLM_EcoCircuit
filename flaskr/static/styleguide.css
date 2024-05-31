@@ -13,10 +13,14 @@
 .tooltip .tooltiptext {
   visibility: hidden;
   width: auto;
+  white-space: nowrap;
   min-width: 120px;
-  background-color: rgba(255, 255, 255, 0.95);
-  box-shadow: var(--highlight);
-  color: black;
+  background-color: rgba(29, 28, 52, 1);
+  /* background-color: white; */
+  /* box-shadow: 6px 6px 24px 0px rgba(125, 141, 180, 0.75); */
+  box-shadow: 0px 0px 6px 0px rgba(29, 28, 52, 1);
+  /* box-shadow: var(--regular); */
+  color: white;
   text-align: center;
   border-radius: 6px;
   padding: 5px 10px;
@@ -25,7 +29,8 @@
   bottom: 150%;
   left: 50%;
   transform: translateX(-50%); /* This centers the tooltip */
-  outline: 1px solid var(--variable-collection-themedarkpurple);
+  outline: 1px solid rgba(29, 28, 52, 1);
+  /* outline: 1px solid var(--variable-collection-themedarkpurple); */
   font-family: var(--card-14-font-family);
   font-weight: var(--card-14-font-weight);
   font-size: var(--heading-1-font-size);
@@ -36,10 +41,10 @@
   position: absolute;
   top: 100%;
   left: 50%;
-  margin-left: -5px;
-  border-width: 5px;
+  margin-left: -6px; /* triangle size */
+  border-width: 6px;
   border-style: solid;
-  border-color: var(--variable-collection-themedarkpurple) transparent transparent transparent;
+  border-color: rgba(29, 28, 52, 1) transparent transparent transparent;
 }
 
 .tooltip:hover .tooltiptext {

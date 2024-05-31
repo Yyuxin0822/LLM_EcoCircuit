@@ -235,7 +235,7 @@ function previewUpload(fileInput: HTMLElement, preview: HTMLElement) {
                 return;
             }
 
-            if (file.size > 4000000) { // 12 MB
+            if (file.size > 4000000) { // 4 MB
                 alert('File is too large. Maximum allowed size is 4 MB.');
                 fileInput.value = ''; // Reset the file input
                 return;

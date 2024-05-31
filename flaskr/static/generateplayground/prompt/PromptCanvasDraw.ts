@@ -162,19 +162,23 @@ export class PromptCanvasDraw {
   }
 
   saveCanvas() {
-    console.log("saving canvas")
+    // console.log("saving canvas")
     var dataURL = this.canvas.toDataURL("image/png");
     var prompt = this.container.closest(".prompt");
     if (!prompt) return;
     var prompt_id = prompt.id.substring(6); //id is in the form "prompt<prompt_id>"
 
     this.canvas.toBlob((blob) => {
+      if (!blob) {
+        console.error("Failed to create blob from canvas.");
+        return;
+      }
       const data = new FormData();
       data.append("data_url", blob);
       data.append("prompt_id", prompt_id);
   
-      console.log("Blob size:", blob.size);
-      console.log("prompt_id:", prompt_id);
+      // console.log("Blob size:", blob.size);
+      // console.log("prompt_id:", prompt_id);
   
       // Determine if the app is running locally or on a production server
       var isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
@@ -188,21 +192,22 @@ export class PromptCanvasDraw {
       })
       .then(response => response.json())
       .then(result => {
-          console.log("Canvas saved successfully using fetch with Blob.");
+          // console.log("Canvas saved successfully using fetch with Blob.");
       })
       .catch(error => {
         console.error("Error saving canvas using fetch with Blob:", error);
       });
     }, 'image/png');
 
+  }
 
-    // Use navigator.sendBeacon to send the data
+   // Use navigator.sendBeacon to send the data
     // if (navigator.sendBeacon(url, data)) {
     //   console.log("Canvas saved successfully using sendBeacon.");
     // } else {
     //   console.error("Error saving canvas using sendBeacon.");
     // }
-  }
+
 
   loadCanvas() {
     console.log("loading canvas");
