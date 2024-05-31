@@ -320,7 +320,7 @@ async def genaddinput(output:list, sysdict:dict, randomNumber=3) -> list:
             {"role": "user", "content": f'output: {output}, system:{list(sysdict.keys())}',},
         ],
         temperature=1,
-        max_tokens=512,
+        max_tokens=2048,
         top_p=1,
         frequency_penalty=0,
         presence_penalty=0,
@@ -701,10 +701,22 @@ async def genaddfeedback(tosearchnode: list, usefulnode: list, randomNumber=3):
 ## exectution
 async def return_addinput(output_resources: list, syscolor:dict,  max_tries=3):
     for _ in range(max_tries):
-        randomNumber = random.randint(1, 5)
-        flow_list = await genaddinput(output_resources, syscolor, randomNumber=randomNumber)
-        if checknestedlist(flow_list):
-            return flow_list
+        try:
+            randomNumber = random.randint(1, 5)
+            n=15
+            flow_list=[]
+            nested_outputs=[output_resources[i:i + n] for i in range(0, len(output_resources), n)]
+            
+            tasks=[genaddinput(outputlist, syscolor, randomNumber=randomNumber) for outputlist in nested_outputs]
+            results = await asyncio.gather(*tasks)
+            for sub_outputlist in results:
+                if checknestedlist(sub_outputlist):
+                    flow_list.extend(sub_outputlist)
+
+            if flow_list:
+                    return flow_list
+        except Exception as e:
+            continue
     print ("Sorry, we can't generate a result from the output resources, please try again.")
     return None
 
