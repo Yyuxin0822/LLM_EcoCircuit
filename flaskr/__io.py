@@ -409,7 +409,9 @@ async def return_sub_system(sub_nodelist: list, syscolor: dict, max_tries: int =
                     for key, value in sub_sysdict.items():
                         if value not in set_sub_sysdict:
                             sub_sysdict[key] = "UNKNOWN"
-                return sub_sysdict
+                    return sub_sysdict
+                else:
+                    logging.debug(f"Sub system dictionary {sub_sysdict} contains invalid systems")
         except Exception as e:
             logging.error(f"Error during system generation on attempt {attempt + 1}: {e}")
     return None

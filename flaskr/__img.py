@@ -101,8 +101,8 @@ async def getdescription(base64_image, max_tries=3):
 def cropImage(localpath: str = '../instance/images/envir.jpg', size: int = 720):
     try:
         # Open the image file
-        img = Image.open(localpath)
-        
+        img_raw = Image.open(localpath)
+        img=img_raw.convert('RGB')
         # Get the dimensions of the image
         width, height = img.size
         
