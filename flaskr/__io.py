@@ -299,7 +299,7 @@ async def gensystem(node:list, sysinfodict:dict, randomNumber=3):
         frequency_penalty=0,
         presence_penalty=0)
         data = response.choices[0].message.content
-        logging.debug(f"Data: {data}")
+        # logging.debug(f"Data: {data}")
         return cleansystem(data)
     except Exception as e:  # This catches all exceptions
         print(f"An error occurred: {e}")
@@ -348,7 +348,7 @@ async def return_system(node: list, syscolor: dict, max_tries: int = 3, known_no
         node = [ele for ele in node if ele not in known_nodelist]
         
     # Split the node into list of length n, and store in a nested list
-    n = 50
+    n = 60
     nested_node = [node[i:i + n] for i in range(0, len(node), n)]
     logging.debug(f"Nested node: {nested_node}")
     sysdict = {}
@@ -387,29 +387,30 @@ async def return_sub_system(sub_nodelist: list, syscolor: dict, max_tries: int =
             sub_sysdict = await gensystem(sub_nodelist, syscolor, random_number)
             logging.debug(f"Trying Gen Sub system dictionary: {sub_sysdict}")
             if checkdict(sub_sysdict):
-                set_sub_sysdict = set(syscolor.keys())
-                # set_sub_sysdict.add("UNKNOWN")
-  
+                set_color_sysdict = set(syscolor.keys())
                 if set(sub_sysdict.keys()) != set(sub_nodelist):
                     logging.debug(f"Sublist {sub_nodelist} does not match system dictionary {sub_sysdict}")
-                    #get the difference between the two sets
+                    # Get the difference between the two sets
                     diff = set(sub_nodelist) - set(sub_sysdict.keys())
                     logging.debug(f"Missing nodes: {diff}")
-                    #if sub_nodelist is smaller than sub_sysdict, remove the extra nodes from sub_sysdict
+                    # If sub_nodelist is smaller than sub_sysdict, remove the extra nodes from sub_sysdict
                     if len(sub_nodelist) < len(sub_sysdict):
                         for node in diff:
                             sub_sysdict.pop(node)
                     else:
-                        #if sub_nodelist is larger than sub_sysdict, add the missing nodes to sub_sysdict with "UNKNOWN" system
+                        # If sub_nodelist is larger than sub_sysdict, add the missing nodes to sub_sysdict with "UNKNOWN" system
                         for node in diff:
                             sub_sysdict[node] = "UNKNOWN"
-                    
-                if set(sub_sysdict.values()).issubset(set_sub_sysdict):
-                    #find the key that has the value that is not in the set_sub_sysdict
+                            
+                set_color_sysdict.add("UNKNOWN")
+                if set(sub_sysdict.values()).issubset(set_color_sysdict):
+                    return sub_sysdict
+                else:
                     for key, value in sub_sysdict.items():
-                        if value not in set_sub_sysdict:
+                        if value not in set_color_sysdict:
+                            logging.debug(f"System {value} for node {key} is not in the system dictionary")
                             sub_sysdict[key] = "UNKNOWN"
-                return sub_sysdict
+                    return sub_sysdict
         except Exception as e:
             logging.error(f"Error during system generation on attempt {attempt + 1}: {e}")
     return None

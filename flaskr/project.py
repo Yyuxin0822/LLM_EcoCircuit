@@ -517,8 +517,9 @@ class IndexHelper:
         info = ""
         cropImage(filepath, 720)
         base64_image = encode_image(filepath)
-        info = await getdescription(base64_image)
         imgurl = genurl(id, local_path=filepath)
+        info = await getdescription(imgurl)
+        
         return imgurl, info
 
     def gen_from_description(
