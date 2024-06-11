@@ -99,6 +99,8 @@ export class PromptNode {
     attachEventListeners() {
         this.node.addEventListener('contextmenu', this.handleContextMenuClick.bind(this));
         this.nodeWrapper.addEventListener('click', this.handleClick.bind(this));
+        this.nodeWrapper.addEventListener('mouseover', this.handleHover.bind(this));
+        this.nodeWrapper.addEventListener('mouseout', this.handleHoverOver.bind(this));
         document.addEventListener('nodeTabClick', event => { this.nodeWrapper.style.cursor = 'pointer'; });
         document.addEventListener('disableNodeTabClick', event => { this.nodeWrapper.style.cursor = 'default'; });
         document.addEventListener('flowlineTabClick', event => {
@@ -120,9 +122,23 @@ export class PromptNode {
     }
     handleHover() {
         this.nodeWrapper.classList.add('hovered');
+        let associatedLines = [];
+        let startLines = this.PromptObj.getLinesWhereNodeasInput(this);
+        let endLines = this.PromptObj.getLinesWhereNodeasOutput(this);
+        associatedLines = startLines.concat(endLines);
+        associatedLines.forEach(line => {
+            line.handleHover();
+        });
     }
     handleHoverOver() {
         this.nodeWrapper.classList.remove('hovered');
+        let associatedLines = [];
+        let startLines = this.PromptObj.getLinesWhereNodeasInput(this);
+        let endLines = this.PromptObj.getLinesWhereNodeasOutput(this);
+        associatedLines = startLines.concat(endLines);
+        associatedLines.forEach(line => {
+            line.exitHover();
+        });
     }
     handleClick() {
         if (!PromptNode.nodeSel)

@@ -18,11 +18,13 @@ export class Prompt {
                 }, false);
                 this.parent._prompt.addEventListener('contextmenu', (e) => {
                     e.preventDefault();
+                    this.handleClickInside();
                 });
                 document.addEventListener('click', this.handleClickOutside, false);
             }
             detachEventListeners() {
                 this.parent._prompt.removeEventListener('click', this.handleClickInside, false);
+                this.parent._prompt.removeEventListener('contextmenu', this.handleClickInside, false);
                 document.removeEventListener('click', this.handleClickOutside, false);
             }
             handleClickInside() {

@@ -10,6 +10,7 @@ export class PromptCanvasDraw {
   latestPoint: number[];
   handlers: any;
 
+
   constructor(canvasId: string, container: HTMLElement) {
     this.container = container;
     this.canvas = container.querySelector(`#${canvasId}`);
@@ -29,16 +30,18 @@ export class PromptCanvasDraw {
       mouseMove: this.mouseMove.bind(this),
       mouseUp: this.endStroke.bind(this),
       mouseOut: this.endStroke.bind(this),
-      mouseEnter: this.mouseEnter.bind(this)
+      mouseEnter: this.mouseEnter.bind(this),
+      keyDownEvt: this.keyDownEvt.bind(this)
     };
 
-    this.disable(); // Automatically enable drawing on initialization
+    this.disable(); // Automatically disable drawing on initialization
     this.enabled = false; // Track whether the canvas is enabled
     PromptCanvasDraw.promptDrawInstances.push(this);
 
     window.onbeforeunload = this.saveAllCanvases.bind(this);
     // window.onbeforeunload = this.saveCustomCanvas.bind(this);
     window.addEventListener("DOMContentLoaded", this.loadCanvas.bind(this));
+    window.addEventListener("keydown", this.handlers.keyDownEvt, false);
     // window.addEventListener("DOMContentLoaded", this.loadCustomCanvas.bind(this));
   }
 
@@ -67,6 +70,16 @@ export class PromptCanvasDraw {
     // window.removeEventListener("DOMContentLoaded", this.loadCanvas.bind(this));
   }
 
+
+  keyDownEvt(evt) {
+    if (evt.key === '+' || evt.key === '=') {
+      this.strokeWidth = Math.min(this.strokeWidth + 1, 100); // Max strokeWidth
+    } else if (evt.key === '-' || evt.key === '_') {
+      this.strokeWidth = Math.max(this.strokeWidth - 1, 1); // Min strokeWidth
+    }
+  }
+
+  
   enable() {
     if (this.enabled) return;
     this.container.classList.add('disable-pointer-events');
@@ -176,41 +189,41 @@ export class PromptCanvasDraw {
       const data = new FormData();
       data.append("data_url", blob);
       data.append("prompt_id", prompt_id);
-  
+
       // console.log("Blob size:", blob.size);
       // console.log("prompt_id:", prompt_id);
-  
+
       // Determine if the app is running locally or on a production server
       var isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
       var url = isLocal ? 'http://localhost:8000/save_promptcanvas' : 'https://www.ecocircuitai.com/save_promptcanvas';
-  
+
       // Use fetch to send the data
       fetch(url, {
         method: 'POST',
         body: data,
         keepalive: true // This ensures the request is made even if the user navigates away
       })
-      .then(response => response.json())
-      .then(result => {
+        .then(response => response.json())
+        .then(result => {
           // console.log("Canvas saved successfully using fetch with Blob.");
-      })
-      .catch(error => {
-        console.error("Error saving canvas using fetch with Blob:", error);
-      });
+        })
+        .catch(error => {
+          console.error("Error saving canvas using fetch with Blob:", error);
+        });
     }, 'image/png');
 
   }
 
-   // Use navigator.sendBeacon to send the data
-    // if (navigator.sendBeacon(url, data)) {
-    //   console.log("Canvas saved successfully using sendBeacon.");
-    // } else {
-    //   console.error("Error saving canvas using sendBeacon.");
-    // }
+  // Use navigator.sendBeacon to send the data
+  // if (navigator.sendBeacon(url, data)) {
+  //   console.log("Canvas saved successfully using sendBeacon.");
+  // } else {
+  //   console.error("Error saving canvas using sendBeacon.");
+  // }
 
 
   loadCanvas() {
-    console.log("loading canvas");
+    // console.log("loading canvas");
     //send prompt_id
     var prompt = this.container.closest(".prompt");
     if (!prompt) return;

@@ -8,7 +8,8 @@ import { PromptFlowline } from './prompt/PromptFlowline.js';
 import { PromptNode } from './prompt/PromptNode.js';
 //@ts-ignore
 import { DefaultSystem, System, SystemFuncBar } from '../SystemBar.js';
-
+//@tes-ignore
+import { PromptNodeDrpDwn } from './prompt/PromptNodeDrpDwn.js';
 
 
 ///////////////Helper Func////////////////////
@@ -17,7 +18,6 @@ const eventTypes = ['click', 'keydown', 'keyup', 'scroll', 'load'];
 eventTypes.forEach(type => {
     // Determine the correct target for each event type
     const target = type === 'load' ? window : document;
-
     // Use the capture phase for all events to ensure they are intercepted early
     target.addEventListener(type, (event) => {
         // console.log(`Event type: ${type}`);
@@ -41,7 +41,6 @@ eventTypes.forEach(type => {
 
 window.onload = function () {
     //try find loader
-
     PromptFlowline.fixLine();
     var lastPrompt = Prompt.allPrompts[Prompt.allPrompts.length - 1].prompt;
     var previousElement = lastPrompt.previousElementSibling;
@@ -50,90 +49,113 @@ window.onload = function () {
         previousElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
         setTimeout(finishload, 500);// Estimate the scroll duration (e.g., 500 milliseconds)
     }
+    setEditMode();//initialize the edit mode
     finishload();
 }
 
 
 ////////////// function-frame ////////////// 
-const playFuncBar = new PlaygroundFuncBar(document.querySelector('.function-frame'));
+export const playFuncBar = new PlaygroundFuncBar(document.querySelector('.function-frame'));
 
 // toggling views //temporarily deactivated 
-// const iframe = document.getElementById('custom-iframe');
-function loadplayground() {
-    document.getElementById('view-playground')?.classList.remove('hidden');
-    document.getElementById('view-custom')?.classList.toggle('hidden');
-    document.getElementById('content-frame')?.classList.remove('hidden');
-    document.getElementById('content-custom-frame').classList.add('hidden');
-    document.getElementById('func-wrapper-engbar')?.classList.remove('hidden');
-    document.getElementById('func-wrapper-edit')?.classList.remove('hidden');
-    document.getElementById('info-frame')?.classList.remove('hidden');
-    document.querySelectorAll('.send-to-custom').forEach((button) => {
-        button.style.display = 'block';
-    });
-    playFuncBar.enable();
-    setIframeMode(false);
-}
-
-function loadcustom() {
-    document.getElementById('view-playground')?.classList.add('hidden');
-    document.getElementById('view-custom')?.classList.remove('hidden');
-    document.getElementById('content-frame')?.classList.add('hidden');
-    document.getElementById('content-custom-frame')?.classList.remove('hidden');
-    document.getElementById('func-wrapper-engbar')?.classList.add('hidden');
-    document.getElementById('func-wrapper-edit')?.classList.add('hidden');
-    document.getElementById('info-frame')?.classList.add('hidden');
-    document.querySelectorAll('.send-to-custom').forEach((button) => {
-        button.style.display = 'none';
-    });
-    playFuncBar.disable();
-    setIframeMode(true);
-    // scrolltobottom of thescreen
-    window.scrollTo(0, document.body.scrollHeight);
-}
-
-document.getElementById('toggle-playground')?.addEventListener('click', loadplayground);
-document.getElementById('toggle-custom')?.addEventListener('click', loadcustom);
-
-// toggling fold/unfold engineer bar
-function toggleEngineerBar() {
-    document.getElementById('engineer-bar-unfolded')?.classList.toggle('hidden');
-    document.getElementById('engineer-bar-folded')?.classList.toggle('hidden');
-}
-
-document.getElementById('fold')?.addEventListener('click', toggleEngineerBar);
-document.getElementById('unfold')?.addEventListener('click', toggleEngineerBar);
-
-//toggle quickselect //temporarily deactivated
-// const quicksel = document.getElementById('quicksel-folded')
-// const unquickseltab = document.getElementById('quicksel-unfolded')
-// const unqickselbutton = document.getElementById('quicksel-unfolded-button')
-// unqickselbutton?.addEventListener('click', (e) => {
-//     quicksel?.classList.remove('hidden');
-//     unquickseltab?.classList.add('hidden');
-//     nodesel = false;
-//     linesel = false;
-//     rmIdentifier();
-// });
-
-// quicksel?.addEventListener('click', (e) => {
-//     quicksel?.classList.add('hidden');
-//     unquickseltab?.classList.remove('hidden');
-//     var engtabs = document.querySelectorAll('.component-eng-tab');
-//     engtabs.forEach(t => {
-//         t.classList?.add('eng-unselected');
-//         t.classList?.remove('eng-selected');
+// function loadplayground() {
+//     document.getElementById('view-playground')?.classList.remove('hidden');
+//     document.getElementById('view-custom')?.classList.toggle('hidden');
+//     document.getElementById('content-frame')?.classList.remove('hidden');
+//     document.getElementById('content-custom-frame').classList.add('hidden');
+//     document.getElementById('func-wrapper-engbar')?.classList.remove('hidden');
+//     document.getElementById('func-wrapper-edit')?.classList.remove('hidden');
+//     document.getElementById('info-frame')?.classList.remove('hidden');
+//     document.querySelectorAll('.send-to-custom').forEach((button) => {
+//         button.style.display = 'block';
 //     });
-//     nodesel = true;
-//     linesel = true;
-//     addIdentifier();
-// });
+//     playFuncBar.enable();
+//     setIframeMode(false);
+// }
 
-// playtab toggle
-// const addinputtab = document.getElementById('add-input');
-// const addoutputtab = document.getElementById('add-output');
-// const addprocesstab = document.getElementById('add-process');
-// const addcooptimizationtab = document.getElementById('add-cooptimization');
-// const addfeedbacktab = document.getElementById('add-feedback');
+// function loadcustom() {
+//     document.getElementById('view-playground')?.classList.add('hidden');
+//     document.getElementById('view-custom')?.classList.remove('hidden');
+//     document.getElementById('content-frame')?.classList.add('hidden');
+//     document.getElementById('content-custom-frame')?.classList.remove('hidden');
+//     document.getElementById('func-wrapper-engbar')?.classList.add('hidden');
+//     document.getElementById('func-wrapper-edit')?.classList.add('hidden');
+//     document.getElementById('info-frame')?.classList.add('hidden');
+//     document.querySelectorAll('.send-to-custom').forEach((button) => {
+//         button.style.display = 'none';
+//     });
+//     playFuncBar.disable();
+//     setIframeMode(true);
+//     // scrolltobottom of thescreen
+//     window.scrollTo(0, document.body.scrollHeight);
+// }
+
+// document.getElementById('toggle-playground')?.addEventListener('click', loadplayground);
+// document.getElementById('toggle-custom')?.addEventListener('click', loadcustom);
+
+
+// toggling AI/User engineer bar
+const aiSlider = document.getElementById('ai-slider-wrapper');
+const userSlider = document.getElementById('user-slider-wrapper');
+const aiBtn=document.getElementById('ai-btn');
+const aiBtnFade=document.getElementById('ai-btn-fade');
+const userBtn=document.getElementById('user-btn');
+const userBtnFade=document.getElementById('user-btn-fade');
+const aiFuncs = document.getElementById('ai-wrapper');
+const userFuncs = document.getElementById('user-wrapper');
+aiBtnFade?.addEventListener('click',function(e){
+    // e.stopPropagation();
+    if (aiSlider.classList.contains('hidden')) {
+        aiSlider.classList.remove('hidden');
+        userSlider.classList.add('hidden');
+        aiFuncs?.classList.remove('hidden');
+        userFuncs?.classList.add('hidden');
+        unsetEditMode();
+    }
+});
+aiBtn.addEventListener('click',function(e){
+    // e.stopPropagation();
+    aiFuncs?.classList.toggle('hidden');
+});
+userBtnFade?.addEventListener('click',function(e){
+    // e.stopPropagation();
+    if (userSlider.classList.contains('hidden')) {
+        userSlider.classList.remove('hidden');
+        aiSlider.classList.add('hidden');
+        userFuncs?.classList.remove('hidden');
+        aiFuncs?.classList.add('hidden');
+        setEditMode();
+    }
+});
+userBtn.addEventListener('click',function(e){
+    // e.stopPropagation();
+    userFuncs?.classList.toggle('hidden');
+});
+
+
+function setEditMode() {
+    //toggle edit button
+    PromptFlowline.lineSel = false;
+    PromptNode.nodeSel = false;
+    //enable all prompts, then autofocus to the first prompt
+    Prompt.allPrompts.forEach(prompt => {
+        prompt.focusable = true
+    });
+    PromptNodeDrpDwn.globalEnabled = true;
+
+    //get the first prompt
+    // let firstPrompt = Prompt.allPrompts[Prompt.allPrompts.length - 1];
+    // firstPrompt.promptFocus();
+}
+
+function unsetEditMode() {
+    Prompt.allPrompts.forEach(prompt => {
+        prompt.unfocus();
+        prompt.focusable = false
+    });
+    PromptNodeDrpDwn.globalEnabled = false;
+}
+
 
 ////////////// info-frame ////////////// 
 const systemBar = new SystemFuncBar(document.getElementById('system-bar'));
@@ -338,7 +360,6 @@ quickgen?.addEventListener('click', () => {
         alert('Please select a generation mode in controller and some contents to prompt')
         return;
     }
-
     if (mode == "add-process") {
         let userConfirmed = confirm('The unconfirmed process will not be taken into account in the generation. Do you want to proceed?');
         if (!userConfirmed) { return; }

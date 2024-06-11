@@ -378,39 +378,39 @@ export class DefaultSystem {
 DefaultSystem.mySystems = [];
 DefaultSystem.defaultSystems = [
     {
-        "content": "HYDRO",
-        "color": "#0BF",
-        "iconUrl": "static/icon/Iconsystem-water.png"
+        "content": "STORM WATER",
+        "color": "#8CE",
+        "iconUrl": "static/icon/Iconsystem-dark-water.png"
     },
     {
-        "content": "ENERGY",
-        "color": "#FC0",
-        "iconUrl": "static/icon/Iconsystem-energy.png"
+        "content": "PARK DESIGN",
+        "color": "#5CD",
+        "iconUrl": "static/icon/Iconsystem-dark-biosystem.png"
     },
     {
-        "content": "SOLID WASTE",
-        "color": "#A75",
-        "iconUrl": "static/icon/Iconsystem-solidwaste.png"
+        "content": "FAMILY ACTIVITIES",
+        "color": "#9DC",
+        "iconUrl": "static/icon/Iconsystem-dark-family.png"
     },
     {
-        "content": "TELECOMMUNICATION",
-        "color": "#C5E",
-        "iconUrl": "static/icon/Iconsystem-ict.png"
+        "content": "ECONOMY INITIATIVES",
+        "color": "#FDA",
+        "iconUrl": "static/icon/Iconsystem-dark-fund.png"
+    },
+    {
+        "content": "RENEWABLE ENERGY",
+        "color": "#FB6",
+        "iconUrl": "static/icon/Iconsystem-dark-energy.png"
     },
     {
         "content": "MOBILITY",
-        "color": "#F44",
-        "iconUrl": "static/icon/Iconsystem-mobility.png"
+        "color": "#F99",
+        "iconUrl": "static/icon/Iconsystem-dark-mobility.png"
     },
     {
-        "content": "BIOSYSTEM",
-        "color": "#3C4",
-        "iconUrl": "static/icon/Iconsystem-ecosystem.png"
-    },
-    {
-        "content": "UNKNOWN",
-        "color": "#888",
-        "iconUrl": "static/icon/Iconsystem-unknown.png"
+        "content": "DIGITAL TWIN",
+        "color": "#ACB7DE",
+        "iconUrl": "static/icon/Iconsystem-dark-ict.png"
     }
 ];
 DefaultSystem.currentSystems = [];

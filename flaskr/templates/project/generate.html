@@ -20,169 +20,385 @@
 
 {% block content %}
 {% if project %}
+<div class="projecttitle-frame">
+    <a href="{{ url_for('project.prompt') }}" id="icon-newrequest">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
+            <circle cx="24" cy="24" r="24" fill="black" />
+            <rect x="8.77368" y="21.5862" width="29.8959" height="3.41668" rx="1.70834" fill="#F4F7FE" />
+            <rect x="25.857" y="8.77368" width="29.0417" height="3.41667" rx="1.70834"
+                transform="rotate(90 25.857 8.77368)" fill="#F4F7FE" />
+        </svg>
+    </a>
+    <div class="title-wrapper">
+        <div class="heading-pjtitle" id="pjtitle">{{project['title']}}</div>
+        <div class="heading-pjtitle hidden" id="pjtitle-previous">{{project['title']}}</div>
+    </div>
+</div>
 
 <div class="function-frame">
-    <!-- view bar - temporarily archived at core -->
-    <!-- <div class="func-wrapper-view">
-        <div id="view-playground">
-            <div class="wrapper">
-                <div class="sub-wrapper">
-                    <span class="icon-common icon-view"></span>
-                    <div class="emphasis">Playground</div>
-                </div>
-                <div class="text-wrapper" id="toggle-custom">
-                    <p>Custom</p>
-                </div>
-            </div>
-        </div>
-        <div id="view-custom" class="hidden">
-            <div class="wrapper">
-                <div class="text-wrapper" id="toggle-playground">
-                    <p>Playground</p>
-                </div>
-                <div class="sub-wrapper">
-                    <span class="icon-common icon-view"></span>
-                    <div class="emphasis">Custom</div>
-                </div>
-            </div>
-        </div>
-        <div class="sub-wrapper">
-            <div class="card-14 send-to-custom" id="send-all">Send All Nodes And Flows To Custom</div>
-            <div class="card-14 send-to-custom" id="start-select-for-sending">Click To Select Nodes And Flows To Send To
-                Custom</div>
-            <div class="hidden">
-                <div class="sub-sub-wrapper" id="finish-select-for-sending">
-                    <div class="card-14 send-to-custom" id="send-selected">Confirm Select and Send To Custom</div>
-                    <div class="card-14 send-to-custom" id="cancel-selected">Cancel Select</div>
-                </div>
-            </div>
-        </div>
-    </div> -->
-    <!-- engineer bar -->
     <div class="func-wrapper-engbar" id="func-wrapper-engbar">
-        <div id="engineer-bar-folded" class="hidden">
-            <div class="wrapper">
-                <div class="component-bar-2" id="unfold" style="cursor: pointer;">
-                    <span class="icon-common icon-unfold"></span>
+        <div class="agent-wrapper">
+            <div class="agent-slider">
+                <div id="ai-slider-wrapper" class="hidden">
+                    <div class="rect-AI" id="ai-btn">
+                        <div class="ctrl-panel">AI ASSIST</div>
+                    </div>
+                    <div class="rect-user" id="user-btn-fade">
+                        <div class="ctrl-panel faded">USER EDIT</div>
+                    </div>
                 </div>
-                <div class="component-bar-2" id="add-io" style="cursor: pointer;">
-                    <span class="icon-common icon-add"></span>
-                    <p>Add <span class=emphasis>Input </span><svg xmlns="http://www.w3.org/2000/svg" width="25"
-                            height="8" viewBox="0 0 25 8" fill="none">
-                            <path
-                                d="M24.3536 4.35355C24.5488 4.15829 24.5488 3.84171 24.3536 3.64645L21.1716 0.464466C20.9763 0.269204 20.6597 0.269204 20.4645 0.464466C20.2692 0.659728 20.2692 0.976311 20.4645 1.17157L23.2929 4L20.4645 6.82843C20.2692 7.02369 20.2692 7.34027 20.4645 7.53553C20.6597 7.7308 20.9763 7.7308 21.1716 7.53553L24.3536 4.35355ZM0 4.5H24V3.5H0V4.5Z"
-                                fill="black" />
-                        </svg><span class=emphasis> Output</span> with AI</p>
+                <div id="user-slider-wrapper">
+                    <div class="rect-AI" id="ai-btn-fade">
+                        <div class="ctrl-panel faded">AI ASSIST</div>
+                    </div>
+                    <div class="rect-user" id="user-btn">
+                        <div class="ctrl-panel">USER EDIT</div>
+                    </div>
                 </div>
             </div>
         </div>
-        <div id="engineer-bar-unfolded">
-            <div class="wrapper">
-                <div class="sub-wapper-1">
-                    <div class="component-bar-2" id="fold" style="cursor: pointer;">
-                        <span class="icon-common icon-fold"></span>
-                    </div>
-                    <div class="component-bar-2" id="quickgen" style="cursor: pointer;">
-                        <span class="icon-common icon-add"></span>
-                        <p class="emphasis">Quick Generate</p>
-                    </div>
-                    <div class="component-bar-2" id="regen-image" style="cursor: pointer;">
-                        <span class="icon-common icon-add"></span>
-                        <p class="emphasis">Regenerate Image</p>
-                    </div>
-                </div>
-                <div class="sub-wapper-2" id="engplaytab">
-                    <div class="wrapper" style="position:relative">
-                        <div class="sub-wrapper">
+
+        <!-- ai-wrapper -->
+        <div id="ai-wrapper" class="hidden">
+            <div id="ai-option-window" class="option-window">
+                <svg xmlns="http://www.w3.org/2000/svg" id="ai-pointer" width="20" height="14" viewBox="0 0 20 14"
+                    fill="none">
+                    <path
+                        d="M8.3359 0.890599C9.12755 -0.296867 10.8725 -0.296866 11.6641 0.8906L20 13.3944H0L8.3359 0.890599Z"
+                        fill="rgba(232, 237, 250, 1)" />
+                </svg>
+                <div class="wrapper">
+                    {% if g.user %}
+                    <div class="option-frame">
+                        <div class="normal">Hi <span style="color: #9847FD; font-weight: 700;">{{ g.user['username']
+                                }}</span>, how would you
+                            like AI to assist you today?</div>
+                        <div class="option-wrapper">
                             <div class="component-eng-tab inactive toggle" id="add-input">
-                                <span class="icon-common icon-input"></span>
-                                <p>Add More <span class=emphasis>Input</span> with AI</p>
+                                <span class="icon-common-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="23" height="13" viewBox="0 0 23 13"
+                                        fill="none">
+                                        <path
+                                            d="M1.46027 12.6429C1.21027 12.6429 0.970268 12.5829 0.760268 12.4629C0.270268 12.1829 0.0002682 11.6229 0.0002682 10.8829V1.76292C-0.0097318 1.03292 0.260268 0.472921 0.750268 0.182921C1.24027 -0.0970789 1.86027 -0.0570789 2.50027 0.312921L10.4203 4.87292C11.0603 5.24292 11.4103 5.75292 11.4103 6.32292C11.4103 6.89292 11.0603 7.40292 10.4203 7.77292L2.50027 12.3329C2.14027 12.5429 1.78027 12.6429 1.45027 12.6429H1.46027Z"
+                                            fill="rgba(29, 28, 52, 1)" />
+                                        <path
+                                            d="M12.8804 12.6429C12.6304 12.6429 12.3904 12.5829 12.1804 12.4629C11.6904 12.1829 11.4204 11.6229 11.4204 10.8829V1.76292C11.4204 1.03292 11.6904 0.472921 12.1804 0.182921C12.6704 -0.0970789 13.2904 -0.0570789 13.9304 0.312921L21.8504 4.87292C22.4904 5.24292 22.8404 5.75292 22.8404 6.32292C22.8404 6.89292 22.4904 7.40292 21.8504 7.77292L13.9304 12.3329C13.5704 12.5429 13.2104 12.6429 12.8804 12.6429ZM12.8804 0.812921C12.7704 0.812921 12.6704 0.832921 12.5904 0.882921C12.3604 1.01292 12.2304 1.33292 12.2304 1.75292V10.8729C12.2304 11.3029 12.3604 11.6129 12.5904 11.7429C12.8204 11.8729 13.1604 11.8229 13.5304 11.6129L21.4504 7.05292C21.8204 6.84292 22.0304 6.57292 22.0304 6.31292C22.0304 6.05292 21.8204 5.78292 21.4504 5.57292L13.5204 1.02292C13.2904 0.892921 13.0704 0.822921 12.8804 0.822921V0.812921Z"
+                                            fill="rgba(29, 28, 52, 1)" />
+                                    </svg>
+                                </span>
+                                <p>Add Inputs for Nodes</p>
                             </div>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="52" height="16" viewBox="0 0 52 16"
-                                fill="none">
-                                <path
-                                    d="M51.2071 8.70711C51.5976 8.31659 51.5976 7.68342 51.2071 7.2929L44.8431 0.928936C44.4526 0.538412 43.8195 0.538412 43.4289 0.928936C43.0384 1.31946 43.0384 1.95263 43.4289 2.34315L49.0858 8L43.4289 13.6569C43.0384 14.0474 43.0384 14.6805 43.4289 15.0711C43.8195 15.4616 44.4526 15.4616 44.8431 15.0711L51.2071 8.70711ZM0.5 9L50.5 9L50.5 7L0.5 7L0.5 9Z"
-                                    fill="black" />
-                            </svg>
-                            <div class="sub-sub-wrapper">
-                                <div class="component-eng-tab inactive toggle" id="add-process">
-                                    <span class="icon-common icon-process"></span>
-                                    <p>Add <span class=emphasis>Process</span> with AI</p>
-                                </div>
-                                <div class="component-eng-tab inactive toggle" id="add-cooptimization">
-                                    <span class="icon-common icon-cooptimization"></span>
-                                    <p>Add <span class=emphasis>Co-optimization</span> with AI</p>
-                                </div>
+                            <div class="component-eng-tab inactive toggle" id="add-process">
+                                <span class="icon-common-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="9" viewBox="0 0 28 9"
+                                        fill="none">
+                                        <path
+                                            d="M0.757297 6.32571C0.701079 6.32571 0.64792 6.3092 0.600498 6.27619C0.490739 6.20008 0.429932 6.05015 0.429932 5.8539V3.19731C0.429932 3.00107 0.490356 2.85114 0.600498 2.77503C0.710257 2.69892 0.849082 2.71129 0.990966 2.80942L2.91003 4.13771C3.05191 4.23583 3.12993 4.37384 3.12993 4.52561C3.12993 4.67737 3.05191 4.81538 2.91003 4.91351L0.990966 6.2418C0.910654 6.29728 0.831107 6.32525 0.757679 6.32525L0.757297 6.32571ZM0.757297 2.95568C0.733968 2.95568 0.713317 2.96164 0.695725 2.97356C0.648303 3.00657 0.620767 3.08819 0.620767 3.19731V5.8539C0.620767 5.96349 0.64792 6.0451 0.695725 6.07766C0.743529 6.11021 0.815809 6.09783 0.894974 6.04327L2.81404 4.71497C2.8932 4.66041 2.93833 4.59117 2.93833 4.52561C2.93833 4.46004 2.8932 4.39081 2.81404 4.33624L0.894974 3.00795C0.844875 2.97356 0.797453 2.95568 0.757297 2.95568Z"
+                                            fill="rgba(29, 28, 52, 1)" />
+                                        <path
+                                            d="M4.01842 8.54023C3.86583 8.54023 3.72155 8.50342 3.59283 8.42979C3.29493 8.26004 3.12988 7.92565 3.12988 7.48798V1.56304C3.12988 1.12537 3.29389 0.790978 3.59283 0.621226C3.89074 0.451475 4.26754 0.479085 4.65264 0.697921L9.86138 3.66039C10.2465 3.87923 10.4582 4.18703 10.4582 4.52551C10.4582 4.86399 10.2465 5.17179 9.86138 5.39063L4.65264 8.3531C4.43466 8.47683 4.21875 8.53921 4.01946 8.53921L4.01842 8.54023Z"
+                                            fill="rgba(29, 28, 52, 1)" />
+                                        <path
+                                            d="M11.3468 8.54023C11.1942 8.54023 11.0499 8.50342 10.9212 8.42979C10.6233 8.26004 10.4583 7.92565 10.4583 7.48798V1.56304C10.4583 1.12537 10.6223 0.790978 10.9212 0.621226C11.2191 0.451475 11.5959 0.479085 11.981 0.697921L17.1897 3.66039C17.5748 3.87923 17.7866 4.18703 17.7866 4.52551C17.7866 4.86399 17.5748 5.17179 17.1897 5.39063L11.981 8.3531C11.763 8.47683 11.5471 8.53921 11.3478 8.53921L11.3468 8.54023Z"
+                                            fill="rgba(29, 28, 52, 1)" />
+                                        <path
+                                            d="M18.6752 8.54023C18.5226 8.54023 18.3783 8.50342 18.2496 8.42979C17.9517 8.26004 17.7866 7.92565 17.7866 7.48798V1.56304C17.7866 1.12537 17.9506 0.790978 18.2496 0.621226C18.5475 0.451475 18.9243 0.479085 19.3094 0.697921L24.5181 3.66039C24.9032 3.87923 25.115 4.18703 25.115 4.52551C25.115 4.86399 24.9032 5.17179 24.5181 5.39063L19.3094 8.3531C19.0914 8.47683 18.8755 8.53921 18.6762 8.53921L18.6752 8.54023Z"
+                                            fill="rgba(29, 28, 52, 1)" />
+                                        <path
+                                            d="M25.4424 6.32571C25.3861 6.32571 25.333 6.3092 25.2856 6.27619C25.1758 6.20008 25.115 6.05015 25.115 5.8539V3.19731C25.115 3.00107 25.1754 2.85114 25.2856 2.77503C25.3953 2.69892 25.5341 2.71129 25.676 2.80942L27.5951 4.13771C27.737 4.23583 27.815 4.37384 27.815 4.52561C27.815 4.67737 27.737 4.81538 27.5951 4.91351L25.676 6.2418C25.5957 6.29728 25.5162 6.32525 25.4427 6.32525L25.4424 6.32571ZM25.4424 2.95568C25.419 2.95568 25.3984 2.96164 25.3808 2.97356C25.3334 3.00657 25.3058 3.08819 25.3058 3.19731V5.8539C25.3058 5.96349 25.333 6.0451 25.3808 6.07766C25.4286 6.11021 25.5009 6.09783 25.58 6.04327L27.4991 4.71497C27.5783 4.66041 27.6234 4.59117 27.6234 4.52561C27.6234 4.46004 27.5783 4.39081 27.4991 4.33624L25.58 3.00795C25.5299 2.97356 25.4825 2.95568 25.4424 2.95568Z"
+                                            fill="rgba(29, 28, 52, 1)" />
+                                    </svg>
+                                </span>
+                                <p>Show Processes between Flows</p>
                             </div>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="52" height="16" viewBox="0 0 52 16"
-                                fill="none">
-                                <path
-                                    d="M51.2071 8.70711C51.5976 8.31658 51.5976 7.68342 51.2071 7.29289L44.8431 0.928932C44.4526 0.538408 43.8195 0.538408 43.4289 0.928932C43.0384 1.31946 43.0384 1.95262 43.4289 2.34315L49.0858 8L43.4289 13.6569C43.0384 14.0474 43.0384 14.6805 43.4289 15.0711C43.8195 15.4616 44.4526 15.4616 44.8431 15.0711L51.2071 8.70711ZM0.5 9H50.5V7H0.5V9Z"
-                                    fill="black" />
-                            </svg>
                             <div class="component-eng-tab inactive toggle" id="add-output">
-                                <span class="icon-common icon-output"></span>
-                                <p>Add More <span class=emphasis>Output</span> with AI</p>
+                                <span class="icon-common-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="14" viewBox="0 0 24 14"
+                                        fill="none">
+                                        <path
+                                            d="M1.66972 13.3215C1.41972 13.3215 1.17972 13.2615 0.969716 13.1415C0.479716 12.8615 0.209717 12.3015 0.209717 11.5615V2.44151C0.209717 1.71151 0.479716 1.15151 0.969716 0.86151C1.45972 0.58151 2.07972 0.62151 2.71972 0.99151L10.6397 5.55151C11.2797 5.92151 11.6297 6.43151 11.6297 7.00151C11.6297 7.57151 11.2797 8.08151 10.6397 8.45151L2.71972 13.0115C2.35972 13.2215 1.99972 13.3215 1.66972 13.3215ZM1.66972 1.49151C1.55972 1.49151 1.45972 1.51151 1.37972 1.56151C1.14972 1.69151 1.01972 2.01151 1.01972 2.43151V11.5515C1.01972 11.9815 1.14972 12.2915 1.37972 12.4215C1.60972 12.5515 1.94972 12.5015 2.31972 12.2915L10.2397 7.73151C10.6097 7.52151 10.8197 7.25151 10.8197 6.99151C10.8197 6.73151 10.6097 6.46151 10.2397 6.25151L2.30972 1.70151C2.07972 1.57151 1.85972 1.50151 1.66972 1.50151V1.49151Z"
+                                            fill="rgba(29, 28, 52, 1)" />
+                                        <path
+                                            d="M13.0899 13.3215C12.8399 13.3215 12.5999 13.2615 12.3899 13.1415C11.8999 12.8615 11.6299 12.3015 11.6299 11.5615V2.44151C11.6199 1.71151 11.8899 1.15151 12.3799 0.86151C12.8699 0.58151 13.4899 0.62151 14.1299 0.99151L22.0499 5.55151C22.6899 5.92151 23.0399 6.43151 23.0399 7.00151C23.0399 7.57151 22.6899 8.08151 22.0499 8.45151L14.1299 13.0115C13.7699 13.2215 13.4099 13.3215 13.0799 13.3215H13.0899Z"
+                                            fill="rgba(29, 28, 52, 1)" />
+                                    </svg>
+                                </span>
+                                <p>Add Output for Nodes</p>
+                            </div>
+                            <div class="component-eng-tab inactive toggle" id="add-feedback">
+                                <span class="icon-common-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="21" height="18" viewBox="0 0 21 18"
+                                        fill="none">
+                                        <path
+                                            d="M6.26917 17.9988C5.94806 17.9988 5.6486 17.9223 5.38281 17.7694C4.75262 17.4086 4.40625 16.675 4.40625 15.706V2.29205C4.40625 1.32307 4.75262 0.589468 5.38281 0.228641C6.0118 -0.132187 6.8248 -0.0640839 7.66907 0.419808L19.3626 7.12738C20.208 7.61247 20.6735 8.27677 20.6735 8.99962C20.6735 9.72247 20.208 10.3868 19.3626 10.8719L7.66907 17.5794C7.182 17.859 6.70574 18 6.26917 18V17.9988ZM6.27038 0.597832C6.0539 0.597832 5.85546 0.646818 5.68228 0.745986C5.24691 0.995698 5.00638 1.5453 5.00638 2.29205V15.7072C5.00638 16.4539 5.24691 17.0035 5.68228 17.2533C6.11764 17.503 6.71657 17.4349 7.36721 17.0621L19.0607 10.3545C19.7113 9.98055 20.0709 9.50024 20.0709 9.00082C20.0709 8.50139 19.7125 8.01989 19.0607 7.64711L7.36721 0.939543C6.97394 0.713727 6.59991 0.600222 6.26917 0.600222L6.27038 0.597832Z"
+                                            fill="rgba(29, 28, 52, 1)" />
+                                        <path
+                                            d="M9.44279 12.3187C9.44279 12.4944 9.39949 12.6605 9.3129 12.8086C9.11326 13.1515 8.71999 13.3415 8.20525 13.3415H1.23702C0.722277 13.3415 0.329006 13.1527 0.129364 12.8086C-0.0702776 12.4657 -0.0378058 12.032 0.219564 11.5887L3.70368 5.59326C3.96105 5.14999 4.32305 4.90625 4.72113 4.90625C5.11921 4.90625 5.48121 5.14999 5.73858 5.59326L9.2227 11.5887C9.36822 11.8396 9.44158 12.0882 9.44158 12.3176L9.44279 12.3187Z"
+                                            fill="rgba(29, 28, 52, 1)" />
+                                    </svg>
+                                </span>
+                                <p>Create Regeneration / Feedback</p>
+                            </div>
+                            <div class="component-eng-tab inactive toggle" id="add-cooptimization">
+                                <span class="icon-common-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="20" viewBox="0 0 22 20"
+                                        fill="none">
+                                        <path
+                                            d="M14.3428 15.7668C14.1701 15.7668 14.0068 15.7176 13.8611 15.6191C13.524 15.392 13.3372 14.9448 13.3372 14.3593V6.43402C13.3372 5.84858 13.5228 5.40129 13.8611 5.17423C14.1983 4.94717 14.6248 4.9841 15.0607 5.27682L20.9561 9.23947C21.392 9.53219 21.6316 9.94391 21.6316 10.3967C21.6316 10.8494 21.392 11.2611 20.9561 11.5539L15.0607 15.5165C14.8139 15.682 14.5696 15.7655 14.344 15.7655L14.3428 15.7668Z"
+                                            fill="rgba(29, 28, 52, 1)" />
+                                        <path
+                                            d="M15.4321 10.3283H14.3747C13.7133 10.3283 12.6982 9.77141 12.0626 9.06212L7.81199 4.30991C7.29153 3.72804 6.42214 3.23548 5.91578 3.23548H4.85841C4.69628 3.23548 4.5647 3.08837 4.5647 2.90711C4.5647 2.72585 4.69628 2.57874 4.85841 2.57874H5.91578C6.57722 2.57874 7.59229 3.13565 8.22789 3.84494L12.4785 8.59715C12.999 9.17902 13.8684 9.67158 14.3747 9.67158H15.4321C15.5942 9.67158 15.7258 9.81869 15.7258 9.99995C15.7258 10.1812 15.5942 10.3283 15.4321 10.3283Z"
+                                            fill="rgba(29, 28, 52, 1)" />
+                                        <path
+                                            d="M15.4309 10.3284H14.3735C13.7638 10.3284 12.6183 10.0867 11.8194 9.78856L8.28428 8.47113C7.54765 8.19661 6.46326 7.96412 5.91578 7.96412H4.85841C4.69628 7.96412 4.5647 7.81701 4.5647 7.63575C4.5647 7.45448 4.69628 7.30737 4.85841 7.30737H5.91578C6.52553 7.30737 7.67101 7.54906 8.46991 7.84722L12.005 9.16465C12.7417 9.43917 13.8261 9.67165 14.3735 9.67165H15.4309C15.593 9.67165 15.7246 9.81877 15.7246 10C15.7246 10.1813 15.593 10.3284 15.4309 10.3284Z"
+                                            fill="rgba(29, 28, 52, 1)" />
+                                        <path
+                                            d="M5.91578 17.4212H4.85841C4.69628 17.4212 4.5647 17.2741 4.5647 17.0928C4.5647 16.9116 4.69628 16.7645 4.85841 16.7645H5.91578C6.42332 16.7645 7.29153 16.2719 7.81199 15.69L12.0626 10.9378C12.6982 10.2272 13.7133 9.67163 14.3747 9.67163H15.4321C15.5942 9.67163 15.7258 9.81874 15.7258 10C15.7258 10.1813 15.5942 10.3284 15.4321 10.3284H14.3747C13.8672 10.3284 12.999 10.8209 12.4785 11.4028L8.22789 16.155C7.59229 16.8656 6.57722 17.4212 5.91578 17.4212Z"
+                                            fill="rgba(29, 28, 52, 1)" />
+                                        <path
+                                            d="M5.91578 12.6927H4.85841C4.69628 12.6927 4.5647 12.5455 4.5647 12.3643C4.5647 12.183 4.69628 12.0359 4.85841 12.0359H5.91578C6.46326 12.0359 7.54765 11.8034 8.28428 11.5289L11.8194 10.2115C12.6183 9.91331 13.765 9.67163 14.3735 9.67163H15.4309C15.593 9.67163 15.7246 9.81874 15.7246 10C15.7246 10.1813 15.593 10.3284 15.4309 10.3284H14.3735C13.8261 10.3284 12.7417 10.5609 12.005 10.8354L8.46991 12.1528C7.67101 12.451 6.52435 12.6927 5.9146 12.6927H5.91578Z"
+                                            fill="rgba(29, 28, 52, 1)" />
+                                        <path fill-rule="evenodd" clip-rule="evenodd"
+                                            d="M4.67656 2.3663C5.07656 2.59724 5.07656 3.17459 4.67656 3.40553L1.88801 5.01551C1.48801 5.24645 0.988007 4.95777 0.988007 4.49589L0.988007 1.27594C0.988007 0.814062 1.48801 0.525389 1.88801 0.756329L4.67656 2.3663ZM4.42656 2.97252C4.49323 2.93403 4.49323 2.8378 4.42656 2.79931L1.63801 1.18934C1.57134 1.15085 1.48801 1.19896 1.48801 1.27594L1.48801 4.49589C1.48801 4.57287 1.57134 4.62098 1.63801 4.58249L4.42656 2.97252Z"
+                                            fill="rgba(29, 28, 52, 1)" />
+                                        <path fill-rule="evenodd" clip-rule="evenodd"
+                                            d="M4.67656 7.07492C5.07656 7.30586 5.07656 7.88321 4.67656 8.11415L1.88801 9.72412C1.48801 9.95506 0.988007 9.66639 0.988007 9.20451L0.988007 5.98456C0.988007 5.52268 1.48801 5.23401 1.88801 5.46495L4.67656 7.07492ZM4.42656 7.68114C4.49323 7.64265 4.49323 7.54642 4.42656 7.50793L1.63801 5.89796C1.57134 5.85947 1.48801 5.90758 1.48801 5.98456L1.48801 9.20451C1.48801 9.28149 1.57134 9.3296 1.63801 9.29111L4.42656 7.68114Z"
+                                            fill="rgba(29, 28, 52, 1)" />
+                                        <path fill-rule="evenodd" clip-rule="evenodd"
+                                            d="M4.67656 11.8347C5.07656 12.0656 5.07656 12.643 4.67656 12.8739L1.88801 14.4839C1.48801 14.7148 0.988007 14.4262 0.988007 13.9643L0.988007 10.7443C0.988007 10.2824 1.48801 9.99377 1.88801 10.2247L4.67656 11.8347ZM4.42656 12.4409C4.49323 12.4024 4.49323 12.3062 4.42656 12.2677L1.63801 10.6577C1.57134 10.6192 1.48801 10.6673 1.48801 10.7443L1.48801 13.9643C1.48801 14.0413 1.57134 14.0894 1.63801 14.0509L4.42656 12.4409Z"
+                                            fill="rgba(29, 28, 52, 1)" />
+                                        <path fill-rule="evenodd" clip-rule="evenodd"
+                                            d="M4.67656 16.5946C5.07656 16.8255 5.07656 17.4029 4.67656 17.6338L1.88801 19.2438C1.48801 19.4747 0.988007 19.186 0.988007 18.7242L0.988007 15.5042C0.988007 15.0423 1.48801 14.7537 1.88801 14.9846L4.67656 16.5946ZM4.42656 17.2008C4.49323 17.1623 4.49323 17.0661 4.42656 17.0276L1.63801 15.4176C1.57134 15.3791 1.48801 15.4272 1.48801 15.5042L1.48801 18.7242C1.48801 18.8011 1.57134 18.8493 1.63801 18.8108L4.42656 17.2008Z"
+                                            fill="rgba(29, 28, 52, 1)" />
+                                    </svg>
+                                </span>
+                                <p>Co-optimize Nodes</p>
+                            </div>
+                            <div class="component-eng-tab inactive toggle" id="update-image">
+                                <span class="icon-common-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18"
+                                        fill="none">
+                                        <path
+                                            d="M16 2V16H2V2H16ZM16 0H2C0.9 0 0 0.9 0 2V16C0 17.1 0.9 18 2 18H16C17.1 18 18 17.1 18 16V2C18 0.9 17.1 0 16 0ZM11.14 8.86L8.14 12.73L6 10.14L3 14H15L11.14 8.86Z"
+                                            fill="rgba(29, 28, 52, 1)" />
+                                    </svg>
+                                </span>
+                                <p>Update Image</p>
+                            </div>
+                            <div class="component-eng-tab inactive toggle" id="more-io">
+                                <span class="icon-common-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="19" height="20" viewBox="0 0 19 20"
+                                        fill="none">
+                                        <path fill-rule="evenodd" clip-rule="evenodd"
+                                            d="M4.51812 3.40553C4.65734 3.32515 4.74811 3.2028 4.79042 3.0677C4.82781 3.08998 4.87152 3.10278 4.91821 3.10278H6.89517C7.30828 3.10278 7.69471 3.30689 7.9276 3.6481L9.66397 6.19208L8.55272 9.23653L8.28028 8.48213C8.02985 7.78866 7.37163 7.32654 6.63432 7.32654H4.91821C4.86523 7.32654 4.81611 7.34302 4.77567 7.37113C4.72874 7.25271 4.64289 7.14696 4.51812 7.07492L1.72956 5.46495C1.32956 5.23401 0.82956 5.52268 0.82956 5.98456L0.82956 9.20451C0.82956 9.66639 1.32956 9.95506 1.72956 9.72412L4.51812 8.11415C4.65299 8.03628 4.74239 7.91903 4.78631 7.78895C4.82459 7.81277 4.8698 7.82654 4.91821 7.82654H6.63432C7.16097 7.82654 7.63113 8.15663 7.81001 8.65196L8.28549 9.96862L7.81238 11.2648C7.63234 11.758 7.16324 12.0862 6.63816 12.0862H4.91821C4.86522 12.0862 4.81608 12.1027 4.77564 12.1308C4.7287 12.0124 4.64286 11.9067 4.51812 11.8347L1.72956 10.2247C1.32956 9.99377 0.82956 10.2824 0.82956 10.7443L0.82956 13.9643C0.82956 14.4262 1.32956 14.7148 1.72956 14.4839L4.51812 12.8739C4.65303 12.796 4.74243 12.6787 4.78634 12.5486C4.82462 12.5724 4.86981 12.5862 4.91821 12.5862H6.63816C7.37327 12.5862 8.03001 12.1268 8.28207 11.4362L8.5502 10.7016L9.69626 13.8752L7.93116 16.3816C7.69703 16.7141 7.3158 16.9119 6.90916 16.9119H4.91821C4.87306 16.9119 4.8307 16.9238 4.79414 16.9448C4.75359 16.8048 4.66158 16.6774 4.51812 16.5946L1.72956 14.9846C1.32956 14.7537 0.82956 15.0423 0.82956 15.5042L0.82956 18.7242C0.82956 19.186 1.32956 19.4747 1.72956 19.2438L4.51812 17.6338C4.63486 17.5664 4.71753 17.4695 4.76613 17.3603C4.80826 17.3926 4.86099 17.4119 4.91821 17.4119H6.90916C7.47846 17.4119 8.01218 17.1349 8.33997 16.6695L9.90355 14.4492L10.5561 16.2563C10.8066 16.9497 11.4648 17.4119 12.2021 17.4119H13.9182C13.996 17.4119 14.0654 17.3764 14.1113 17.3207V18.7242C14.1113 19.186 14.6113 19.4747 15.0113 19.2438L17.7999 17.6338C18.1999 17.4029 18.1999 16.8255 17.7999 16.5946L15.0113 14.9846C14.6113 14.7537 14.1113 15.0423 14.1113 15.5042V17.0031C14.0654 16.9474 13.996 16.9119 13.9182 16.9119H12.2021C11.6755 16.9119 11.2053 16.5818 11.0264 16.0864L10.255 13.9502L10.9053 13.0268C11.1394 12.6943 11.5206 12.4965 11.9273 12.4965H13.9182C13.996 12.4965 14.0654 12.461 14.1113 12.4053V13.9643C14.1113 14.4262 14.6113 14.7148 15.0113 14.4839L17.7999 12.8739C18.1999 12.643 18.1999 12.0656 17.7999 11.8347L15.0113 10.2247C14.6113 9.99377 14.1113 10.2824 14.1113 10.7443V12.0877C14.0654 12.032 13.996 11.9965 13.9182 11.9965H11.9273C11.358 11.9965 10.8243 12.2734 10.4965 12.7389L10.0477 13.3762L8.81743 9.96954L10.0108 6.70018L10.4959 7.41087C10.8219 7.88857 11.3629 8.17432 11.9413 8.17432H13.9182C13.996 8.17432 14.0654 8.13881 14.1113 8.08313V9.49589C14.1113 9.95777 14.6113 10.2464 15.0113 10.0155L17.7999 8.40553C18.1999 8.17459 18.1999 7.59724 17.7999 7.3663L15.0113 5.75633C14.6113 5.52539 14.1113 5.81406 14.1113 6.27594V7.7655C14.0654 7.70982 13.996 7.67432 13.9182 7.67432H11.9413C11.5281 7.67432 11.1417 7.47021 10.9088 7.129L10.2217 6.1223L11.024 3.92418C11.2041 3.43093 11.6732 3.10278 12.1983 3.10278H13.9182C13.996 3.10278 14.0654 3.06728 14.1113 3.0116V4.49589C14.1113 4.95777 14.6113 5.24645 15.0113 5.01551L17.7999 3.40553C18.1999 3.17459 18.1999 2.59724 17.7999 2.3663L15.0113 0.756329C14.6113 0.525389 14.1113 0.814062 14.1113 1.27594V2.69397C14.0654 2.63829 13.996 2.60278 13.9182 2.60278H12.1983C11.4632 2.60278 10.8064 3.06219 10.5544 3.75274L9.87491 5.61419L8.34057 3.36623C8.01453 2.88854 7.47352 2.60278 6.89517 2.60278H4.91821C4.86313 2.60278 4.8122 2.6206 4.77088 2.65079C4.72301 2.53712 4.63876 2.43596 4.51812 2.3663L1.72956 0.756329C1.32956 0.525389 0.82956 0.814062 0.82956 1.27594L0.82956 4.49589C0.82956 4.95777 1.32956 5.24645 1.72956 5.01551L4.51812 3.40553Z"
+                                            fill="rgba(29, 28, 52, 1)" />
+                                    </svg>
+                                </span>
+                                <p>Run Input-Output Flow Again</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="option-instruct hidden">
+                        <div class="wrapper">
+                            <div class="instruct-wrapper">
+                                <div class="normal hidden instruct" id="add-input-instruction">AI will add potential
+                                    resources, components, and designs as input nodes <span style="font-weight: 700;">to
+                                        the left
+                                    </span> of your selected nodes. Please <span style="font-weight: 700;">click in the
+                                        work zone</span> below to select the
+                                    nodes that you would like to explore further. After the selection finishes, hit
+                                    <span style="font-weight: 700;">Generate</span> button below.
+                                </div>
+                                <div class="normal hidden instruct" id="add-output-instruction">AI will imagine
+                                    potential outcomes <span style="font-weight: 700;">to the right</span> of your
+                                    selected nodes to enhance the overall sustainability of the
+                                    project. Please <span style="font-weight: 700;">click in the work
+                                        zone</span> below to select the nodes that you would like to
+                                    explore further. After the selection finishes, hit <span
+                                        style="font-weight: 700;">Generate</span> button below.
+                                </div>
+                                <div class="normal hidden instruct" id="add-cooptimization-instruction">AI will
+                                    co-optimize the
+                                    performance
+                                    of multiple nodes to find, insert and connect opportunities in system
+                                    sustainability. Please <span style="font-weight: 700;">click in the work
+                                        zone</span> below to select the nodes that you would like to
+                                    explore further. After the selection finishes, hit <span
+                                        style="font-weight: 700;">Generate</span> button below.
+                                </div>
+                                <div class="normal hidden instruct" id="add-process-instruction">AI will insert a series
+                                    of steps,
+                                    processes, resources, and technologies
+                                    to transform inputs into outputs <span style="font-weight: 700;">between</span> your
+                                    selected flows. Please <span style="font-weight: 700;">click in the
+                                        work
+                                        zone</span> below to select the flows that you would like to
+                                    explore further. After the selection finishes, hit <span
+                                        style="font-weight: 700;">Generate</span> button below.
+                                </div>
+                                <div class="normal hidden instruct" id="add-feedback-instruction">AI will integrate
+                                    feedback mechanisms and regeneration processes, considering what the selected nodes
+                                    can <span style="font-weight: 700;">further generate in the environment</span>.
+                                    Please
+                                    <span style="font-weight: 700;">click in the work
+                                        zone</span> below to select the nodes that you would like to
+                                    explore further. After the selection finishes, hit <span
+                                        style="font-weight: 700;">Generate</span> button below.
+                                </div>
+                                <div class="normal hidden instruct" id="more-io-instruction">AI will help look for more
+                                    input-output flow ideas. AI will <span style="font-weight: 700;">read the text in
+                                        the info box</span> and generate new input-ouput ideas based on the description.
+                                    You can <span style="font-weight: 700;">modify</span> as needed. When you are good
+                                    to go, hit <span style="font-weight: 700;">Generate</span> button below.
+                                </div>
+                                <div class="normal hidden instruct" id="update-image-instruction">AI will <span
+                                        style="font-weight: 700;">read the text in the info box</span> and generate a
+                                    new image based on the description. You can <span
+                                        style="font-weight: 700;">modify</span> as needed. When you are good to go, hit
+                                    <span style="font-weight: 700;">Generate</span> button below.
+                                </div>
+                            </div>
+                            <div class="btn-wrapper">
+                                <div class="component-wrapper" id="quickgen">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="19" height="25" viewBox="0 0 19 25"
+                                        fill="none">
+                                        <path
+                                            d="M9.5 19.7L12.7538 18.188L14.25 14.9L15.7462 18.188L19 19.7L15.7462 21.212L14.25 24.5L12.7538 21.212L9.5 19.7Z"
+                                            fill="white" />
+                                        <path
+                                            d="M9.3575 9.956L7.125 14.9L4.8925 9.956L0 7.7L4.8925 5.444L7.125 0.5L9.3575 5.444L14.25 7.7L9.3575 9.956Z"
+                                            fill="white" />
+                                    </svg>
+                                    <div class="component-text">Generate</div>
+                                </div>
+                                <div class="component-wrapper" id="add-io">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="19" height="25" viewBox="0 0 19 25"
+                                        fill="none">
+                                        <path
+                                            d="M9.5 19.7L12.7538 18.188L14.25 14.9L15.7462 18.188L19 19.7L15.7462 21.212L14.25 24.5L12.7538 21.212L9.5 19.7Z"
+                                            fill="white" />
+                                        <path
+                                            d="M9.3575 9.956L7.125 14.9L4.8925 9.956L0 7.7L4.8925 5.444L7.125 0.5L9.3575 5.444L14.25 7.7L9.3575 9.956Z"
+                                            fill="white" />
+                                    </svg>
+                                    <div class="component-text">Generate</div>
+                                </div>
+                                <div class="component-wrapper" id="regen-image">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="19" height="25" viewBox="0 0 19 25"
+                                        fill="none">
+                                        <path
+                                            d="M9.5 19.7L12.7538 18.188L14.25 14.9L15.7462 18.188L19 19.7L15.7462 21.212L14.25 24.5L12.7538 21.212L9.5 19.7Z"
+                                            fill="white" />
+                                        <path
+                                            d="M9.3575 9.956L7.125 14.9L4.8925 9.956L0 7.7L4.8925 5.444L7.125 0.5L9.3575 5.444L14.25 7.7L9.3575 9.956Z"
+                                            fill="white" />
+                                    </svg>
+                                    <div class="component-text">Generate</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <!-- user-wrapper -->
+        <div id="user-wrapper">
+            <div id="user-option-window" class="option-window">
+                <!-- svg is here -->
+                <svg xmlns="http://www.w3.org/2000/svg" id="user-pointer" width="20" height="14" viewBox="0 0 20 14"
+                    fill="none">
+                    <path
+                        d="M8.3335 0.894201C9.12463 -0.298065 10.8754 -0.298068 11.6665 0.894198L20 13.4532H0L8.3335 0.894201Z"
+                        fill="rgba(232, 237, 250, 1)" />
+                </svg>
+                <div class="wrapper">
+                    <div class="option-frame">
+                        <div class="normal">Make the edit and work with AI.</div>
+                        <div class="option-wrapper">
+                            <div class="component-eng-tab inactive toggle" id="drawmode">
+                                <span class="icon-common-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="19" height="20" viewBox="0 0 19 20"
+                                        fill="none">
+                                        <path
+                                            d="M16.5352 8.31603C16.7314 8.51737 17.055 8.51737 17.2513 8.31603L17.9838 7.56448C18.7863 6.74115 18.7863 5.40059 17.9838 4.57726L16.5331 3.08892C15.7306 2.26559 14.4239 2.26559 13.6214 3.08892L12.871 3.85881C12.6817 4.05299 12.6817 4.36264 12.871 4.55681L16.5352 8.31603ZM12.188 9.83299C12.3785 10.0271 12.3789 10.3379 12.189 10.5325L5.27014 17.6209C5.17604 17.7173 5.04703 17.7717 4.91233 17.7717H4.17229C3.89615 17.7717 3.67229 17.5478 3.67229 17.2717V16.4867C3.67229 16.3563 3.72323 16.2311 3.81424 16.1377L10.713 9.05997C10.9088 8.85913 11.2314 8.85856 11.4279 9.0587L12.188 9.83299ZM11.4281 6.06454C11.2318 5.86273 10.9077 5.86263 10.7114 6.06431L1.75632 15.2617C1.66542 15.355 1.61456 15.4802 1.61456 15.6105V19.3828C1.61456 19.659 1.83842 19.8828 2.11456 19.8828H5.76608C5.90091 19.8828 6.03002 19.8284 6.12413 19.7318L15.0924 10.5308C15.2816 10.3368 15.2817 10.0275 15.0929 9.83327L11.4281 6.06454ZM17.0475 16.1884C17.0475 18.5 14.4342 19.8828 11.9032 19.8828C11.3373 19.8828 10.8743 19.4078 10.8743 18.8273C10.8743 18.2467 11.3373 17.7717 11.9032 17.7717C13.4877 17.7717 14.9898 17.0011 14.9898 16.1884C14.9898 15.8445 14.7526 15.5362 14.3501 15.2633C14.0629 15.0687 13.9803 14.6591 14.2225 14.4106L14.9701 13.6436C15.1323 13.4772 15.3895 13.4423 15.5796 13.576C16.4869 14.2146 17.0475 15.045 17.0475 16.1884ZM2.4858 11.5262C2.32472 11.6914 2.06953 11.7274 1.88035 11.5953C1.07655 11.0338 0.585693 10.3168 0.585693 9.32726C0.585693 7.42726 2.53025 6.55115 4.24845 5.78059C5.30819 5.29503 6.75889 4.64059 6.75889 4.04948C6.75889 3.6167 5.95637 2.99392 4.70116 2.99392C3.40478 2.99392 2.8492 3.63781 2.81833 3.66948C2.45823 4.10226 1.81004 4.15504 1.37792 3.79615C0.956085 3.43726 0.873776 2.79337 1.22359 2.33948C1.33677 2.1917 2.3965 0.882812 4.70116 0.882812C7.00581 0.882812 8.81662 2.27615 8.81662 4.04948C8.81662 6.02337 6.83091 6.92059 5.07155 7.71226C4.10441 8.14504 2.64342 8.79948 2.64342 9.32726C2.64342 9.52751 2.80911 9.71985 3.08861 9.90187C3.38453 10.0946 3.47687 10.5094 3.23038 10.7623L2.4858 11.5262Z"
+                                            fill="rgba(29, 28, 52, 1)" />
+                                    </svg>
+                                </span>
+                                <p>Sketch / Note-taking</p>
+                            </div>
+                            <div class="component-eng-tab inactive toggle" id="nodemode">
+                                <span class="icon-common-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="23" height="21" viewBox="0 0 23 21"
+                                        fill="none">
+                                        <path fill-rule="evenodd" clip-rule="evenodd"
+                                            d="M16.1914 4.457C17.0247 4.93813 17.0247 6.14094 16.1914 6.62207L8.89455 10.8349C8.06121 11.316 7.01955 10.7146 7.01955 9.75238L7.01955 1.32669C7.01955 0.36444 8.06122 -0.236962 8.89455 0.244162L16.1914 4.457ZM10.3525 13.6187C11.1859 14.0999 11.1859 15.3027 10.3525 15.7838L3.05568 19.9967C2.22235 20.4778 1.18068 19.8764 1.18068 18.9141L1.18068 10.4884C1.18068 9.52618 2.22235 8.92478 3.05568 9.4059L10.3525 13.6187ZM22.0305 13.6187C22.8639 14.0999 22.8638 15.3027 22.0305 15.7838L14.7337 19.9967C13.9003 20.4778 12.8587 19.8764 12.8587 18.9141V10.4884C12.8587 9.52618 13.9003 8.92478 14.7337 9.4059L22.0305 13.6187ZM3.80304 2.88184C3.80304 2.60569 3.57918 2.38184 3.30304 2.38184C3.02689 2.38184 2.80304 2.60569 2.80304 2.88184V4.22524H1.30396C1.02781 4.22524 0.803955 4.4491 0.803955 4.72524C0.803955 5.00138 1.02781 5.22524 1.30396 5.22524H2.80304V6.6584C2.80304 6.93454 3.02689 7.1584 3.30304 7.1584C3.57918 7.1584 3.80304 6.93454 3.80304 6.6584V5.22524H5.33736C5.6135 5.22524 5.83736 5.00138 5.83736 4.72524C5.83736 4.4491 5.6135 4.22524 5.33736 4.22524H3.80304V2.88184Z"
+                                            fill="rgba(29, 28, 52, 1)" />
+                                    </svg>
+                                </span>
+                                <p>Custom Node</p>
+                            </div>
+                            <div class="component-eng-tab inactive toggle" id="flowmode">
+                                <span class="icon-common-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="19" viewBox="0 0 24 19"
+                                        fill="none">
+                                        <path fill-rule="evenodd" clip-rule="evenodd"
+                                            d="M16.6897 9.06693L16.6929 9.06693H16.6863L16.6897 9.06693ZM1.65988 18.5504C1.49599 18.5499 1.3387 18.5103 1.20095 18.4316C0.877424 18.2467 0.699152 17.877 0.699152 17.3884V11.3668C0.692549 10.8848 0.870821 10.515 1.19435 10.3235C1.51788 10.1387 1.92725 10.1651 2.34982 10.4094L7.57912 13.4202C7.80215 13.5491 7.97183 13.7038 8.08236 13.8765H9.55042C9.76045 13.8765 9.94809 13.7452 10.0201 13.5479L13.0019 5.37874C13.218 4.78685 13.7809 4.39307 14.411 4.39307H15.7289V1.88324C15.7223 1.40124 15.9006 1.03149 16.2241 0.840015C16.5477 0.65514 16.957 0.681551 17.3796 0.925849L22.6089 3.93666C23.0315 4.18096 23.2626 4.5177 23.2626 4.89405C23.2626 5.2704 23.0315 5.60714 22.6089 5.85144L17.3796 8.86225C17.1431 9.0002 16.9066 9.06626 16.6897 9.06693C16.5258 9.06641 16.3685 9.02679 16.2307 8.94808C15.9072 8.76321 15.7289 8.39346 15.7289 7.90486V5.39307H14.411C14.201 5.39307 14.0133 5.52433 13.9413 5.72163L10.9595 13.8908C10.7434 14.4827 10.1805 14.8765 9.55042 14.8765H8.08377C7.97328 15.05 7.8031 15.2055 7.57912 15.335L2.34982 18.3458C2.11333 18.4837 1.87685 18.5498 1.65988 18.5504ZM1.65988 18.5504L1.66314 18.5505H1.65654L1.65988 18.5504ZM6.82623 1.54175C6.82623 1.26561 6.60237 1.04175 6.32623 1.04175C6.05009 1.04175 5.82623 1.26561 5.82623 1.54175V2.88515H4.32715C4.05101 2.88515 3.82715 3.10901 3.82715 3.38515C3.82715 3.6613 4.05101 3.88515 4.32715 3.88515H5.82623V5.31831C5.82623 5.59445 6.05009 5.81831 6.32623 5.81831C6.60237 5.81831 6.82623 5.59445 6.82623 5.31831V3.88515H8.36055C8.63669 3.88515 8.86055 3.6613 8.86055 3.38515C8.86055 3.10901 8.63669 2.88515 8.36055 2.88515H6.82623V1.54175Z"
+                                            fill="rgba(29, 28, 52, 1)" />
+                                    </svg>
+                                </span>
+                                <p>Custom Flow</p>
+                            </div>
+                            <div class="component-eng-tab inactive toggle" id="editinfo">
+                                <span class="icon-common-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="16" viewBox="0 0 22 16"
+                                        fill="none">
+                                        <path
+                                            d="M19.9456 6.74512H2.0547C1.4397 6.74512 0.936523 7.30981 0.936523 8C0.936523 8.69018 1.4397 9.25488 2.0547 9.25488H19.9456C20.5606 9.25488 21.0637 8.69018 21.0637 8C21.0637 7.30981 20.5606 6.74512 19.9456 6.74512ZM2.0547 15.5293H13.2365C13.8515 15.5293 14.3547 14.9646 14.3547 14.2744C14.3547 13.5842 13.8515 13.0195 13.2365 13.0195H2.0547C1.4397 13.0195 0.936523 13.5842 0.936523 14.2744C0.936523 14.9646 1.4397 15.5293 2.0547 15.5293ZM19.9456 0.470703H2.0547C1.4397 0.470703 0.936523 1.0354 0.936523 1.72559V1.73813C0.936523 2.42832 1.4397 2.99302 2.0547 2.99302H19.9456C20.5606 2.99302 21.0637 2.42832 21.0637 1.73813V1.72559C21.0637 1.0354 20.5606 0.470703 19.9456 0.470703Z"
+                                            fill="rgba(29, 28, 52, 1)" />
+                                    </svg>
+                                </span>
+                                <p>Edit Info and Title</p>
                             </div>
 
                         </div>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="42" height="47" viewBox="0 0 42 47" fill="none">
-                            <path
-                                d="M8.70711 0.292893C8.31658 -0.097631 7.68342 -0.0976309 7.29289 0.292893L0.928931 6.65685C0.538407 7.04738 0.538407 7.68054 0.928931 8.07107C1.31946 8.46159 1.95262 8.46159 2.34314 8.07107L8 2.41421L13.6569 8.07107C14.0474 8.46159 14.6805 8.46159 15.0711 8.07107C15.4616 7.68054 15.4616 7.04738 15.0711 6.65685L8.70711 0.292893ZM9 46L9 1L7 1L7 46L9 46Z"
-                                fill="black" />
-                            <path
-                                d="M33.2929 46.7071C33.6834 47.0976 34.3166 47.0976 34.7071 46.7071L41.0711 40.3431C41.4616 39.9526 41.4616 39.3195 41.0711 38.9289C40.6805 38.5384 40.0474 38.5384 39.6569 38.9289L34 44.5858L28.3431 38.9289C27.9526 38.5384 27.3195 38.5384 26.9289 38.9289C26.5384 39.3195 26.5384 39.9526 26.9289 40.3431L33.2929 46.7071ZM33 1L33 46L35 46L35 1L33 1Z"
-                                fill="black" />
-                        </svg>
-                        <div class="component-eng-tab inactive toggle" id="add-feedback">
-                            <span class="icon-common icon-feedback"></span>
-                            <p>Add <span class=emphasis>Regeneration / Feedback</span> with AI</p>
+                    </div>
+                    <div class="option-instruct hidden">
+                        <div class="wrapper">
+                            <div class="instruct-wrapper">
+                                <div class="normal hidden instruct" id="drawmode-instruction">
+                                    <span style="font-weight: 700;">Left Click</span> to draw;
+                                    <span style="font-weight: 700;">Middle Button</span> to erase; <br>
+                                    <span style="font-weight: 700;">+/=</span> to increase brush size;
+                                    <span style="font-weight: 700;">-/_</span> to decrease brush size.
+                                </div>
+                                <div class="normal hidden instruct" id="nodemode-instruction">
+                                    <span style="font-weight: 700;">Click in the work zone </span>below to add
+                                    nodes; <br>
+                                    <span style="font-weight: 700;">Right-click</span> a node and select
+                                    "Delete Node" from the dropdown menu to delete;
+                                    <span style="font-weight: 700;">Right-click</span> a node and select
+                                    "Reclassify System" from the dropdown menu to reclassify;
+                                </div>
+                                <div class="normal hidden instruct" id="flowmode-instruction">
+                                    <span style="font-weight: 700;">Click in the work zone below</span> to add a flow.
+                                    Please click dots on two ends of a flow. The right end indicates this node will be
+                                    serving as "input", the left end indicates this node will be serving as "output".
+                                    <span style="font-weight: 700;">Hold Alt+Click</span> when adding
+                                    Regeneration/Feedback flow.<br>
+                                    <span style="font-weight: 700;">Right-click</span> a node and select "Delete Flow"
+                                    from the dropdown menu to delete flow.
+                                </div>
+                                <div class="normal hidden instruct" id="editinfo-instruction">
+                                    Modify project info below or title at the page top.
+                                    <span style="font-weight: 700;">Click outside</span> the edit box to confirm.
+                                </div>
+                            </div>
                         </div>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="228" height="169" viewBox="0 0 228 169"
-                            fill="none" style="position:absolute; left:7.25rem; bottom:1.3125rem;">
-                            <path
-                                d="M8.2071 0.292884C7.81657 -0.0976407 7.18341 -0.0976407 6.79288 0.292884L0.428922 6.65684C0.0383976 7.04737 0.0383976 7.68053 0.428922 8.07106C0.819446 8.46158 1.45261 8.46158 1.84314 8.07106L7.49999 2.4142L13.1568 8.07106C13.5474 8.46158 14.1805 8.46158 14.5711 8.07106C14.9616 7.68053 14.9616 7.04737 14.5711 6.65684L8.2071 0.292884ZM227.5 167L15.5 167L15.5 169L227.5 169L227.5 167ZM8.49998 160L8.49999 0.99999L6.49999 0.99999L6.49998 160L8.49998 160ZM15.5 167C11.634 167 8.49998 163.866 8.49998 160L6.49998 160C6.49998 164.971 10.5294 169 15.5 169L15.5 167Z"
-                                fill="black" />
-                        </svg>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="228" height="169" viewBox="0 0 223 175"
-                            fill="none" style="position:absolute; right: 8.6875rem; bottom:1.3125rem;">
-                            <path
-                                d="M0.792893 166.293C0.402369 166.683 0.402369 167.317 0.792893 167.707L7.15685 174.071C7.54738 174.462 8.18054 174.462 8.57107 174.071C8.96159 173.681 8.96159 173.047 8.57107 172.657L2.91421 167L8.57107 161.343C8.96159 160.953 8.96159 160.319 8.57107 159.929C8.18054 159.538 7.54738 159.538 7.15685 159.929L0.792893 166.293ZM220.5 0V159H222.5V0H220.5ZM213.5 166H1.5V168H213.5V166ZM220.5 159C220.5 162.866 217.366 166 213.5 166V168C218.471 168 222.5 163.971 222.5 159H220.5Z"
-                                fill="black" />
-                        </svg>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-    <!-- function bar  - temporarily archived at core -->
-    <div class="func-wrapper-edit" id="func-wrapper-edit">
-        <div id="enable-edit" class="component-eng-tab active toggle">
-            <div class="wrapper-1">
-                <p>Edit Mode</p>
-            </div>
-        </div>
-        <!-- <div id="disable-edit" class="hidden">
-            <div class="wrapper-1">
-                <p>Disable Edit</p>
-            </div>
-        </div> -->
-        <!-- <div id="quicksel-folded">
-            <div class="wrapper-1">
-                <p>Quick Select</p>
-            </div>
-        </div>
-        <div id="quicksel-unfolded" class="hidden">
-            <div class="wrapper">
-                <div class="sub-wrapper-1">
-                    <p style="font-weight: 700;" id="quicksel-unfolded-button">Quick Select</p>
-                    <button onclick="sendDataToCustom()" class="component-bar-2" id="savetocustom">
-                        <span class="icon-common icon-add"></span>
-                        <p><span class="emphasis">Save</span> to Custom</p>
-                    </button>
-                </div>
-            </div>
-        </div> -->
     </div>
 </div>
 
@@ -250,21 +466,39 @@
                 </div>
                 <div class="prompt" id="prompt{{promptIds[i]}}">
                     <div class="prompt-flow hidden" id="promptFlow{{promptIds[i]}}">{{promptFlows[i]}}</div>
-                    <div class="prompt-feedbackflow hidden" id="promptFeedbackFlow{{promptIds[i]}}">{{promptFeedbackFlows[i]}}</div>
+                    <div class="prompt-feedbackflow hidden" id="promptFeedbackFlow{{promptIds[i]}}">
+                        {{promptFeedbackFlows[i]}}</div>
                     <div class="prompt-node hidden" id="promptNode{{promptIds[i]}}">{{promptNodes[i]}}</div>
                     <div class="prompt-funcbar hidden" id="promptFuncBar{{promptIds[i]}}">
                         <div class="wrapper">
-                            <!-- <button id="selmode" class="toggle inactive icon-common icon-selM"></button> -->
-                            <!-- <span class="normal"> | </span> -->
-                            <button id="nodemode" class="toggle active icon-common icon-nodeM"></button>
-                            <span class="normal"> | </span>
-                            <button id="flowmode" class="toggle inactive icon-common icon-flowM"></button>
-                            <span class="normal"> | </span>
-                            <button id="drawmode" class="toggle inactive  icon-common icon-drawM"></button>
-                            <!-- <span class="normal" style="visibility: hidden;"> | </span>
-                            <div class="card-14 send-to-custom send-prompt" id="send-to-custom{{promptIds[i]}}"
-                                style="width: 12rem; white-space: normal; text-align: left;">Send All Nodes and Flows In
-                                This Prompt To Custom</div> -->
+                            <button id="drawmode" class="toggle inactive  icon-common-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="19" height="20" viewBox="0 0 19 20"
+                                    fill="none">
+                                    <path
+                                        d="M16.5352 8.31603C16.7314 8.51737 17.055 8.51737 17.2513 8.31603L17.9838 7.56448C18.7863 6.74115 18.7863 5.40059 17.9838 4.57726L16.5331 3.08892C15.7306 2.26559 14.4239 2.26559 13.6214 3.08892L12.871 3.85881C12.6817 4.05299 12.6817 4.36264 12.871 4.55681L16.5352 8.31603ZM12.188 9.83299C12.3785 10.0271 12.3789 10.3379 12.189 10.5325L5.27014 17.6209C5.17604 17.7173 5.04703 17.7717 4.91233 17.7717H4.17229C3.89615 17.7717 3.67229 17.5478 3.67229 17.2717V16.4867C3.67229 16.3563 3.72323 16.2311 3.81424 16.1377L10.713 9.05997C10.9088 8.85913 11.2314 8.85856 11.4279 9.0587L12.188 9.83299ZM11.4281 6.06454C11.2318 5.86273 10.9077 5.86263 10.7114 6.06431L1.75632 15.2617C1.66542 15.355 1.61456 15.4802 1.61456 15.6105V19.3828C1.61456 19.659 1.83842 19.8828 2.11456 19.8828H5.76608C5.90091 19.8828 6.03002 19.8284 6.12413 19.7318L15.0924 10.5308C15.2816 10.3368 15.2817 10.0275 15.0929 9.83327L11.4281 6.06454ZM17.0475 16.1884C17.0475 18.5 14.4342 19.8828 11.9032 19.8828C11.3373 19.8828 10.8743 19.4078 10.8743 18.8273C10.8743 18.2467 11.3373 17.7717 11.9032 17.7717C13.4877 17.7717 14.9898 17.0011 14.9898 16.1884C14.9898 15.8445 14.7526 15.5362 14.3501 15.2633C14.0629 15.0687 13.9803 14.6591 14.2225 14.4106L14.9701 13.6436C15.1323 13.4772 15.3895 13.4423 15.5796 13.576C16.4869 14.2146 17.0475 15.045 17.0475 16.1884ZM2.4858 11.5262C2.32472 11.6914 2.06953 11.7274 1.88035 11.5953C1.07655 11.0338 0.585693 10.3168 0.585693 9.32726C0.585693 7.42726 2.53025 6.55115 4.24845 5.78059C5.30819 5.29503 6.75889 4.64059 6.75889 4.04948C6.75889 3.6167 5.95637 2.99392 4.70116 2.99392C3.40478 2.99392 2.8492 3.63781 2.81833 3.66948C2.45823 4.10226 1.81004 4.15504 1.37792 3.79615C0.956085 3.43726 0.873776 2.79337 1.22359 2.33948C1.33677 2.1917 2.3965 0.882812 4.70116 0.882812C7.00581 0.882812 8.81662 2.27615 8.81662 4.04948C8.81662 6.02337 6.83091 6.92059 5.07155 7.71226C4.10441 8.14504 2.64342 8.79948 2.64342 9.32726C2.64342 9.52751 2.80911 9.71985 3.08861 9.90187C3.38453 10.0946 3.47687 10.5094 3.23038 10.7623L2.4858 11.5262Z"
+                                        fill="rgba(29, 28, 52, 1)" />
+                                </svg>
+                            </button>
+                            <span class="normal"> </span>
+                            <button id="nodemode" class="toggle inactive icon-common-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="23" height="21" viewBox="0 0 23 21"
+                                    fill="none">
+                                    <path fill-rule="evenodd" clip-rule="evenodd"
+                                        d="M16.1914 4.457C17.0247 4.93813 17.0247 6.14094 16.1914 6.62207L8.89455 10.8349C8.06121 11.316 7.01955 10.7146 7.01955 9.75238L7.01955 1.32669C7.01955 0.36444 8.06122 -0.236962 8.89455 0.244162L16.1914 4.457ZM10.3525 13.6187C11.1859 14.0999 11.1859 15.3027 10.3525 15.7838L3.05568 19.9967C2.22235 20.4778 1.18068 19.8764 1.18068 18.9141L1.18068 10.4884C1.18068 9.52618 2.22235 8.92478 3.05568 9.4059L10.3525 13.6187ZM22.0305 13.6187C22.8639 14.0999 22.8638 15.3027 22.0305 15.7838L14.7337 19.9967C13.9003 20.4778 12.8587 19.8764 12.8587 18.9141V10.4884C12.8587 9.52618 13.9003 8.92478 14.7337 9.4059L22.0305 13.6187ZM3.80304 2.88184C3.80304 2.60569 3.57918 2.38184 3.30304 2.38184C3.02689 2.38184 2.80304 2.60569 2.80304 2.88184V4.22524H1.30396C1.02781 4.22524 0.803955 4.4491 0.803955 4.72524C0.803955 5.00138 1.02781 5.22524 1.30396 5.22524H2.80304V6.6584C2.80304 6.93454 3.02689 7.1584 3.30304 7.1584C3.57918 7.1584 3.80304 6.93454 3.80304 6.6584V5.22524H5.33736C5.6135 5.22524 5.83736 5.00138 5.83736 4.72524C5.83736 4.4491 5.6135 4.22524 5.33736 4.22524H3.80304V2.88184Z"
+                                        fill="rgba(29, 28, 52, 1)" />
+                                </svg>
+                            </button>
+                            <span class="normal"> </span>
+                            <button id="flowmode" class="toggle inactive icon-common-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="19" viewBox="0 0 24 19"
+                                    fill="none">
+                                    <path fill-rule="evenodd" clip-rule="evenodd"
+                                        d="M16.6897 9.06693L16.6929 9.06693H16.6863L16.6897 9.06693ZM1.65988 18.5504C1.49599 18.5499 1.3387 18.5103 1.20095 18.4316C0.877424 18.2467 0.699152 17.877 0.699152 17.3884V11.3668C0.692549 10.8848 0.870821 10.515 1.19435 10.3235C1.51788 10.1387 1.92725 10.1651 2.34982 10.4094L7.57912 13.4202C7.80215 13.5491 7.97183 13.7038 8.08236 13.8765H9.55042C9.76045 13.8765 9.94809 13.7452 10.0201 13.5479L13.0019 5.37874C13.218 4.78685 13.7809 4.39307 14.411 4.39307H15.7289V1.88324C15.7223 1.40124 15.9006 1.03149 16.2241 0.840015C16.5477 0.65514 16.957 0.681551 17.3796 0.925849L22.6089 3.93666C23.0315 4.18096 23.2626 4.5177 23.2626 4.89405C23.2626 5.2704 23.0315 5.60714 22.6089 5.85144L17.3796 8.86225C17.1431 9.0002 16.9066 9.06626 16.6897 9.06693C16.5258 9.06641 16.3685 9.02679 16.2307 8.94808C15.9072 8.76321 15.7289 8.39346 15.7289 7.90486V5.39307H14.411C14.201 5.39307 14.0133 5.52433 13.9413 5.72163L10.9595 13.8908C10.7434 14.4827 10.1805 14.8765 9.55042 14.8765H8.08377C7.97328 15.05 7.8031 15.2055 7.57912 15.335L2.34982 18.3458C2.11333 18.4837 1.87685 18.5498 1.65988 18.5504ZM1.65988 18.5504L1.66314 18.5505H1.65654L1.65988 18.5504ZM6.82623 1.54175C6.82623 1.26561 6.60237 1.04175 6.32623 1.04175C6.05009 1.04175 5.82623 1.26561 5.82623 1.54175V2.88515H4.32715C4.05101 2.88515 3.82715 3.10901 3.82715 3.38515C3.82715 3.6613 4.05101 3.88515 4.32715 3.88515H5.82623V5.31831C5.82623 5.59445 6.05009 5.81831 6.32623 5.81831C6.60237 5.81831 6.82623 5.59445 6.82623 5.31831V3.88515H8.36055C8.63669 3.88515 8.86055 3.6613 8.86055 3.38515C8.86055 3.10901 8.63669 2.88515 8.36055 2.88515H6.82623V1.54175Z"
+                                        fill="rgba(29, 28, 52, 1)" />
+                                </svg>
+                            </button>
+
+
                         </div>
                     </div>
                     <div id="canvasboard">
@@ -294,10 +528,6 @@
     </div>
 </div> -->
 
-<div class="iconbutton-frame" style="z-index: 10;">
-    <!-- <div class="icon-common icon-info" id="icon-info"></div> -->
-    <a href="{{ url_for('project.prompt') }}" class="icon-common icon-newrequest" id="icon-newrequest"></a>
-</div>
 
 {% endif %}
 {% endblock %}

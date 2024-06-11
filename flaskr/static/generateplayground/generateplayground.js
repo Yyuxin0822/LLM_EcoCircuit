@@ -3,6 +3,7 @@ import { Prompt } from './prompt/Prompt.js';
 import { PromptFlowline } from './prompt/PromptFlowline.js';
 import { PromptNode } from './prompt/PromptNode.js';
 import { DefaultSystem, System, SystemFuncBar } from '../SystemBar.js';
+import { PromptNodeDrpDwn } from './prompt/PromptNodeDrpDwn.js';
 const eventTypes = ['click', 'keydown', 'keyup', 'scroll', 'load'];
 eventTypes.forEach(type => {
     const target = type === 'load' ? window : document;
@@ -18,46 +19,57 @@ window.onload = function () {
         previousElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
         setTimeout(finishload, 500);
     }
+    setEditMode();
     finishload();
 };
-const playFuncBar = new PlaygroundFuncBar(document.querySelector('.function-frame'));
-function loadplayground() {
-    document.getElementById('view-playground')?.classList.remove('hidden');
-    document.getElementById('view-custom')?.classList.toggle('hidden');
-    document.getElementById('content-frame')?.classList.remove('hidden');
-    document.getElementById('content-custom-frame').classList.add('hidden');
-    document.getElementById('func-wrapper-engbar')?.classList.remove('hidden');
-    document.getElementById('func-wrapper-edit')?.classList.remove('hidden');
-    document.getElementById('info-frame')?.classList.remove('hidden');
-    document.querySelectorAll('.send-to-custom').forEach((button) => {
-        button.style.display = 'block';
+export const playFuncBar = new PlaygroundFuncBar(document.querySelector('.function-frame'));
+const aiSlider = document.getElementById('ai-slider-wrapper');
+const userSlider = document.getElementById('user-slider-wrapper');
+const aiBtn = document.getElementById('ai-btn');
+const aiBtnFade = document.getElementById('ai-btn-fade');
+const userBtn = document.getElementById('user-btn');
+const userBtnFade = document.getElementById('user-btn-fade');
+const aiFuncs = document.getElementById('ai-wrapper');
+const userFuncs = document.getElementById('user-wrapper');
+aiBtnFade?.addEventListener('click', function (e) {
+    if (aiSlider.classList.contains('hidden')) {
+        aiSlider.classList.remove('hidden');
+        userSlider.classList.add('hidden');
+        aiFuncs?.classList.remove('hidden');
+        userFuncs?.classList.add('hidden');
+        unsetEditMode();
+    }
+});
+aiBtn.addEventListener('click', function (e) {
+    aiFuncs?.classList.toggle('hidden');
+});
+userBtnFade?.addEventListener('click', function (e) {
+    if (userSlider.classList.contains('hidden')) {
+        userSlider.classList.remove('hidden');
+        aiSlider.classList.add('hidden');
+        userFuncs?.classList.remove('hidden');
+        aiFuncs?.classList.add('hidden');
+        setEditMode();
+    }
+});
+userBtn.addEventListener('click', function (e) {
+    userFuncs?.classList.toggle('hidden');
+});
+function setEditMode() {
+    PromptFlowline.lineSel = false;
+    PromptNode.nodeSel = false;
+    Prompt.allPrompts.forEach(prompt => {
+        prompt.focusable = true;
     });
-    playFuncBar.enable();
-    setIframeMode(false);
+    PromptNodeDrpDwn.globalEnabled = true;
 }
-function loadcustom() {
-    document.getElementById('view-playground')?.classList.add('hidden');
-    document.getElementById('view-custom')?.classList.remove('hidden');
-    document.getElementById('content-frame')?.classList.add('hidden');
-    document.getElementById('content-custom-frame')?.classList.remove('hidden');
-    document.getElementById('func-wrapper-engbar')?.classList.add('hidden');
-    document.getElementById('func-wrapper-edit')?.classList.add('hidden');
-    document.getElementById('info-frame')?.classList.add('hidden');
-    document.querySelectorAll('.send-to-custom').forEach((button) => {
-        button.style.display = 'none';
+function unsetEditMode() {
+    Prompt.allPrompts.forEach(prompt => {
+        prompt.unfocus();
+        prompt.focusable = false;
     });
-    playFuncBar.disable();
-    setIframeMode(true);
-    window.scrollTo(0, document.body.scrollHeight);
+    PromptNodeDrpDwn.globalEnabled = false;
 }
-document.getElementById('toggle-playground')?.addEventListener('click', loadplayground);
-document.getElementById('toggle-custom')?.addEventListener('click', loadcustom);
-function toggleEngineerBar() {
-    document.getElementById('engineer-bar-unfolded')?.classList.toggle('hidden');
-    document.getElementById('engineer-bar-folded')?.classList.toggle('hidden');
-}
-document.getElementById('fold')?.addEventListener('click', toggleEngineerBar);
-document.getElementById('unfold')?.addEventListener('click', toggleEngineerBar);
 const systemBar = new SystemFuncBar(document.getElementById('system-bar'));
 var systemString = systemBar.container.querySelector('#project-system').innerText;
 var systemArray = parseJson(systemString);

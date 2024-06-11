@@ -10,7 +10,7 @@ client = OpenAI(api_key=OPENAI_API_KEY)
 clientasync = AsyncOpenAI(api_key=OPENAI_API_KEY)
 import requests
 import base64
-
+import logging
 from PIL import Image
 
 token=GITHUB_TOKEN
@@ -67,11 +67,11 @@ def encode_image(image_path='../instance/images/envir.jpg'):
     return base64.b64encode(image_file.read()).decode('utf-8')
 
 
-async def getdescription(base64_image, max_tries=3):  
-    for i in range(max_tries):
+async def getdescription(imgurl, max_tries=3):  
+    for _ in range(max_tries):
         try:
             response =  await clientasync.chat.completions.create(
-                model="gpt-4-vision-preview",
+                model="gpt-4o",
                 messages=[{
                 "role": "user",
                 "content": [
@@ -79,7 +79,7 @@ async def getdescription(base64_image, max_tries=3):
                     {
                     "type": "image_url",
                     "image_url": {
-                        "url": f"data:image/jpeg;base64,{base64_image}"
+                        "url": f"{imgurl}"
                     },
                     },
                 ],
@@ -87,6 +87,7 @@ async def getdescription(base64_image, max_tries=3):
             n=1,
             max_tokens=300,
             )
+            logging.debug(f"Response: {response.choices[0]}")  
             description = response.choices[0].message.content
             # if description starts with "Sorry"
             if description.startswith("Sorry"):

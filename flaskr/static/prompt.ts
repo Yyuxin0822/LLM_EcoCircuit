@@ -363,6 +363,8 @@ document.getElementById('generate-label')?.addEventListener('click', function ()
         if (selectedValues) {
             form.submit();
             startload();
+        }else{
+            alert('Please select some ideas or custom your own.');
         }
     }
 });

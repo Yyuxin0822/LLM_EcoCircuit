@@ -171,8 +171,8 @@ export class PromptNode {
   attachEventListeners() {
     this.node.addEventListener('contextmenu', this.handleContextMenuClick.bind(this));
     this.nodeWrapper.addEventListener('click', this.handleClick.bind(this));
-    // this.nodeWrapper.addEventListener('mouseover', this.handleHover.bind(this));
-    // this.nodeWrapper.addEventListener('mouseout', this.handleHoverOver.bind(this));
+    this.nodeWrapper.addEventListener('mouseover', this.handleHover.bind(this));
+    this.nodeWrapper.addEventListener('mouseout', this.handleHoverOver.bind(this));
     document.addEventListener('nodeTabClick', event => { this.nodeWrapper.style.cursor = 'pointer'; });
     document.addEventListener('disableNodeTabClick', event => { this.nodeWrapper.style.cursor = 'default'; });
     document.addEventListener('flowlineTabClick', event => {
@@ -196,67 +196,25 @@ export class PromptNode {
 
   handleHover() {
     this.nodeWrapper.classList.add('hovered');
-    // let sameNodes= PromptNode.myNodes.filter(node => node.nodeContent === this.nodeContent);
-    // if (sameNodes.length > 0) {
-    //   sameNodes.forEach(node => {
-    //     node.nodeWrapper.classList.add('hovered');
-    //     //find associatedLines and add hovered class
-    //     let findAssociatedNodes = function (node: PromptNode) {
-    //       let associatedNodes = [];
-    //       let startLines = node.PromptObj.getLinesWhereNodeasInput(node);
-    //       console.log(startLines);
-    //       //get the endNodes of the startLines
-    //       startLines.forEach(line => {
-    //         associatedNodes.push(line.endNodeItem);
-    //       });
-    //       let endLines = node.PromptObj.getLinesWhereNodeasOutput(node);
-    //       console.log(endLines);
-    //       //get the startNodes of the endLines
-    //       endLines.forEach(line => {
-    //         associatedNodes.push(line.startNodeItem);
-    //       });
-    //       return associatedNodes;
-    //     }
-
-    //     let associatedNodes = findAssociatedNodes(node);
-    //     associatedNodes.forEach(node => {
-    //       console.log(node.nodeWrapper);
-    //       node.nodeWrapper.classList.add('hovered');
-    //     });
-    //   });
-    // }
-    
+    // console.log('hovering');
+    let associatedLines = [];
+    let startLines = this.PromptObj.getLinesWhereNodeasInput(this);
+    let endLines = this.PromptObj.getLinesWhereNodeasOutput(this);
+    associatedLines = startLines.concat(endLines);
+    associatedLines.forEach(line => {
+      line.handleHover();
+    });
   }
 
   handleHoverOver() {
     this.nodeWrapper.classList.remove('hovered');
-    // let sameNodes= PromptNode.myNodes.filter(node => node.nodeContent === this.nodeContent);
-    // if (sameNodes.length > 0) {
-    //   sameNodes.forEach(node => {
-    //     node.nodeWrapper.classList.remove('hovered');
-    //     //find associatedLines and add hovered class
-    //     let findAssociatedNodes = function (node) {
-    //       let associatedNodes = [];
-    //       let startLines = node.PromptObj.getLinesWhereNodeasInput(node);
-    //       //get the endNodes of the startLines
-    //       startLines.forEach(line => {
-    //         associatedNodes.push(line.endNodeItem);
-    //       });
-    //       let endLines = node.PromptObj.getLinesWhereNodeasOutput(node);
-    //       //get the startNodes of the endLines
-    //       endLines.forEach(line => {
-    //         associatedNodes.push(line.startNodeItem);
-    //       });
-    //       return associatedNodes;
-    //     }
-    //     let associatedNodes = findAssociatedNodes(node);
-    //     associatedNodes.forEach(node => {
-    //       node.nodeWrapper.classList.remove('hovered');
-    //     });
-    //   });
-    // }
-
-    
+    let associatedLines = [];
+    let startLines = this.PromptObj.getLinesWhereNodeasInput(this);
+    let endLines = this.PromptObj.getLinesWhereNodeasOutput(this);
+    associatedLines = startLines.concat(endLines);
+    associatedLines.forEach(line => {
+      line.exitHover()
+    });
   }
 
   handleClick() {

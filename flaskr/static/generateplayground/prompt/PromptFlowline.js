@@ -13,6 +13,7 @@ export class PromptFlowline extends LeaderLine {
         this.endNodeItem = PromptNode.getNodeObjbyNode(this.end, this.prompt);
         this.selected = false;
         this.feedback = false;
+        this.hovered = false;
         this.commonOptions = {
             startPlug: "hidden",
             startPlugSize: 4,
@@ -90,6 +91,7 @@ export class PromptFlowline extends LeaderLine {
         let endRect = this.end.getBoundingClientRect();
         let startSquare = document.createElement('div');
         startSquare.classList.add('start-square');
+        startSquare.id = "to" + validId(this.endNodeItem.nodeContent);
         startSquare.style.backgroundColor = this.start.style.backgroundColor;
         startSquare.style.zIndex = '2';
         this.start.appendChild(startSquare);
@@ -155,10 +157,38 @@ export class PromptFlowline extends LeaderLine {
             outlineSize: 4
         });
     }
+    handleHover() {
+        if (this.hovered)
+            return;
+        this.setOptions({
+            startPlugColor: 'rgba(29, 28, 52, 1)',
+            endPlugColor: 'rgba(29, 28, 52, 1)',
+            endPlugSize: 2,
+            outlineSize: 4
+        });
+        this.hovered = true;
+    }
+    exitHover() {
+        this.setOptions({
+            startPlugColor: this.start.style.backgroundColor,
+            endPlugColor: this.end.style.backgroundColor,
+            outline: false,
+            endPlugOutline: false,
+            endPlugSize: 1,
+        });
+        this.hovered = false;
+    }
     remove() {
         let prompt = null;
         if (this.start) {
             prompt = this.start.closest('.prompt');
+            let startSquare = this.start.querySelectorAll('.start-square');
+            startSquare.forEach(square => {
+                let squareId = "to" + validId(this.endNodeItem.nodeContent);
+                if (square.id === squareId) {
+                    square.remove();
+                }
+            });
         }
         if (this.end) {
             prompt = this.end.closest('.prompt');

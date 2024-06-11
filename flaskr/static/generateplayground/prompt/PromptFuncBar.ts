@@ -10,6 +10,8 @@ import { PromptIdentifier } from './PromptIdentifier.js';
 import { Prompt } from './Prompt.js';
 //@ts-ignore
 import { PromptCanvasDraw } from './PromptCanvasDraw.js';
+//@ts-ignore
+import { PromptNodeDrpDwn } from './PromptNodeDrpDwn.js';
 
 export class PromptFuncBar extends FuncBar {
     static allPromptFuncBars = [];
@@ -38,6 +40,7 @@ export class PromptFuncBar extends FuncBar {
         // Extend with specific functionality
         switch (id) {
             case 'drawmode':
+                this.cleanupDrpDwn();
                 this.setDrawMode();
                 break;
             case 'nodemode':
@@ -64,6 +67,16 @@ export class PromptFuncBar extends FuncBar {
         }
     }
 
+    cleanupDrpDwn() {
+        //get the promptItem
+        this.promptItem = Prompt.getPromptItembyPrompt(this.prompt);
+        //clean up all dropdowns
+        this.promptItem.promptNodes.forEach(node => {
+            if (node.dropdown) {
+                node.dropdown.remove();
+            }
+        });
+    }
     setSelMode() {
         document.body.style.cursor = "default";
     }
@@ -76,6 +89,9 @@ export class PromptFuncBar extends FuncBar {
 
     setDrawMode() {
         this.canvasDrawInstance.enable();
+
+        let drawBtn=document.getElementById("user-wrapper").querySelector("#drawmode");
+        drawBtn.click();
     }
 
     unsetDrawMode() {
@@ -88,6 +104,9 @@ export class PromptFuncBar extends FuncBar {
         this.prompt.style.cursor = "crosshair";
         this.prompt.addEventListener('click', this.handleNodeClick);
         this.prompt.addEventListener('blur', this.handleBlur);
+
+        let nodeBtn=document.getElementById("user-wrapper").querySelector("#nodemode");
+        nodeBtn.click();
     }
 
     unsetNodeMode() {
@@ -134,7 +153,7 @@ export class PromptFuncBar extends FuncBar {
 
     handleBlur = () => {
         this.cleanupNodeMode();
-        this.selButton.click();
+        // this.selButton.click();
     }
 
     cleanupNodeMode = () => {
@@ -146,6 +165,10 @@ export class PromptFuncBar extends FuncBar {
         //add all Temp Itentifiers 
         this.promptItem = Prompt.getPromptItembyPrompt(this.prompt);
         this.promptItem.promptNodes.forEach(node => {
+            //try to see if the input-identifier and output-identifier already exists
+            if (node.node.querySelector('.input-identifier') && node.node.querySelector('.output-identifier')) {
+                return;
+            }
             let identifier1 = createTempIdentifierHTML(node.node, 'input-identifier');
             let identifier2 = createTempIdentifierHTML(node.node, 'output-identifier');
             let temp1 = new Temp(identifier1);
@@ -155,7 +178,9 @@ export class PromptFuncBar extends FuncBar {
         //eventlistener in PromptNodes changes cursor style
         let event = new CustomEvent('TempClick');
         document.dispatchEvent(event);
-        // console.log("Flow Mode Set");
+        
+        let flowBtn=document.getElementById("user-wrapper").querySelector("#flowmode");
+        flowBtn.click();
     }
 
     unsetFlowMode() {
@@ -175,7 +200,7 @@ export class PromptFuncBar extends FuncBar {
         if (active) {
             this.activateFunction(active.id);
         } else {
-            this.nodeButton.click();
+            // this.nodeButton.click();
         }
     }
 
@@ -190,10 +215,6 @@ export class PromptFuncBar extends FuncBar {
 
 
 }
-
-
-
-
 
 
 function createTempIdentifierHTML(container: HTMLElement, identifierClass: string) {
@@ -218,7 +239,8 @@ let Temp = class {
 
     constructor(temp: HTMLElement) {
         this.temp = temp;
-        this.tempContent = this.temp.closest('.node').textContent;
+        this.tempContent = this.temp.closest('.node').innerText.trim();
+        // console.log(this.tempContent);
         this.selected = false;
         this.selectable = true; //when initialized, all temps are selectable
         this.temp.addEventListener('temp-add', this.handleAddLine.bind(this));
@@ -301,18 +323,21 @@ let Temp = class {
             Temp.totalSelected.forEach(temp => {
                 if (temp.temp.closest('.input-identifier')) {
                     startText = temp.tempContent;
+                    // console.log(startText);
                     startNode = temp.temp.closest('.node');
                 }
                 if (temp.temp.closest('.output-identifier')) {
                     endText = temp.tempContent;
+                    // console.log(endText);
                     endNode = temp.temp.closest('.node');
                 }
-
             });
 
             let promptItem = Prompt.getPromptItembyPrompt(this.temp.closest('.prompt'));
             let line = PromptFlowline.getLinebyEndTexts(startText, endText, promptItem);
 
+
+            // console.log(line);
             if (!line) {
                 // console.log(startNode, endNode)
                 line = new PromptFlowline(startNode, endNode);
@@ -324,6 +349,8 @@ let Temp = class {
                 }
                 promptItem.returnInfo();//save the info immediately after adding the line
                 PromptFlowline.fixLine();
+            }else{
+                console.log("line exists");
             }
 
             Temp.allTemps.forEach(temp => {
@@ -391,9 +418,6 @@ let Temp = class {
         document.dispatchEvent(event2);
     }
 
-
-
-
     remove() {
         // Detach event listeners
         this.temp.removeEventListener('temp-add', this.handleAddLine.bind(this));
@@ -408,4 +432,6 @@ let Temp = class {
         this.temp.remove();
     }
 
+
+    
 };

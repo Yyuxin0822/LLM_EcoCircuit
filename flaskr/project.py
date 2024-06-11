@@ -85,7 +85,6 @@ def prompt():
                     promptuser = request.form["label"]
                     info = IndexHelper.gen_from_label(promptuser)
                     imgurl, genio_result = await process_description_or_label(info)
-                    
                 elif requesttype == "image":
                     if request.files:
                         file = request.files["image"]
@@ -289,6 +288,26 @@ def save_info_to_project(data):
     db.commit()
     return data["project_id"]
 
+# (U)
+@socketio.on("save_title")
+def save_info_to_project(data):
+    # print("Saved data to project: ", data)
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute(
+        """
+        UPDATE project
+        SET title = ?
+        WHERE id = ?
+        """,
+        (
+            data["title"],  # Serialize the node data to a JSON string
+            data["project_id"],  # The ID for the record to update
+        ),
+    )
+
+    db.commit()
+    return data["project_id"]
 
 # (U) promptcanvas
 @bp.route('/save_promptcanvas', methods=['POST'])
@@ -517,8 +536,9 @@ class IndexHelper:
         info = ""
         cropImage(filepath, 720)
         base64_image = encode_image(filepath)
-        info = await getdescription(base64_image)
         imgurl = genurl(id, local_path=filepath)
+        info = await getdescription(imgurl)
+        
         return imgurl, info
 
     def gen_from_description(

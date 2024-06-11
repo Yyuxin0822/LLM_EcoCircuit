@@ -20,6 +20,7 @@ export class PromptFlowline extends LeaderLine {
   commonOptions: {}; //common options for all lines
   selected: boolean;
   feedback: boolean;
+  hovered: boolean;
   //constructor
   constructor(start: HTMLElement, end: HTMLElement) {
     super(start, end);
@@ -27,7 +28,6 @@ export class PromptFlowline extends LeaderLine {
       return;
     }
 
-    
     this.start = start;
     this.end = end;
     this.prompt = this.start.closest('.prompt') as HTMLElement;
@@ -35,6 +35,7 @@ export class PromptFlowline extends LeaderLine {
     this.endNodeItem = PromptNode.getNodeObjbyNode(this.end, this.prompt);
     this.selected = false;
     this.feedback = false;
+    this.hovered = false;
     // Initialize commonOptions here where start and end are defined
     this.commonOptions = {
       startPlug: "hidden",
@@ -169,6 +170,9 @@ export class PromptFlowline extends LeaderLine {
 
     let startSquare = document.createElement('div');
     startSquare.classList.add('start-square');
+    //set the flowText as the startSquare id
+    startSquare.id = "to"+validId(this.endNodeItem.nodeContent);
+
     startSquare.style.backgroundColor = this.start.style.backgroundColor;
     startSquare.style.zIndex = '2';
     this.start.appendChild(startSquare);
@@ -270,7 +274,31 @@ export class PromptFlowline extends LeaderLine {
 
   }
 
+  handleHover() {
+    if (this.hovered) return;
+    this.setOptions({
+      startPlugColor: 'rgba(29, 28, 52, 1)',
+      endPlugColor: 'rgba(29, 28, 52, 1)',
+      endPlugSize: 2,
+      // outline: true,
+      // outlineColor: 'black',
+      // endPlugOutline: true,
+      outlineSize: 4
+    });
+    this.hovered = true;
 
+  }
+  exitHover() {
+    this.setOptions({
+      startPlugColor: this.start.style.backgroundColor,
+      endPlugColor: this.end.style.backgroundColor,
+      outline: false,
+      endPlugOutline: false,
+      endPlugSize: 1,
+    });
+    this.hovered = false;
+
+  }
   // resettoselect() {
   //   if (this.selected) return;
   //   this.setOptions({
@@ -282,8 +310,6 @@ export class PromptFlowline extends LeaderLine {
   //   //resettoselect the identifiers
   //   this.startNodeItem.inputIdentifier.resettoselect();
   //   this.endNodeItem.outputIdentifier.resettoselect();
-
-
   // }
 
 
@@ -291,6 +317,17 @@ export class PromptFlowline extends LeaderLine {
     let prompt = null;
     if (this.start) {
       prompt = this.start.closest('.prompt') as HTMLElement;
+      
+      //remove "regenerate" square if exists
+      let startSquare = this.start.querySelectorAll('.start-square');
+      startSquare.forEach(square => {
+        //check the startSquare id
+        let squareId = "to"+validId(this.endNodeItem.nodeContent);
+        if (square.id === squareId){
+          square.remove();
+          // console.log(squareId, "removed")
+        }
+      });
     }
     if (this.end) {
       prompt = this.end.closest('.prompt') as HTMLElement;
@@ -312,6 +349,7 @@ export class PromptFlowline extends LeaderLine {
     if (index > -1) {
       promptItem.promptLines.splice(index, 1);
     }
+
 
 
     promptItem.returnInfo(); // save the info immediately after removing the line

@@ -288,5 +288,8 @@ document.getElementById('generate-label')?.addEventListener('click', function ()
             form.submit();
             startload();
         }
+        else {
+            alert('Please select some ideas or custom your own.');
+        }
     }
 });

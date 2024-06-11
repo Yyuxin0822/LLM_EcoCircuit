@@ -57,6 +57,7 @@ export class Prompt {
             this.parent._prompt.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
                 // e.stopPropagation();
+                this.handleClickInside();
             });
 
             document.addEventListener('click', this.handleClickOutside, false);
@@ -70,6 +71,7 @@ export class Prompt {
 
         detachEventListeners(): void {
             this.parent._prompt.removeEventListener('click', this.handleClickInside, false);
+            this.parent._prompt.removeEventListener('contextmenu', this.handleClickInside, false);
             document.removeEventListener('click', this.handleClickOutside, false);
         }
 
@@ -88,7 +90,6 @@ export class Prompt {
 
         private handleClickOutside(event: MouseEvent): void {
             if (!this.parent.focusable) return;
-
             const isClickInsideAnyPrompt = Prompt.allPrompts.some(p => p._prompt.contains(event.target as HTMLElement));
             if (!isClickInsideAnyPrompt) {
                 this.parent.unfocus();

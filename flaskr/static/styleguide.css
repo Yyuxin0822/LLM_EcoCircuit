@@ -51,7 +51,6 @@
   visibility: visible;
 }
 
-
 a {
   text-decoration: none;
   font-weight: 100;
@@ -286,6 +285,7 @@ p,
   align-items: center;
   justify-content: center;
 }
+
 
 .icon-close {
   background-image: url('icon/07_Close.png');
@@ -551,6 +551,7 @@ p,
   transform: translateY(0);
   transition: opacity .15s ease-in-out, tansform .15s ease-in-out;
   text-align: left;
+  font-family: var(--normal-20-font-family);
 }
 
 .dropdown-menu>.dropdown-item,
@@ -559,4 +560,10 @@ p,
   color: rgb(30, 30, 30);
   cursor: pointer;
   pointer-events: auto;
+  font-family: var(--normal-20-font-family);
+}
+
+.dropdown-item-sub {
+  white-space:wrap;
+  font-size:var(--card-14-font-size);
 }

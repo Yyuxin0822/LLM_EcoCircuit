@@ -15,13 +15,15 @@ export class PromptCanvasDraw {
             mouseMove: this.mouseMove.bind(this),
             mouseUp: this.endStroke.bind(this),
             mouseOut: this.endStroke.bind(this),
-            mouseEnter: this.mouseEnter.bind(this)
+            mouseEnter: this.mouseEnter.bind(this),
+            keyDownEvt: this.keyDownEvt.bind(this)
         };
         this.disable();
         this.enabled = false;
         PromptCanvasDraw.promptDrawInstances.push(this);
         window.onbeforeunload = this.saveAllCanvases.bind(this);
         window.addEventListener("DOMContentLoaded", this.loadCanvas.bind(this));
+        window.addEventListener("keydown", this.handlers.keyDownEvt, false);
     }
     attachEventListeners() {
         this.canvas.addEventListener("touchstart", this.handlers.touchStart, false);
@@ -42,6 +44,14 @@ export class PromptCanvasDraw {
         this.canvas.removeEventListener("mouseup", this.handlers.mouseUp, false);
         this.canvas.removeEventListener("mouseout", this.handlers.mouseOut, false);
         this.canvas.removeEventListener("mouseenter", this.handlers.mouseEnter, false);
+    }
+    keyDownEvt(evt) {
+        if (evt.key === '+' || evt.key === '=') {
+            this.strokeWidth = Math.min(this.strokeWidth + 1, 100);
+        }
+        else if (evt.key === '-' || evt.key === '_') {
+            this.strokeWidth = Math.max(this.strokeWidth - 1, 1);
+        }
     }
     enable() {
         if (this.enabled)
@@ -158,7 +168,6 @@ export class PromptCanvasDraw {
         }, 'image/png');
     }
     loadCanvas() {
-        console.log("loading canvas");
         var prompt = this.container.closest(".prompt");
         if (!prompt)
             return;

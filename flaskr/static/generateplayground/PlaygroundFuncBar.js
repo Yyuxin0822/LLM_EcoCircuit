@@ -2,15 +2,23 @@ import { FuncBar } from '../FuncBar.js';
 import { Prompt } from './prompt/Prompt.js';
 import { PromptFlowline } from './prompt/PromptFlowline.js';
 import { PromptNode } from './prompt/PromptNode.js';
-import { PromptNodeDrpDwn } from './prompt/PromptNodeDrpDwn.js';
 export class PlaygroundFuncBar extends FuncBar {
     constructor(container) {
         super(container);
-        this.enableEditButton = this.container.querySelector("#enable-edit");
-        this.addInputButton = this.container.querySelector("#add-input");
+        this.currentMode = "";
+        this.currentAgent = "";
+    }
+    updateAgentAndMode(id) {
+        const newAgent = PlaygroundFuncBar.aiMethods.includes(id) ? 'AI' : PlaygroundFuncBar.humanMethods.includes(id) ? 'Human' : '';
+        const isSwitchingToAI = newAgent === 'AI' && this.currentAgent !== 'AI';
+        const isSwitchingToHuman = newAgent === 'Human' && this.currentAgent !== 'Human';
+        this.currentAgent = newAgent;
+        this.currentMode = id;
+        return { isSwitchingToAI, isSwitchingToHuman };
     }
     activateFunction(id) {
         super.activateFunction(id);
+        this.openInstruction(id);
         switch (id) {
             case 'add-input':
                 this.handleNodeTabClick();
@@ -27,8 +35,30 @@ export class PlaygroundFuncBar extends FuncBar {
             case 'add-feedback':
                 this.handleNodeTabClick();
                 break;
-            case 'enable-edit':
-                this.setEditMode();
+            case 'update-image':
+                this.activateInfoEdit();
+                break;
+            case 'more-io':
+                this.activateInfoEdit();
+                break;
+            case 'drawmode':
+                Prompt.allPrompts.forEach(prompt => {
+                    prompt._prompt.querySelector("#drawmode").click();
+                });
+                break;
+            case 'nodemode':
+                Prompt.allPrompts.forEach(prompt => {
+                    prompt._prompt.querySelector("#nodemode").click();
+                });
+                break;
+            case 'flowmode':
+                Prompt.allPrompts.forEach(prompt => {
+                    prompt._prompt.querySelector("#flowmode").click();
+                });
+                break;
+            case 'editinfo':
+                this.activateInfoEdit();
+                this.activateTitleEdit();
                 break;
         }
     }
@@ -50,10 +80,51 @@ export class PlaygroundFuncBar extends FuncBar {
             case 'add-feedback':
                 this.disableNodeTabClick();
                 break;
-            case 'enable-edit':
-                this.unsetEditMode();
+            case 'update-image':
+                this.deactivateInfoEdit();
+                break;
+            case 'more-io':
+                this.deactivateInfoEdit();
+                break;
+            case 'drawmode':
+                break;
+            case 'nodemode':
+                break;
+            case 'flowmode':
+                break;
+            case 'editinfo':
+                this.deactivateInfoEdit();
+                this.deactivateTitleEdit();
                 break;
         }
+    }
+    openInstruction(id) {
+        let instructid = id + "-instruction";
+        let instruction = document.getElementById(instructid);
+        if (instruction) {
+            let instructContainer = instruction.closest(".option-instruct");
+            instructContainer.querySelectorAll(".instruct").forEach((element) => {
+                element.classList.add("hidden");
+            });
+            instruction.classList.remove("hidden");
+            instructContainer.classList.remove("hidden");
+            instructContainer.querySelectorAll(".component-wrapper").forEach((element) => {
+                element.style.display = "none";
+            });
+            let optiongroup1 = ["add-input", "add-process", "add-cooptimization", "add-output", "add-feedback"];
+            if (optiongroup1.includes(id)) {
+                document.getElementById("quickgen").style.display = "flex";
+            }
+            let optiongroup2 = ["more-io"];
+            if (optiongroup2.includes(id)) {
+                document.getElementById("add-io").style.display = "flex";
+            }
+            let optiongroup3 = ["update-image"];
+            if (optiongroup3.includes(id)) {
+                document.getElementById("regen-image").style.display = "flex";
+            }
+        }
+        PromptFlowline.fixLine();
     }
     handleNodeTabClick() {
         PromptNode.nodeSel = true;
@@ -79,25 +150,6 @@ export class PlaygroundFuncBar extends FuncBar {
         let event = new CustomEvent('disableFlowlineTabClick');
         document.dispatchEvent(event);
     }
-    setEditMode() {
-        PromptFlowline.lineSel = false;
-        PromptNode.nodeSel = false;
-        Prompt.allPrompts.forEach(prompt => {
-            prompt.focusable = true;
-        });
-        PromptNodeDrpDwn.globalEnabled = true;
-        let firstPrompt = Prompt.allPrompts[Prompt.allPrompts.length - 1];
-        firstPrompt.promptFocus();
-        this.activateInfoEdit();
-    }
-    unsetEditMode() {
-        Prompt.allPrompts.forEach(prompt => {
-            prompt.unfocus();
-            prompt.focusable = false;
-        });
-        PromptNodeDrpDwn.globalEnabled = false;
-        this.deactivateInfoEdit();
-    }
     returnMode() {
         this.activeToggle = this.container.querySelector(".active");
         if (this.activeToggle && this.activeToggle != this.enableEditButton) {
@@ -109,6 +161,7 @@ export class PlaygroundFuncBar extends FuncBar {
         let info = document.getElementById("info");
         let infoPrev = document.getElementById("info-previous");
         info.contentEditable = true;
+        info.focus();
         info?.addEventListener('blur', function () {
             if (!info.textContent) {
                 info.textContent = infoPrev.textContent;
@@ -129,6 +182,30 @@ export class PlaygroundFuncBar extends FuncBar {
         let info = document.getElementById("info");
         info.contentEditable = false;
     }
+    activateTitleEdit() {
+        let projectTitle = document.getElementById("pjtitle");
+        let projectTitlePrev = document.getElementById("pjtitle-previous");
+        projectTitle.contentEditable = true;
+        projectTitle?.addEventListener('blur', function () {
+            if (!projectTitle.textContent) {
+                projectTitle.textContent = projectTitlePrev.textContent;
+                return;
+            }
+            else {
+                let project_id = document.getElementById('project_id').innerText;
+                let data = { project_id: project_id, title: projectTitle.innerText };
+                return emitSocket("save_title", data).then(() => {
+                    projectTitlePrev.textContent = projectTitle.textContent;
+                }).catch(error => {
+                    console.error("Failed to emit socket:", error);
+                });
+            }
+        });
+    }
+    deactivateTitleEdit() {
+        let projectTitle = document.getElementById("pjtitle");
+        projectTitle.contentEditable = false;
+    }
     disable() {
         this.addInputButton.click();
     }
@@ -137,3 +214,5 @@ export class PlaygroundFuncBar extends FuncBar {
     }
     ;
 }
+PlaygroundFuncBar.aiMethods = ["add-input", "add-process", "add-coop", "add-output", "add-feedback", "update-image", "more-io"];
+PlaygroundFuncBar.humanMethods = ["drawmode", "nodemode", "flowmode"];
